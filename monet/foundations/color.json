@@ -3,9 +3,9 @@
   "name": "Color",
   "status": "selected",
   "description": "Color system for application surfaces, text, borders, interactions, status, feedback, and expressive accents.",
-  "rationale": "Use a restrained neutral foundation with amethyst as the primary identity and interaction color. Supporting teal, blue, raspberry, and purple colors provide secondary and expressive options without competing with semantic meaning. Semantic roles reference a small primitive palette so product code expresses intent rather than raw hues. Every interactive role carries its own hover, pressed, selected, and disabled values, and every fill role has a verified foreground, so agents never have to invent a state color or guess whether white text is legible on a given surface. Identity fills sit close to the 4.5:1 floor because their hues are fixed; every role Monet derived rather than inherited is pushed clear of the floor so a state change or a tinted surface cannot drop a legible pairing below it.",
-  "guidance": "Use semantic color roles in product code rather than raw palette values. Use amethyst for primary interactive emphasis. Reserve red for destructive actions and errors, blue for informational meaning, teal for success, and amber for warnings. Use bright purple, soft teal, and raspberry primarily as expressive accents, highlights, visualization colors, or subtle selected states.\n\nFilled surfaces: pair every fill with its verified foreground — color.on.primary, color.on.secondary, color.on.accent, color.on.highlight, color.on.info, color.on.success, color.on.warning, and color.on.danger. Do not assume white is legible; teal, the expressive purple, and other light fills take a dark foreground.\n\nTinted surfaces: use the .surface variants of info, success, warning, and danger for alerts, banners, and quiet status regions. These are light enough to carry ordinary color.foreground text, so do not also switch the text to a status color.\n\nStatus text: color.info, color.warning, and color.danger are readable on light surfaces. color.success is not, so use color.success.foreground for success text and icons. color.primary is an interaction and fill color rather than a text color on tinted surfaces; use color.primary.foreground for amethyst text, icons, and selection indicators.\n\nInteraction: quiet surfaces move color.surface to color.surface.hover and color.surface.pressed; filled primary and destructive controls move to their .hover and .pressed values. Selection uses color.surface.selected with color.primary.foreground for its text, icon, or indicator, and color.primary for a solid selected fill or rail. Disabled controls use color.surface.disabled and color.foreground.disabled.\n\nText placement: body and status text belongs on color.surface, where every semantic text role is verified. Against the darker color.background, only color.foreground and color.foreground.muted are guaranteed, so keep status, link, and accent text on a surface rather than directly on the page background. color.foreground.muted is verified against color.surface and every state surface, including color.surface.pressed.\n\nBoundaries: Monet has one border decision and three border colors. color.border.subtle is a quiet separator inside a surface. color.border is the boundary of non-interactive structure — panels, cards, table rules, and section edges — and does not on its own meet the 3:1 non-text minimum. color.border.strong is the resting boundary of an unfilled control: a text input, textarea, select trigger, search field, password field, combobox, checkbox box, or radio circle, whose boundary is the only thing identifying it as interactive. A control that carries its own fill — a filled button, a checked checkbox, a selected segmented item — is identified by the fill and keeps the structural border or no border at all. The Borders foundation owns the matching stroke widths and references these same colors.\n\nVerify normal text at a minimum 4.5:1 contrast ratio and meaningful non-text boundaries at 3:1. Roles Monet derived rather than inherited from the identity palette are held to a 4.75:1 safety margin against the surfaces they are documented on, so a later tint or state change cannot quietly cross the floor. Never rely on color alone to communicate meaning.",
-  "notes": "Preferred palette: amethyst #9B59B6, bright purple #DC95FF, turquoise #1ABC9C, soft teal #7AE2CF, blue #3498DB, raspberry #CF4173, danger red #D0311E, dark blue-gray #2C3E50, light neutral #ECF0F1, and white #FFFFFF. Amber is included specifically to provide a distinct warning state.\n\nIdentity hues are fixed, so color.on.primary, color.on.secondary, color.on.accent, and color.on.success land just above the 4.5:1 floor by design. Every role Monet derived was moved clear of it instead: color.link and color.info left blue.500 (3.15:1 on white) for blue.600, color.warning left amber.600 (3.64:1 on white) for amber.700, and those two derived steps plus teal.700 were then darkened again so status text, the white-on-warning fill, and success text all clear 5:1 rather than sitting a rounding error above the minimum. neutral.600 was darkened for the same reason: as color.foreground.muted it fell to 4.43:1 on color.surface.pressed, and as color.border.strong it is the boundary an unfilled control depends on. The identity values remain available as primitives for expressive and visualization use. color.success intentionally keeps turquoise because it is an identity color; its dark foreground pairing and a separate color.success.foreground cover the contrast requirement instead.\n\ncolor.primary.foreground exists because color.primary reaches only 4.01:1 on color.surface.selected, and selection guidance depends on amethyst text and indicators being readable there. It parallels color.success.foreground: the same identity hue, one step darker, for text rather than fill.\n\ncolor.border.subtle completes the border family so the Borders foundation can reference a Color role for every stroke instead of carrying its own hexes.\n\nHover and pressed steps are derived by darkening the base role rather than by overlaying opacity, so the resulting color stays predictable on any surface. Add another interaction step only when a recurring component need cannot be met by hover, pressed, selected, and disabled.",
+  "rationale": "Use a restrained neutral foundation with amethyst as the primary identity and interaction color. Supporting teal, blue, raspberry, and purple colors provide secondary and expressive options without competing with semantic meaning. Semantic roles reference a small primitive palette so product code expresses intent rather than raw hues. Every interactive role carries its own hover, pressed, selected, and disabled values, and every fill role has a verified foreground, so agents never have to invent a state color or guess whether white text is legible on a given surface. Identity fills sit close to the 4.5:1 floor because their hues are fixed; every role Monet derived rather than inherited is pushed clear of the floor so a state change or a tinted surface cannot drop a legible pairing below it. Dark mode is the same system resolved on dark surfaces rather than a second palette: every semantic role keeps its meaning, fills and their verified foregrounds keep their exact values, and only the surfaces, text, borders, tints, and focus color move, each to a primitive chosen to clear the same contrast margins on the dark surfaces it is documented against.",
+  "guidance": "Use semantic color roles in product code rather than raw palette values. Use amethyst for primary interactive emphasis. Reserve red for destructive actions and errors, blue for informational meaning, teal for success, and amber for warnings. Use bright purple, soft teal, and raspberry primarily as expressive accents, highlights, visualization colors, or subtle selected states.\n\nFilled surfaces: pair every fill with its verified foreground — color.on.primary, color.on.secondary, color.on.accent, color.on.highlight, color.on.info, color.on.success, color.on.warning, and color.on.danger. Do not assume white is legible; teal, the expressive purple, and other light fills take a dark foreground.\n\nTinted surfaces: use the .surface variants of info, success, warning, and danger for alerts, banners, and quiet status regions. These are light enough to carry ordinary color.foreground text, so do not also switch the text to a status color.\n\nStatus text: every status has a fill and a text role. color.info, color.success, color.warning, and color.danger are fills that carry their color.on.* foreground; color.info.foreground, color.success.foreground, color.warning.foreground, and color.danger.foreground are the text and icon colors, verified on color.surface in both modes. On a tinted status surface keep the text color.foreground and let the icon or indicator carry the status color, as the Badge and Alert decisions say. In light mode the info, warning, and danger pairs share a value, so nothing changes visually; in dark mode the fills stay put and the text roles lighten. color.primary is an interaction and fill color rather than a text color on tinted surfaces; use color.primary.foreground for amethyst text, icons, and selection indicators.\n\nInteraction: quiet surfaces move color.surface to color.surface.hover and color.surface.pressed; filled primary and destructive controls move to their .hover and .pressed values. Selection uses color.surface.selected with color.primary.foreground for its text, icon, or indicator, and color.primary for a solid selected fill or rail. Disabled controls use color.surface.disabled and color.foreground.disabled.\n\nText placement: body and status text belongs on color.surface, where every semantic text role is verified in both modes. Against color.background, only color.foreground and color.foreground.muted are guaranteed, so keep status, link, and accent text on a surface rather than directly on the page background. color.foreground.muted is verified against color.surface and every state surface, including color.surface.pressed, in light and dark.\n\nBoundaries: Monet has one border decision and three border colors. color.border.subtle is a quiet separator inside a surface. color.border is the boundary of non-interactive structure — panels, cards, table rules, and section edges — and does not on its own meet the 3:1 non-text minimum. color.border.strong is the resting boundary of an unfilled control: a text input, textarea, select trigger, search field, password field, combobox, checkbox box, or radio circle, whose boundary is the only thing identifying it as interactive. A control that carries its own fill — a filled button, a checked checkbox, a selected segmented item — is identified by the fill and keeps the structural border or no border at all. The Borders foundation owns the matching stroke widths and references these same colors.\n\nVerify normal text at a minimum 4.5:1 contrast ratio and meaningful non-text boundaries at 3:1. Roles Monet derived rather than inherited from the identity palette are held to a 4.75:1 safety margin against the surfaces they are documented on, so a later tint or state change cannot quietly cross the floor. Never rely on color alone to communicate meaning.\n\nModes: the same semantic roles resolve in light and dark; product code never branches on mode, it uses the role and lets resolution pick the value. Fills — color.primary and its states, color.danger and its states, color.info, color.success, color.warning, color.secondary, color.accent, color.highlight — and every color.on.* foreground are identical in both modes, so a filled button or badge is the same object on a dark screen. What changes in dark mode: surfaces and their hover, pressed, selected, and disabled states move to the dark neutrals and a deep amethyst tint; color.foreground, color.foreground.muted, and color.foreground.disabled lighten; borders move to the dark neutrals while color.border.strong keeps its 3:1 boundary contrast; the tinted status surfaces become deep tints that still carry color.foreground; the status text roles, color.link, color.primary.foreground, and color.focus lighten to keep 4.75:1 on the dark surfaces. Hover and pressed on fills still darken in both modes, because a fill's contrast is measured against its own foreground, not the surface. Shadows and the modal scrim strengthen in dark mode; see Elevation and Opacity.",
+  "notes": "Preferred palette: amethyst #9B59B6, bright purple #DC95FF, turquoise #1ABC9C, soft teal #7AE2CF, blue #3498DB, raspberry #CF4173, danger red #D0311E, dark blue-gray #2C3E50, light neutral #ECF0F1, and white #FFFFFF. Amber is included specifically to provide a distinct warning state.\n\nIdentity hues are fixed, so color.on.primary, color.on.secondary, color.on.accent, and color.on.success land just above the 4.5:1 floor by design. Every role Monet derived was moved clear of it instead: color.link and color.info left blue.500 (3.15:1 on white) for blue.600, color.warning left amber.600 (3.64:1 on white) for amber.700, and those two derived steps plus teal.700 were then darkened again so status text, the white-on-warning fill, and success text all clear 5:1 rather than sitting a rounding error above the minimum. neutral.600 was darkened for the same reason: as color.foreground.muted it fell to 4.43:1 on color.surface.pressed, and as color.border.strong it is the boundary an unfilled control depends on. The identity values remain available as primitives for expressive and visualization use. color.success intentionally keeps turquoise because it is an identity color; its dark foreground pairing and a separate color.success.foreground cover the contrast requirement instead.\n\ncolor.primary.foreground exists because color.primary reaches only 4.01:1 on color.surface.selected, and selection guidance depends on amethyst text and indicators being readable there. It parallels color.success.foreground: the same identity hue, one step darker, for text rather than fill.\n\ncolor.border.subtle completes the border family so the Borders foundation can reference a Color role for every stroke instead of carrying its own hexes.\n\nHover and pressed steps are derived by darkening the base role rather than by overlaying opacity, so the resulting color stays predictable on any surface. Add another interaction step only when a recurring component need cannot be met by hover, pressed, selected, and disabled.\n\nDark mode adds a cool blue-gray ramp below neutral.900 — neutral.925, .950, and .975 — plus neutral.350, .500, and .800, because the light ramp's warm grays sit at the wrong luminances for dark surfaces: neutral.400 falls to 4.1:1 as muted text on the dark pressed surface, so muted text and the control boundary use neutral.350, which clears 5.3:1 there and 7.5:1 on color.surface. The status text roles use a 400 step of each hue: blue.400, amber.400, and red.400 each clear 6:1 on the dark surface and on their deep 900 tint, and teal.300 already does. Identity fills keep their light values in dark mode because their verified pairings are with their own foregrounds: amethyst on the dark surface is 3.3:1, which also satisfies the non-text minimum for a selection rail. Deep tints (purple.900, blue.900, teal.900, amber.900, red.900) are chosen so color.foreground stays above 12:1 and each status text role above 5.9:1 on them.",
   "order": 0,
   "tokens": [
     {
@@ -146,7 +146,10 @@
       "level": "semantic",
       "value": "{neutral.100}",
       "description": "Default application background.",
-      "order": 13
+      "order": 13,
+      "modes": {
+        "dark": "{neutral.975}"
+      }
     },
     {
       "id": "color-surface",
@@ -156,7 +159,10 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Default content, panel, card, and elevated surface.",
-      "order": 14
+      "order": 14,
+      "modes": {
+        "dark": "{neutral.950}"
+      }
     },
     {
       "id": "color-surface-subtle",
@@ -166,7 +172,10 @@
       "level": "semantic",
       "value": "{neutral.100}",
       "description": "Subtle surface used to distinguish secondary regions without strong containers.",
-      "order": 15
+      "order": 15,
+      "modes": {
+        "dark": "{neutral.975}"
+      }
     },
     {
       "id": "color-foreground",
@@ -176,7 +185,10 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Default primary text and foreground content.",
-      "order": 16
+      "order": 16,
+      "modes": {
+        "dark": "{neutral.100}"
+      }
     },
     {
       "id": "color-foreground-muted",
@@ -186,7 +198,10 @@
       "level": "semantic",
       "value": "{neutral.600}",
       "description": "Secondary text, metadata, descriptions, and lower-emphasis content.",
-      "order": 17
+      "order": 17,
+      "modes": {
+        "dark": "{neutral.350}"
+      }
     },
     {
       "id": "color-foreground-inverse",
@@ -195,8 +210,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{neutral.white}",
-      "description": "Foreground content displayed on sufficiently dark backgrounds.",
-      "order": 18
+      "description": "Foreground for content on a surface of the opposite mode: white on dark fills in light mode, near-black on light fills in dark mode. Prefer the verified color.on.* role for a specific fill.",
+      "order": 18,
+      "modes": {
+        "dark": "{neutral.975}"
+      }
     },
     {
       "id": "color-border",
@@ -205,8 +223,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{neutral.300}",
-      "description": "Default subtle border and separator.",
-      "order": 19
+      "description": "Default structural border and separator for panels, cards, table rules, and section edges.",
+      "order": 19,
+      "modes": {
+        "dark": "{neutral.800}"
+      }
     },
     {
       "id": "color-border-strong",
@@ -215,8 +236,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{neutral.600}",
-      "description": "Higher-emphasis border used where stronger visual separation is necessary.",
-      "order": 20
+      "description": "Resting boundary of an unfilled control, held to the 3:1 non-text minimum on every state surface in both modes.",
+      "order": 20,
+      "modes": {
+        "dark": "{neutral.350}"
+      }
     },
     {
       "id": "color-primary",
@@ -265,8 +289,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{blue.600}",
-      "description": "Default link and navigational text emphasis, verified at 4.5:1 against color.surface.",
-      "order": 25
+      "description": "Default link and navigational text emphasis, verified at 4.5:1 against color.surface in both modes.",
+      "order": 25,
+      "modes": {
+        "dark": "{blue.400}"
+      }
     },
     {
       "id": "color-info",
@@ -275,7 +302,7 @@
       "type": "color",
       "level": "semantic",
       "value": "{blue.600}",
-      "description": "Informational messages, indicators, and feedback. Readable as text on color.surface and carries color.on.info when filled.",
+      "description": "Informational fill for badges, indicators, and filled feedback; carries color.on.info. Use color.info.foreground for informational text.",
       "order": 26
     },
     {
@@ -285,7 +312,7 @@
       "type": "color",
       "level": "semantic",
       "value": "{teal.500}",
-      "description": "Successful, completed, and positive states. Use color.success.foreground for success text on light surfaces.",
+      "description": "Successful, completed, and positive states as a fill; carries color.on.success. Use color.success.foreground for success text and icons.",
       "order": 27
     },
     {
@@ -295,7 +322,7 @@
       "type": "color",
       "level": "semantic",
       "value": "{amber.700}",
-      "description": "Warning and caution states that require attention but are not errors. Readable as text on color.surface and carries color.on.warning when filled.",
+      "description": "Warning and caution states as a fill; carries color.on.warning. Use color.warning.foreground for warning text and icons.",
       "order": 28
     },
     {
@@ -305,7 +332,7 @@
       "type": "color",
       "level": "semantic",
       "value": "{red.600}",
-      "description": "Errors, destructive actions, and critical negative states.",
+      "description": "Errors, destructive actions, and critical negative states as a fill; carries color.on.danger. Use color.danger.foreground for error text and icons.",
       "order": 29
     },
     {
@@ -315,8 +342,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{purple.500}",
-      "description": "Visible keyboard-focus indicator.",
-      "order": 30
+      "description": "Visible keyboard-focus indicator, held to the 3:1 non-text minimum against color.surface in both modes.",
+      "order": 30,
+      "modes": {
+        "dark": "{purple.300}"
+      }
     },
     {
       "id": "neutral-50",
@@ -476,7 +506,10 @@
       "level": "semantic",
       "value": "{neutral.50}",
       "description": "Surface under the pointer for rows, list items, menu items, cards, and quiet controls.",
-      "order": 46
+      "order": 46,
+      "modes": {
+        "dark": "{neutral.925}"
+      }
     },
     {
       "id": "color-surface-pressed",
@@ -486,7 +519,10 @@
       "level": "semantic",
       "value": "{neutral.200}",
       "description": "Surface while a control is held down or while a menu trigger stays open.",
-      "order": 47
+      "order": 47,
+      "modes": {
+        "dark": "{neutral.900}"
+      }
     },
     {
       "id": "color-surface-selected",
@@ -495,8 +531,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{purple.100}",
-      "description": "Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis.",
-      "order": 48
+      "description": "Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis. Carries color.primary.foreground text and a color.primary indicator in both modes.",
+      "order": 48,
+      "modes": {
+        "dark": "{purple.900}"
+      }
     },
     {
       "id": "color-surface-disabled",
@@ -506,7 +545,10 @@
       "level": "semantic",
       "value": "{neutral.100}",
       "description": "Surface for disabled controls and non-interactive regions.",
-      "order": 49
+      "order": 49,
+      "modes": {
+        "dark": "{neutral.975}"
+      }
     },
     {
       "id": "color-foreground-disabled",
@@ -516,7 +558,10 @@
       "level": "semantic",
       "value": "{neutral.400}",
       "description": "Foreground for disabled labels, values, and icons. Never the only signal that a control is unavailable.",
-      "order": 50
+      "order": 50,
+      "modes": {
+        "dark": "{neutral.500}"
+      }
     },
     {
       "id": "color-primary-hover",
@@ -566,7 +611,23 @@
       "level": "semantic",
       "value": "{blue.100}",
       "description": "Tinted background for informational alerts, banners, and badges. Carries color.foreground.",
-      "order": 55
+      "order": 55,
+      "modes": {
+        "dark": "{blue.900}"
+      }
+    },
+    {
+      "id": "color-info-foreground",
+      "name": "color.info.foreground",
+      "foundation": "color",
+      "type": "color",
+      "level": "semantic",
+      "value": "{blue.600}",
+      "description": "Informational text and icons on color.surface. Identical to color.info in light mode; lightened in dark mode, where the fill is not readable as text.",
+      "order": 56,
+      "modes": {
+        "dark": "{blue.400}"
+      }
     },
     {
       "id": "color-success-surface",
@@ -576,7 +637,10 @@
       "level": "semantic",
       "value": "{teal.100}",
       "description": "Tinted background for success alerts, banners, and badges. Carries color.foreground.",
-      "order": 56
+      "order": 57,
+      "modes": {
+        "dark": "{teal.900}"
+      }
     },
     {
       "id": "color-success-foreground",
@@ -585,8 +649,11 @@
       "type": "color",
       "level": "semantic",
       "value": "{teal.700}",
-      "description": "Success text and icons on color.surface, where color.success itself is too light to read.",
-      "order": 57
+      "description": "Success text and icons on color.surface and color.success.surface, where color.success itself is not readable as text.",
+      "order": 58,
+      "modes": {
+        "dark": "{teal.300}"
+      }
     },
     {
       "id": "color-warning-surface",
@@ -596,7 +663,23 @@
       "level": "semantic",
       "value": "{amber.100}",
       "description": "Tinted background for warning alerts, banners, and badges. Carries color.foreground.",
-      "order": 58
+      "order": 59,
+      "modes": {
+        "dark": "{amber.900}"
+      }
+    },
+    {
+      "id": "color-warning-foreground",
+      "name": "color.warning.foreground",
+      "foundation": "color",
+      "type": "color",
+      "level": "semantic",
+      "value": "{amber.700}",
+      "description": "Warning text and icons on color.surface. Identical to color.warning in light mode; lightened in dark mode, where the fill is not readable as text.",
+      "order": 60,
+      "modes": {
+        "dark": "{amber.400}"
+      }
     },
     {
       "id": "color-danger-surface",
@@ -606,7 +689,23 @@
       "level": "semantic",
       "value": "{red.100}",
       "description": "Tinted background for error alerts, banners, and badges. Carries color.foreground.",
-      "order": 59
+      "order": 61,
+      "modes": {
+        "dark": "{red.900}"
+      }
+    },
+    {
+      "id": "color-danger-foreground",
+      "name": "color.danger.foreground",
+      "foundation": "color",
+      "type": "color",
+      "level": "semantic",
+      "value": "{red.600}",
+      "description": "Error text and icons on color.surface, and the invalid boundary of a control. Identical to color.danger in light mode; lightened in dark mode, where the fill is not readable as text.",
+      "order": 62,
+      "modes": {
+        "dark": "{red.400}"
+      }
     },
     {
       "id": "color-on-primary",
@@ -616,7 +715,7 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.primary fill.",
-      "order": 60
+      "order": 63
     },
     {
       "id": "color-on-secondary",
@@ -626,7 +725,7 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Verified foreground on a color.secondary fill. Teal is light, so its foreground is dark rather than white.",
-      "order": 61
+      "order": 64
     },
     {
       "id": "color-on-accent",
@@ -636,7 +735,7 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.accent fill.",
-      "order": 62
+      "order": 65
     },
     {
       "id": "color-on-highlight",
@@ -646,7 +745,7 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Verified foreground on a color.highlight fill. The expressive purple is light and requires dark foreground.",
-      "order": 63
+      "order": 66
     },
     {
       "id": "color-on-info",
@@ -656,7 +755,7 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.info fill.",
-      "order": 64
+      "order": 67
     },
     {
       "id": "color-on-success",
@@ -666,7 +765,7 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Verified foreground on a color.success fill. Turquoise is light, so its foreground is dark rather than white.",
-      "order": 65
+      "order": 68
     },
     {
       "id": "color-on-warning",
@@ -676,7 +775,7 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.warning fill.",
-      "order": 66
+      "order": 69
     },
     {
       "id": "color-on-danger",
@@ -686,7 +785,7 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.danger fill.",
-      "order": 67
+      "order": 70
     },
     {
       "id": "color-border-subtle",
@@ -696,7 +795,10 @@
       "level": "semantic",
       "value": "{neutral.100}",
       "description": "Quietest boundary, for separators inside a surface that should stay visually secondary.",
-      "order": 68
+      "order": 71,
+      "modes": {
+        "dark": "{neutral.975}"
+      }
     },
     {
       "id": "color-primary-foreground",
@@ -705,8 +807,151 @@
       "type": "color",
       "level": "semantic",
       "value": "{purple.600}",
-      "description": "Readable amethyst for text, icons, and selection indicators on light and tinted surfaces.",
-      "order": 69
+      "description": "Readable amethyst for text, icons, and selection indicators on plain and tinted surfaces in both modes.",
+      "order": 72,
+      "modes": {
+        "dark": "{purple.300}"
+      }
+    },
+    {
+      "id": "neutral-350",
+      "name": "neutral.350",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#aeb6be",
+      "description": "Cool light gray that reads as muted text and as the resting control boundary on dark surfaces; clears 4.75:1 on every dark state surface.",
+      "order": 73
+    },
+    {
+      "id": "neutral-500",
+      "name": "neutral.500",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#727d88",
+      "description": "Cool mid gray reserved for disabled foreground content on dark surfaces.",
+      "order": 74
+    },
+    {
+      "id": "neutral-800",
+      "name": "neutral.800",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#3a4b5c",
+      "description": "Blue-gray used for structural borders on dark surfaces.",
+      "order": 75
+    },
+    {
+      "id": "neutral-925",
+      "name": "neutral.925",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#23303d",
+      "description": "Blue-gray one step above the dark surface, used for hover on dark content.",
+      "order": 76
+    },
+    {
+      "id": "neutral-950",
+      "name": "neutral.950",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#1a2530",
+      "description": "Dark blue-gray used for content, panel, and card surfaces in dark mode.",
+      "order": 77
+    },
+    {
+      "id": "neutral-975",
+      "name": "neutral.975",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#111921",
+      "description": "Near-black blue-gray used for the dark-mode page background and its quietest boundaries.",
+      "order": 78
+    },
+    {
+      "id": "purple-900",
+      "name": "purple.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#2d2439",
+      "description": "Deep amethyst tint for selected rows and active navigation on dark surfaces.",
+      "order": 79
+    },
+    {
+      "id": "teal-900",
+      "name": "teal.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#12302c",
+      "description": "Deep teal tint for success feedback regions on dark surfaces.",
+      "order": 80
+    },
+    {
+      "id": "blue-400",
+      "name": "blue.400",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#6fb3e6",
+      "description": "Lightened blue that meets text contrast on dark surfaces; the dark-mode link and informational text color.",
+      "order": 81
+    },
+    {
+      "id": "blue-900",
+      "name": "blue.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#17293a",
+      "description": "Deep blue tint for informational feedback regions on dark surfaces.",
+      "order": 82
+    },
+    {
+      "id": "red-400",
+      "name": "red.400",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#f0857a",
+      "description": "Lightened red that meets text contrast on dark surfaces; the dark-mode error text color.",
+      "order": 83
+    },
+    {
+      "id": "red-900",
+      "name": "red.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#3a1f1e",
+      "description": "Deep red tint for error and destructive feedback regions on dark surfaces.",
+      "order": 84
+    },
+    {
+      "id": "amber-400",
+      "name": "amber.400",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#e0a64a",
+      "description": "Lightened amber that meets text contrast on dark surfaces; the dark-mode warning text color.",
+      "order": 85
+    },
+    {
+      "id": "amber-900",
+      "name": "amber.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#372b18",
+      "description": "Deep amber tint for warning feedback regions on dark surfaces.",
+      "order": 86
     }
   ],
   "updated_at": "2026-09-02T17:30:00.000Z"

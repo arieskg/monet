@@ -15,6 +15,7 @@
       "base_resolved_value": 0.5,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -31,6 +32,7 @@
       "base_resolved_value": 0.72,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -40,13 +42,17 @@
       "type": "number",
       "level": "semantic",
       "value": 0.4,
-      "description": "Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces.",
+      "description": "Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces. Stronger in dark mode, where a dark scrim over dark surfaces needs more opacity to separate the layers.",
       "order": 2,
+      "modes": {
+        "dark": 0.6
+      },
       "resolved_value": 0.4,
       "valid": true,
       "base_resolved_value": 0.4,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     }
   ]

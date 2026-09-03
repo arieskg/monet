@@ -95,9 +95,30 @@ describe("Monet compact design brief", () => {
 
   it("reports theme provenance only where the theme actually changes a value", () => {
     // Base Monet's only theme is override-free, so nothing claims a theme origin.
-    expect(brief.theme).toMatchObject({ id: "default" });
+    expect(brief.theme).toMatchObject({ id: "default", mode: "light", modes: ["light", "dark"] });
     expect(brief.theme_overrides).toBeUndefined();
     expect(full.resolvedTokens.every((token) => token.source === "base")).toBe(true);
+  });
+
+  it("carries the other mode's value only for tokens that change between modes", async () => {
+    // A light brief lists its dark counterparts; a dark brief lists the light ones. Tokens that are
+    // the same in both modes, and Foundations with no colour in them, cost nothing.
+    expect(brief.mode_values?.["color.surface"]).toEqual({ light: "#ffffff", dark: "#1a2530" });
+    expect(brief.mode_values).not.toHaveProperty("color.primary");
+    expect(brief.mode_values).not.toHaveProperty("space.4");
+    expect(brief.tokens["color.surface"]).toBe("#ffffff");
+
+    const dark = toCompactContext(await service.getDesignContext({ query: "build a login form", mode: "dark" }));
+    expect(dark.theme).toMatchObject({ id: "default", mode: "dark" });
+    expect(dark.tokens["color.surface"]).toBe("#1a2530");
+    expect(dark.tokens["color.primary"]).toBe("#9b59b6");
+    expect(dark.mode_values?.["color.surface"]).toEqual({ dark: "#1a2530", light: "#ffffff" });
+    expect(Object.keys(dark.mode_values ?? {}).sort()).toEqual(Object.keys(brief.mode_values ?? {}).sort());
+    // A dark resolution changes values, not provenance shape: still no theme overrides in Base Monet.
+    expect(dark.theme_overrides).toBeUndefined();
+
+    const spacing = toCompactContext(await service.getDesignContext({ foundationIds: ["spacing"], mode: "dark" }));
+    expect(spacing.mode_values).toBeUndefined();
   });
 
   it("gives every record a resource URI for the full text", () => {

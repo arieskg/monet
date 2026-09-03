@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { buildExportCollections, serializeExport, toYaml, workspaceWithTheme } from "../exportFormats";
+import { buildExportCollections, serializeExport, serializeWorkspace, toYaml, workspaceWithTheme } from "../exportFormats";
 import type { Workspace } from "../domain";
 
 const workspace = {
   principles: [{ id: "clarity", title: "Clarity", body: "# Clarity\n\nMake intent obvious.", order: 0, updated_at: "" }],
-  foundations: [], taxonomy: [], primitiveTaxonomy: [], primitives: [], components: [], patterns: [], sources: [], references: [], referenceAnalysis: { summary: "", recurring_preferences: [], suggestions: [], analyzed_at: "" }, decisionLog: [], themes: [{ id: "default", name: "Default", overrides: {}, updated_at: "" }], defaultThemeId: "default", activeThemeId: "default", baseResolvedTokens: [], resolvedTokens: [], tokenIssues: [], filesRoot: "/tmp/monet",
+  foundations: [], taxonomy: [], primitiveTaxonomy: [], primitives: [], components: [], patterns: [], sources: [], references: [], referenceAnalysis: { summary: "", recurring_preferences: [], suggestions: [], analyzed_at: "" }, decisionLog: [], themes: [{ id: "default", name: "Default", overrides: {}, updated_at: "" }], defaultThemeId: "default", activeThemeId: "default", activeMode: "light", modes: ["light"], baseResolvedTokens: [], resolvedTokens: [], tokenIssues: [], filesRoot: "/tmp/monet",
 } satisfies Workspace;
 
 describe("Monet collection exports", () => {
@@ -26,6 +26,20 @@ describe("Monet collection exports", () => {
     expect(components?.markdown).toContain("- Decision: Use");
     expect(components?.markdown).not.toContain("- Status: selected");
   });
+  it("resolves a theme in dark mode for export and keeps the dark-only overrides in the theme record", () => {
+    const token = { id: "color-background", name: "color.background", foundation: "color", type: "color" as const, level: "semantic" as const, value: "#ecf0f1", description: "", order: 0, resolved_value: "#ecf0f1", valid: true, modes: { dark: "#111921" } };
+    const themed = { ...workspace, themes: [...workspace.themes, { id: "convogym", name: "ConvoGym", overrides: {}, modes: { dark: { "color.background": "#000000" } }, updated_at: "" }], baseResolvedTokens: [token] };
+    const dark = workspaceWithTheme(themed, "convogym", "dark");
+    expect(dark).toMatchObject({ activeThemeId: "convogym", activeMode: "dark", modes: ["light", "dark"] });
+    expect(dark.resolvedTokens[0]).toMatchObject({ resolved_value: "#000000", source: "theme", theme_id: "convogym", mode: "dark" });
+    expect(workspaceWithTheme(themed, "default", "dark").resolvedTokens[0]).toMatchObject({ resolved_value: "#111921", source: "mode", theme_id: null });
+    const collections = buildExportCollections(dark);
+    expect(collections.find((item) => item.id === "themes")?.data).toContainEqual({ id: "convogym", name: "ConvoGym", overrides: {}, modes: { dark: { "color.background": "#000000" } } });
+    expect(collections.find((item) => item.id === "themes")?.markdown).toContain("### dark mode");
+    expect(collections.find((item) => item.id === "tokens")?.markdown).toContain("in dark mode");
+    expect(serializeWorkspace(dark, "md")).toContain("dark mode");
+  });
+
   it("exports a selected theme as resolved values while keeping its record override-only", () => {
     const token = { id: "radius-md", name: "radius.md", foundation: "radius", type: "dimension" as const, level: "primitive" as const, value: "7px", description: "", order: 0, resolved_value: "7px", valid: true };
     const themed = { ...workspace, themes: [...workspace.themes, { id: "convogym", name: "ConvoGym", overrides: { "radius.md": "4px" }, updated_at: "" }], baseResolvedTokens: [token] };

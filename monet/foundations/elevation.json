@@ -4,8 +4,8 @@
   "status": "selected",
   "description": "A restrained elevation system for raised controls, floating surfaces, overlays, and dialogs.",
   "rationale": "Use elevation only to communicate spatial hierarchy, separation, or temporary layering. Keep the system intentionally small so shadows remain meaningful rather than decorative. Most static content should rely on spacing, contrast, borders, and surface color for hierarchy; shadows are reserved for elements that visually sit above surrounding content.",
-  "guidance": "Use the lowest elevation level that clearly communicates the relationship. Use raised elevation for subtly lifted interactive or floating elements, overlay elevation for menus, popovers, dropdowns, and other temporary surfaces, and dialog elevation for modal surfaces that sit above the primary application layer. Avoid shadows on ordinary static cards, panels, and page sections unless elevation is necessary to communicate stacking. Prefer soft multi-layer shadows with low opacity over hard or highly visible shadows. Do not increase elevation merely to make an element appear more important; use hierarchy, typography, color, or spacing for emphasis instead.",
-  "notes": "The system intentionally uses only three elevation levels. Raised is subtle enough for lightweight floating elements, overlay provides clearer separation for temporary surfaces, and dialog creates the strongest depth for modal interfaces. Additional elevation levels should only be introduced when a recurring spatial relationship cannot be represented clearly by these three.",
+  "guidance": "Use the lowest elevation level that clearly communicates the relationship. Use raised elevation for subtly lifted interactive or floating elements, overlay elevation for menus, popovers, dropdowns, and other temporary surfaces, and dialog elevation for modal surfaces that sit above the primary application layer. Avoid shadows on ordinary static cards, panels, and page sections unless elevation is necessary to communicate stacking. Prefer soft multi-layer shadows with low opacity over hard or highly visible shadows. Do not increase elevation merely to make an element appear more important; use hierarchy, typography, color, or spacing for emphasis instead. In dark mode the three shadows keep their geometry and switch to a black tint at higher opacity, because the blue-gray shadow that separates surfaces on a light page disappears on a dark one; floating surfaces also gain separation from color.border, so do not add a lighter fill to a dark overlay to make it read as raised.",
+  "notes": "The system intentionally uses only three elevation levels. Raised is subtle enough for lightweight floating elements, overlay provides clearer separation for temporary surfaces, and dialog creates the strongest depth for modal interfaces. Additional elevation levels should only be introduced when a recurring spatial relationship cannot be represented clearly by these three. Dark-mode shadows are the same three offsets and blurs with black at roughly four times the opacity; the values are mode values on the same tokens rather than separate dark tokens, so a component that references shadow.overlay is correct in both modes.",
   "order": 5,
   "tokens": [
     {
@@ -16,7 +16,10 @@
       "level": "primitive",
       "value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
       "description": "Subtle elevation for lightweight floating or raised elements that need gentle separation from the surrounding surface.",
-      "order": 0
+      "order": 0,
+      "modes": {
+        "dark": "0 1px 2px rgb(0 0 0 / 0.32), 0 2px 6px rgb(0 0 0 / 0.28)"
+      }
     },
     {
       "id": "shadow-overlay",
@@ -26,7 +29,10 @@
       "level": "primitive",
       "value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
       "description": "Medium elevation for dropdowns, menus, popovers, tooltips, and temporary floating surfaces.",
-      "order": 1
+      "order": 1,
+      "modes": {
+        "dark": "0 4px 12px rgb(0 0 0 / 0.40), 0 12px 28px rgb(0 0 0 / 0.44)"
+      }
     },
     {
       "id": "shadow-dialog",
@@ -36,7 +42,10 @@
       "level": "primitive",
       "value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
       "description": "Strongest standard elevation for dialogs, modals, and major temporary surfaces above the main application layer.",
-      "order": 2
+      "order": 2,
+      "modes": {
+        "dark": "0 8px 24px rgb(0 0 0 / 0.48), 0 24px 64px rgb(0 0 0 / 0.56)"
+      }
     }
   ],
   "updated_at": "2026-09-01T20:54:29.519Z"

@@ -75,8 +75,9 @@ All resources return `application/json` text.
 | `monet://foundations/{id}` | One Foundation and its base token records |
 | `monet://patterns/{id}` | One multi-component pattern |
 | `monet://components/{id}` | Component taxonomy joined to its optional design decision |
-| `monet://themes/{id}` | One override-only theme |
-| `monet://themes/{id}/tokens` | Theme-resolved tokens, base values, override provenance, and token issues |
+| `monet://themes/{id}` | One override-only theme, with any dark-only overrides it carries |
+| `monet://themes/{id}/tokens` | Theme-resolved tokens in light mode, with base values, provenance, token issues, and the list of modes the theme supports |
+| `monet://themes/{id}/tokens/{mode}` | The same, resolved in one mode: `light` or `dark`. A mode the theme lacks resolves as light and says so in `mode` |
 | `monet://references/{id}` | One reference record without internal asset paths |
 
 Unknown or malformed resource IDs return MCP resource errors. Component resources
@@ -102,7 +103,8 @@ format.
   "patternIds": ["forms"],
   "componentIds": ["text-input", "button"],
   "referenceIds": ["linear-doc-pages"],
-  "themeId": "default"
+  "themeId": "default",
+  "mode": "dark"
 }
 ```
 
@@ -110,6 +112,27 @@ The result preserves the shared service's `warnings` array. Unknown selector IDs
 dangling relationships are therefore visible to the caller rather than discarded.
 An unknown theme is rejected because theme resolution would otherwise fall back to
 the default theme.
+
+### Modes
+
+`mode` is `light` or `dark` and defaults to light. When it is omitted and the task
+itself asks for dark mode — "build a dark mode dashboard", "night theme for the
+settings page" — the brief resolves in dark automatically if the theme supports it.
+A client that wants both appearances does not need two calls: the brief's `theme`
+names the mode its `tokens` were resolved in and every mode the theme supports, and
+`mode_values` lists each token whose value differs between modes with its value in
+each of them. Tokens absent from `mode_values` are the same in every mode.
+
+```json
+{
+  "theme": { "id": "default", "name": "Default", "mode": "dark", "modes": ["light", "dark"] },
+  "tokens": { "color.background": "#111921", "color.primary": "#9b59b6", "...": "..." },
+  "mode_values": { "color.background": { "dark": "#111921", "light": "#ecf0f1" } }
+}
+```
+
+Asking for `mode: "light"` on a task that says dark is honoured and flagged: the
+tokens are light values and the `unsupported_capability` notice says so.
 
 ### Response detail
 
@@ -123,7 +146,8 @@ status, preferences, behavior, notes, and usage boundaries, and tokens as a flat
 reads the brief first and fetches whole records only where it needs them. Records the
 query matched directly also carry their decision rationale; records that arrived by
 expansion leave that at their resource. Theme provenance appears in
-`theme_overrides` only for tokens whose active-theme value differs from Base Monet.
+`theme_overrides` only for tokens whose active-theme value differs from Base Monet,
+and mode provenance in `mode_values` only for tokens that change between modes.
 
 `full` returns the complete editor-shaped records: whole pattern bodies, Foundation
 rationale and notes, and provenance-carrying `resolvedTokens`. Aggregate Foundation
@@ -163,9 +187,10 @@ catalog, but nothing was *matched*, because no task was given.
 | `unsupported_capability` | The request needs something Monet does not have. `ids` names the capability, for example `dark-mode`. |
 
 The dark-mode notice is derived from the resolved palette rather than from a list of
-known gaps: if the active theme resolves `color.background` to a light value and the
-task asks for a dark mode, the result says the returned colour tokens are light-mode
-values. It disappears on its own once a dark theme exists.
+known gaps: if the task asks for dark mode and the resolution the brief carries
+still has a light `color.background` — because the workspace has no dark values, or
+because the caller asked for light explicitly — the result says the returned colour
+tokens are light-mode values. A workspace whose theme resolves dark never sees it.
 
 ### Deterministic retrieval
 

@@ -15,6 +15,7 @@
       "base_resolved_value": "480px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -31,6 +32,7 @@
       "base_resolved_value": "768px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -47,6 +49,7 @@
       "base_resolved_value": "1024px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     }
   ]

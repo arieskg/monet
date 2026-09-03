@@ -15,6 +15,7 @@
       "base_resolved_value": "0px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -31,6 +32,7 @@
       "base_resolved_value": "2px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -47,6 +49,7 @@
       "base_resolved_value": "4px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -63,6 +66,7 @@
       "base_resolved_value": "7px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -79,6 +83,7 @@
       "base_resolved_value": "12px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -95,6 +100,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -111,6 +117,7 @@
       "base_resolved_value": "9999px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -127,6 +134,7 @@
       "base_resolved_value": "7px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     }
   ]

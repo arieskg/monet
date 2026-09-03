@@ -3,7 +3,17 @@ import { loadWorkspace } from "./fileStore.js";
 import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
 import { preferenceViolations } from "../shared/preferences.js";
 import { joinComponents } from "../shared/service.js";
-import type { Workspace } from "../shared/model.js";
+import { resolveThemeTokens, themeModes } from "../shared/tokens.js";
+import { THEME_MODES, type Workspace } from "../shared/model.js";
+
+/** Relative luminance of a hex colour; below the threshold a page background reads as dark. */
+function luminance(hex: string): number | null {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return null;
+  const [r, g, b] = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)
+    .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) as [number, number, number];
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+const DARK_BACKGROUND_LUMINANCE = 0.4;
 
 /**
  * `monet validate` — the integrity checks a workspace has to pass, in a form a person can read.
@@ -26,12 +36,25 @@ export function validateWorkspace(workspace: Workspace): Finding[] {
   const foundationIds = new Set(workspace.foundations.map((item) => item.id));
   const primitiveIds = new Set(workspace.primitiveTaxonomy.flatMap((category) => category.entries.map((entry) => entry.id)));
   const tokenNames = new Set(workspace.resolvedTokens.map((token) => token.name));
+  // Every theme is resolved in every mode it supports, so a dark value that points at a missing
+  // token, or a theme override that only breaks in dark, is caught before an agent reads it.
+  const modeResolutions = workspace.themes.flatMap((theme) => themeModes(workspace.foundations, theme).map((mode) => ({ theme, mode, resolution: resolveThemeTokens(workspace.foundations, theme, mode) })));
 
   return [
     ...check("error", "tokens resolve", [
       ...workspace.tokenIssues.map((issue) => `${issue.token}: ${issue.message}`),
       ...workspace.resolvedTokens.filter((token) => !token.valid).map((token) => `${token.name} does not resolve`),
     ]),
+    ...check("error", "tokens resolve in every theme and mode", modeResolutions.flatMap(({ theme, mode, resolution }) => [
+      ...resolution.issues.map((issue) => `${theme.id} (${mode}): ${issue.token}: ${issue.message}`),
+      ...resolution.tokens.filter((token) => !token.valid).map((token) => `${theme.id} (${mode}): ${token.name} does not resolve`),
+    ])),
+    ...check("error", "theme overrides name real tokens", workspace.themes.flatMap((theme) => [
+      ...Object.keys(theme.overrides).filter((name) => !tokenNames.has(name)).map((name) => `${theme.id} overrides unknown token "${name}"`),
+      ...Object.entries(theme.modes ?? {}).flatMap(([mode, overrides]) => Object.keys(overrides).filter((name) => !tokenNames.has(name)).map((name) => `${theme.id} (${mode}) overrides unknown token "${name}"`)),
+    ])),
+    ...check("error", "mode values name known modes", workspace.foundations.flatMap((foundation) => foundation.tokens.flatMap((token) =>
+      Object.keys(token.modes ?? {}).filter((mode) => mode === "light" || !THEME_MODES.includes(mode as typeof THEME_MODES[number])).map((mode) => `${token.name} defines a value for unknown mode "${mode}"`)))),
     ...check("error", "token names are unique", (() => {
       const names = workspace.foundations.flatMap((foundation) => foundation.tokens.map((token) => token.name));
       return [...new Set(names.filter((name, index) => names.indexOf(name) !== index))].map((name) => `${name} is defined more than once`);
@@ -64,6 +87,12 @@ export function validateWorkspace(workspace: Workspace): Finding[] {
     ...check("warning", "patterns carry the links retrieval depends on", workspace.patterns
       .filter((item) => !item.components?.length || !item.foundations?.length)
       .map((item) => `${item.id} has no component or Foundation links`)),
+    ...check("warning", "dark mode is actually dark", modeResolutions.flatMap(({ theme, mode, resolution }) => {
+      if (mode !== "dark") return [];
+      const background = resolution.tokens.find((token) => token.name === "color.background");
+      const value = luminance(String(background?.resolved_value ?? ""));
+      return value !== null && value >= DARK_BACKGROUND_LUMINANCE ? [`${theme.id} defines dark mode but color.background resolves to the light value ${String(background?.resolved_value)}`] : [];
+    })),
   ];
 }
 
@@ -72,7 +101,7 @@ export function formatReport(root: string, workspace: Workspace, findings: Findi
   const warnings = findings.filter((finding) => finding.level === "warning");
   const counts = [
     `${workspace.principles.length} principles`, `${workspace.foundations.length} foundations`,
-    `${workspace.resolvedTokens.length} tokens`, `${workspace.patterns.length} patterns`,
+    `${workspace.resolvedTokens.length} tokens`, `${workspace.themes.length} theme${workspace.themes.length === 1 ? "" : "s"} (${workspace.modes.join(", ")})`, `${workspace.patterns.length} patterns`,
     `${workspace.components.length} component decisions`, `${workspace.references.length} references`,
   ].join(", ");
   const lines = [

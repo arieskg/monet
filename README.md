@@ -110,7 +110,7 @@ atomically and regenerates two derived views on save:
 
 - `DESIGN_SYSTEM.md` — a readable summary of the whole system.
 - `tokens/` — resolved token exports, per foundation and consolidated, plus
-  per-theme exports with base/theme provenance.
+  per-theme exports with base/mode/theme provenance, one file per theme and mode.
 
 Both are derived from the canonical records and carry no timestamps, so they
 change only when the design system changes. A third snapshot,
@@ -119,8 +119,19 @@ duplicates the entire workspace, including the source and reference registries.
 
 Preview is a read-only derived surface. Its Elements and Sample Page views
 compile the workspace in memory from the active theme, foundations, component
-preferences, primitives, and patterns. It has no save route and no
-Preview-specific records.
+preferences, primitives, and patterns, in either light or dark mode. It has no
+save route and no Preview-specific records.
+
+## Light and dark
+
+A theme resolves in two modes over one semantic token system. Foundations carry
+the dark decisions: a token's `value` is its light value and an optional
+`modes.dark` is its dark value, so `color.surface` can point at a dark primitive
+while everything that references `color.surface` follows. Themes stay
+override-only and may add dark-only overrides. An MCP client that asks for a
+dark-mode task receives dark tokens and the light counterparts of every token
+that changes; a workspace with no dark values still says plainly that it has
+none.
 
 ## Optional AI-assisted features
 

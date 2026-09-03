@@ -1,4 +1,4 @@
-import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, Workspace } from "./domain";
+import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
 
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
@@ -12,7 +12,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  workspace: (themeId?: string) => request<Workspace>(`/api/workspace${themeId ? `?theme=${encodeURIComponent(themeId)}` : ""}`),
+  workspace: (themeId?: string, mode?: ThemeMode) => {
+    const params = new URLSearchParams();
+    if (themeId) params.set("theme", themeId);
+    if (mode) params.set("mode", mode);
+    const query = params.toString();
+    return request<Workspace>(`/api/workspace${query ? `?${query}` : ""}`);
+  },
   savePrinciple: (value: Principle) => request("/api/principles/" + encodeURIComponent(value.id), { method: "PUT", body: JSON.stringify(value) }),
   deletePrinciple: (id: string) => request("/api/principles/" + encodeURIComponent(id), { method: "DELETE" }),
   savePattern: (value: MarkdownDocument) => request("/api/patterns/" + encodeURIComponent(value.id), { method: "PUT", body: JSON.stringify(value) }),

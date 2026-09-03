@@ -22,8 +22,9 @@ database.
 
 - `principles/` contain always-active Markdown guidance with only title, order, and timestamp metadata.
 - `patterns/` contain Markdown guidance with decision metadata and linked concept IDs.
-- `foundations/` contains design intent plus canonical structured token records.
-- `tokens/` contains generated per-foundation and consolidated resolved token exports.
+- `foundations/` contains design intent plus canonical structured token records. A token's `value` is its light value; semantic roles that differ in dark mode carry a `modes.dark` value.
+- `themes/` contains override-only themes; a theme may add `modes.dark` overrides that apply only in dark mode.
+- `tokens/` contains generated per-foundation and consolidated resolved token exports, plus `tokens/themes/<theme>.json` (light) and `tokens/themes/<theme>.dark.json` (dark) per theme.
 - `taxonomy/primitives.json` and `primitives/decisions.json` define low-level building blocks between tokens and components.
 - `taxonomy/components.json`, `components/`, and `sources/` contain the user-facing taxonomy, decisions, and external mappings.
 - `decisions/` records human-readable changes to component inspirations.

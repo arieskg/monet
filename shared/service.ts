@@ -1,12 +1,13 @@
-import type { Component, ContextNotice, DesignContext, DesignContextRequest, Foundation, MarkdownDocument, Principle, RankedReference, Reference, ResolvedThemeToken, RetrievalCoverage, RetrievalEntityType, RetrievalProvenance, RetrievalReason, Theme, Workspace } from "./model.js";
+import type { Component, ContextNotice, DesignContext, DesignContextRequest, Foundation, MarkdownDocument, ModeVariants, Principle, RankedReference, Reference, ResolvedThemeToken, RetrievalCoverage, RetrievalEntityType, RetrievalProvenance, RetrievalReason, Theme, ThemeMode, Workspace } from "./model.js";
 import { retrievalAliases, scoreRetrieval, type RetrievalFields } from "./retrieval.js";
+import { resolveThemeTokens } from "./tokens.js";
 
 export interface WorkspaceReader {
-  loadWorkspace(themeId?: string): Promise<Workspace>;
+  loadWorkspace(themeId?: string, mode?: ThemeMode): Promise<Workspace>;
 }
 
 export interface MonetService {
-  getWorkspace(themeId?: string): Promise<Workspace>;
+  getWorkspace(themeId?: string, mode?: ThemeMode): Promise<Workspace>;
   listFoundations(): Promise<Foundation[]>;
   getFoundation(id: string): Promise<Foundation | null>;
   listPrinciples(): Promise<Principle[]>;
@@ -144,22 +145,50 @@ function backgroundLuminance(tokens: ResolvedThemeToken[]): number | null {
   return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
 }
 
+/** Whether a task is asking for a dark interface, so the mode can be inferred when the caller did not name one. */
+export function queryWantsDarkMode(query: string): boolean {
+  const text = ` ${query.toLowerCase()} `;
+  return /(dark|night)[ -](mode|theme|ui|palette|scheme|interface|variant)|\bdark[ -]?mode\b/.test(text);
+}
+
 /**
  * Capabilities a task can ask for that Monet either has or does not. Detection is by what the
  * resolved workspace actually provides, not by a hardcoded list of things Monet lacks, so the
- * notice disappears on its own once the capability exists.
+ * notice disappears on its own once the capability exists: a dark request answered with a
+ * genuinely dark palette needs no notice, and one answered with a light palette says so.
  */
-function capabilityNotices(query: string, tokens: ResolvedThemeToken[], theme: Theme | null): ContextNotice[] {
-  const text = ` ${query.toLowerCase()} `;
-  const wantsDark = /(dark|night)[ -](mode|theme|ui|palette)|\bdark[ -]?mode\b/.test(text);
-  if (!wantsDark) return [];
+function capabilityNotices(query: string, tokens: ResolvedThemeToken[], theme: Theme | null, mode: ThemeMode, modes: ThemeMode[]): ContextNotice[] {
+  if (!queryWantsDarkMode(query)) return [];
   const luminance = backgroundLuminance(tokens);
   if (luminance !== null && luminance < DARK_BACKGROUND_LUMINANCE) return [];
+  const name = theme?.name ?? "active";
+  const reason = mode === "dark"
+    ? `The ${name} theme was resolved in dark mode but its color.background is still a light value.`
+    : modes.includes("dark")
+      ? `The ${name} theme has a dark mode, but this request was resolved in light mode; omit \`mode\` or pass \`mode: "dark"\` to receive the dark values.`
+      : `The ${name} theme has no dark mode and resolves to a light palette.`;
   return [{
     kind: "unsupported_capability",
     ids: ["dark-mode"],
-    message: `Monet has no dark theme. The ${theme?.name ?? "active"} theme resolves to a light palette, so the returned colour tokens are light-mode values and must not be treated as dark-mode guidance.`,
+    message: `Monet has no dark palette for this request. ${reason} The returned colour tokens are light-mode values and must not be treated as dark-mode guidance.`,
   }];
+}
+
+/**
+ * Tokens whose resolved value differs between the theme's modes. The active mode's values already
+ * sit in `resolvedTokens`; this adds the other modes only where they diverge, so an agent building
+ * both appearances gets every value that changes and nothing that does not.
+ */
+function modeVariants(workspace: Workspace, theme: Theme | null, tokens: ResolvedThemeToken[]): ModeVariants {
+  const otherModes = workspace.modes.filter((mode) => mode !== workspace.activeMode);
+  if (!otherModes.length) return {};
+  const others = otherModes.map((mode) => [mode, new Map(resolveThemeTokens(workspace.foundations, theme, mode).tokens.map((token) => [token.name, token.resolved_value]))] as const);
+  const variants: ModeVariants = {};
+  for (const token of tokens) {
+    const values = others.flatMap(([mode, resolved]) => resolved.has(token.name) && String(resolved.get(token.name)) !== String(token.resolved_value) ? [[mode, resolved.get(token.name) ?? null] as const] : []);
+    if (values.length) variants[token.name] = { [workspace.activeMode]: token.resolved_value, ...Object.fromEntries(values) };
+  }
+  return variants;
 }
 
 export function searchReferenceRecords(references: Reference[], query: string): Reference[] {
@@ -214,7 +243,7 @@ function missingWarnings(kind: string, requested: string[] | undefined, availabl
 }
 
 export function createMonetService(reader: WorkspaceReader): MonetService {
-  const read = (themeId?: string) => reader.loadWorkspace(themeId);
+  const read = (themeId?: string, mode?: ThemeMode) => reader.loadWorkspace(themeId, mode);
   return {
     getWorkspace: read,
     async listFoundations() { return (await read()).foundations; },
@@ -232,7 +261,10 @@ export function createMonetService(reader: WorkspaceReader): MonetService {
     async searchReferences(query) { return rankReferenceRecords((await read()).references, query); },
     async getDesignContext(request = {}) {
       const query = request.query?.trim() ?? "";
-      const workspace = await read(request.themeId);
+      // A task that asks for dark mode is answered in dark mode when the theme has one. The caller
+      // can always name a mode explicitly; inference only fills the gap when it does not.
+      const requestedMode = request.mode ?? (queryWantsDarkMode(query) ? "dark" : "light");
+      const workspace = await read(request.themeId, requestedMode);
       const components = joinComponents(workspace);
       const targeted = Boolean(query) || requestedIds(request);
       const principleIds = new Set(targeted ? request.principleIds ?? [] : workspace.principles.map((item) => item.id));
@@ -459,11 +491,14 @@ export function createMonetService(reader: WorkspaceReader): MonetService {
           message: `Monet has no decision for ${undecided.map((item) => item.name).join(", ")}. ${subject} ${verb} no selection or preferences, so surface the choice instead of inventing a standard.`,
         });
       }
-      notices.push(...capabilityNotices(query, resolvedTokens, theme));
+      notices.push(...capabilityNotices(query, resolvedTokens, theme, workspace.activeMode, workspace.modes));
 
       return {
         query,
         theme,
+        mode: workspace.activeMode,
+        modes: workspace.modes,
+        modeVariants: modeVariants(workspace, theme, resolvedTokens),
         coverage,
         notices,
         principles: selectedInRetrievalOrder(workspace.principles, principleIds, "principle", provenance),

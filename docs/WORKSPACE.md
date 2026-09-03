@@ -39,13 +39,13 @@ Every path is relative to the workspace root.
 | Path | Format | Contents |
 | --- | --- | --- |
 | `principles/*.md` | Markdown + frontmatter | Always-active design philosophy. `title`, `order`, `updated_at`. |
-| `foundations/*.json` | JSON | Canonical visual standards and their token records. One file per foundation. |
+| `foundations/*.json` | JSON | Canonical visual standards and their token records. One file per foundation. A token's `value` is its light value; an optional `modes.dark` is its dark value. |
 | `taxonomy/components.json` | JSON | The component catalog: id, name, category, description, aliases, relationships. |
 | `taxonomy/primitives.json` | JSON | The primitive catalog, same shape. |
 | `components/decisions.json` | JSON | Per-component decisions: status, selection, preferences, guidance, history. |
 | `primitives/decisions.json` | JSON | Per-primitive decisions. |
 | `patterns/*.md` | Markdown + frontmatter | Multi-component workflow guidance, with `components` and `foundations` links. |
-| `themes/*.json` | JSON | Override-only themes. `themes/config.json` names the default. |
+| `themes/*.json` | JSON | Override-only themes. `overrides` applies in every mode; an optional `modes.dark` map applies in dark only. `themes/config.json` names the default. |
 | `sources/registry.json` | JSON | External design systems used as inspiration, and their mappings. |
 | `references/registry.json` | JSON | Visual reference memory. Assets live in `references/assets/`. |
 | `decisions/*.md` | Markdown | A readable log of component inspiration changes. |
@@ -55,8 +55,8 @@ Every path is relative to the workspace root.
 | Path | Contents |
 | --- | --- |
 | `DESIGN_SYSTEM.md` | Readable summary of the whole system. |
-| `tokens/*.json`, `tokens/tokens.json` | Resolved token exports, per foundation and consolidated. |
-| `tokens/themes/*.json` | Per-theme resolved tokens with base/theme provenance. |
+| `tokens/*.json`, `tokens/tokens.json` | Resolved token exports, per foundation and consolidated, in light mode. |
+| `tokens/themes/<theme>.json`, `tokens/themes/<theme>.dark.json` | Per-theme resolved tokens with base/mode/theme provenance, one file per mode the theme supports. |
 | `design-system.json` | Full structured snapshot. Regenerated locally; not worth committing. |
 
 These are projections of the canonical records. Editing them has no effect — they
@@ -69,6 +69,9 @@ when the design system does.
 guessing.
 
 - Every token reference resolves, and no token name is defined twice.
+- Every theme resolves in every mode it supports, including its dark values and
+  dark-only overrides; a theme override names a real token; a token's `modes`
+  names only `dark`.
 - Every component decision has a matching entry in the component taxonomy.
 - Component `foundations` and `primitives` links, taxonomy `relationships`, and
   pattern `components`/`foundations` links all name records that exist.
@@ -78,8 +81,19 @@ guessing.
   characters, no trailing period, and `token:<name>` references that resolve.
 
 Warnings, which do not fail validation, cover records that are usable but
-incomplete — a selected component with no rationale or usage boundaries, or a
-pattern with no links for retrieval to follow.
+incomplete — a selected component with no rationale or usage boundaries, a
+pattern with no links for retrieval to follow, or a declared dark mode whose
+`color.background` still resolves to a light value.
+
+## Light and dark
+
+A workspace is light-only until a token or theme supplies a dark value. There is
+no switch to flip and nothing to migrate: add `"modes": { "dark": "{neutral.950}" }`
+to a semantic token and the theme gains a dark mode, the Preview and Export pages
+offer it, `tokens/themes/<theme>.dark.json` appears on the next save, and an MCP
+client asking for dark mode receives dark values. Put dark values on the semantic
+roles rather than duplicating the palette, so `color.surface` can point at a dark
+primitive while the primitive itself stays what it is.
 
 ## The bundled starter workspace is a fixture
 

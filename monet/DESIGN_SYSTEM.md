@@ -192,7 +192,9 @@ Reuse established terminology, components, interactions, spacing, and visual tre
 
 Default (default)
 
-Theme files contain overrides only. Resolved values below are Base Monet plus the active theme.
+Theme files contain overrides only. Resolved values below are Base Monet plus the active theme, in light mode.
+
+This theme also resolves in dark mode. Where a token's dark value differs it is listed as `dark:`; every other token keeps its light value in both modes. The complete dark resolution is in `tokens/themes/default.dark.json`.
 
 ## Tokens
 
@@ -211,24 +213,24 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 - `raspberry.500` = `#cf4173` — Raspberry expressive accent for selective non-semantic emphasis.
 - `red.600` = `#d0311e` — Red reserved for errors and destructive actions.
 - `amber.600` = `#b7791f` — Amber retained as a palette step; the semantic warning role uses the darker amber.700 so warning text and warning fills both meet contrast.
-- `color.background` = `#ecf0f1` — Default application background.
-- `color.surface` = `#ffffff` — Default content, panel, card, and elevated surface.
-- `color.surface.subtle` = `#ecf0f1` — Subtle surface used to distinguish secondary regions without strong containers.
-- `color.foreground` = `#2c3e50` — Default primary text and foreground content.
-- `color.foreground.muted` = `#5f605a` — Secondary text, metadata, descriptions, and lower-emphasis content.
-- `color.foreground.inverse` = `#ffffff` — Foreground content displayed on sufficiently dark backgrounds.
-- `color.border` = `#d8d7d0` — Default subtle border and separator.
-- `color.border.strong` = `#5f605a` — Higher-emphasis border used where stronger visual separation is necessary.
+- `color.background` = `#ecf0f1` · dark: `#111921` — Default application background.
+- `color.surface` = `#ffffff` · dark: `#1a2530` — Default content, panel, card, and elevated surface.
+- `color.surface.subtle` = `#ecf0f1` · dark: `#111921` — Subtle surface used to distinguish secondary regions without strong containers.
+- `color.foreground` = `#2c3e50` · dark: `#ecf0f1` — Default primary text and foreground content.
+- `color.foreground.muted` = `#5f605a` · dark: `#aeb6be` — Secondary text, metadata, descriptions, and lower-emphasis content.
+- `color.foreground.inverse` = `#ffffff` · dark: `#111921` — Foreground for content on a surface of the opposite mode: white on dark fills in light mode, near-black on light fills in dark mode. Prefer the verified color.on.* role for a specific fill.
+- `color.border` = `#d8d7d0` · dark: `#3a4b5c` — Default structural border and separator for panels, cards, table rules, and section edges.
+- `color.border.strong` = `#5f605a` · dark: `#aeb6be` — Resting boundary of an unfilled control, held to the 3:1 non-text minimum on every state surface in both modes.
 - `color.primary` = `#9b59b6` — Primary brand and interactive emphasis.
 - `color.secondary` = `#1abc9c` — Secondary accent used when a contrasting supporting color is appropriate.
 - `color.highlight` = `#dc95ff` — Expressive highlight color for selected visual emphasis and decorative accents.
 - `color.accent` = `#cf4173` — Optional expressive accent that should not replace semantic status colors.
-- `color.link` = `#26709f` — Default link and navigational text emphasis, verified at 4.5:1 against color.surface.
-- `color.info` = `#26709f` — Informational messages, indicators, and feedback. Readable as text on color.surface and carries color.on.info when filled.
-- `color.success` = `#1abc9c` — Successful, completed, and positive states. Use color.success.foreground for success text on light surfaces.
-- `color.warning` = `#946118` — Warning and caution states that require attention but are not errors. Readable as text on color.surface and carries color.on.warning when filled.
-- `color.danger` = `#d0311e` — Errors, destructive actions, and critical negative states.
-- `color.focus` = `#9b59b6` — Visible keyboard-focus indicator.
+- `color.link` = `#26709f` · dark: `#6fb3e6` — Default link and navigational text emphasis, verified at 4.5:1 against color.surface in both modes.
+- `color.info` = `#26709f` — Informational fill for badges, indicators, and filled feedback; carries color.on.info. Use color.info.foreground for informational text.
+- `color.success` = `#1abc9c` — Successful, completed, and positive states as a fill; carries color.on.success. Use color.success.foreground for success text and icons.
+- `color.warning` = `#946118` — Warning and caution states as a fill; carries color.on.warning. Use color.warning.foreground for warning text and icons.
+- `color.danger` = `#d0311e` — Errors, destructive actions, and critical negative states as a fill; carries color.on.danger. Use color.danger.foreground for error text and icons.
+- `color.focus` = `#9b59b6` · dark: `#dc95ff` — Visible keyboard-focus indicator, held to the 3:1 non-text minimum against color.surface in both modes.
 - `neutral.50` = `#f6f8f8` — Near-white neutral used for quiet hover surfaces on white content.
 - `neutral.200` = `#e4e6e4` — Neutral used for pressed and active surfaces and for stronger neutral fills.
 - `neutral.400` = `#9d9e98` — Low-contrast neutral reserved for disabled foreground content.
@@ -244,20 +246,23 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 - `red.100` = `#f9e6e4` — Tinted red surface for error and destructive feedback regions.
 - `red.700` = `#b72b1a` — Red one step darker, used for hover on destructive fills.
 - `red.800` = `#a22617` — Red two steps darker, used for pressed on destructive fills.
-- `color.surface.hover` = `#f6f8f8` — Surface under the pointer for rows, list items, menu items, cards, and quiet controls.
-- `color.surface.pressed` = `#e4e6e4` — Surface while a control is held down or while a menu trigger stays open.
-- `color.surface.selected` = `#f3ebf6` — Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis.
-- `color.surface.disabled` = `#ecf0f1` — Surface for disabled controls and non-interactive regions.
-- `color.foreground.disabled` = `#9d9e98` — Foreground for disabled labels, values, and icons. Never the only signal that a control is unavailable.
+- `color.surface.hover` = `#f6f8f8` · dark: `#23303d` — Surface under the pointer for rows, list items, menu items, cards, and quiet controls.
+- `color.surface.pressed` = `#e4e6e4` · dark: `#2c3e50` — Surface while a control is held down or while a menu trigger stays open.
+- `color.surface.selected` = `#f3ebf6` · dark: `#2d2439` — Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis. Carries color.primary.foreground text and a color.primary indicator in both modes.
+- `color.surface.disabled` = `#ecf0f1` · dark: `#111921` — Surface for disabled controls and non-interactive regions.
+- `color.foreground.disabled` = `#9d9e98` · dark: `#727d88` — Foreground for disabled labels, values, and icons. Never the only signal that a control is unavailable.
 - `color.primary.hover` = `#884ea0` — Primary fill under the pointer.
 - `color.primary.pressed` = `#79458e` — Primary fill while held down.
 - `color.danger.hover` = `#b72b1a` — Destructive fill under the pointer.
 - `color.danger.pressed` = `#a22617` — Destructive fill while held down.
-- `color.info.surface` = `#e7f3fb` — Tinted background for informational alerts, banners, and badges. Carries color.foreground.
-- `color.success.surface` = `#e4f7f3` — Tinted background for success alerts, banners, and badges. Carries color.foreground.
-- `color.success.foreground` = `#0f715d` — Success text and icons on color.surface, where color.success itself is too light to read.
-- `color.warning.surface` = `#f6efe4` — Tinted background for warning alerts, banners, and badges. Carries color.foreground.
-- `color.danger.surface` = `#f9e6e4` — Tinted background for error alerts, banners, and badges. Carries color.foreground.
+- `color.info.surface` = `#e7f3fb` · dark: `#17293a` — Tinted background for informational alerts, banners, and badges. Carries color.foreground.
+- `color.info.foreground` = `#26709f` · dark: `#6fb3e6` — Informational text and icons on color.surface. Identical to color.info in light mode; lightened in dark mode, where the fill is not readable as text.
+- `color.success.surface` = `#e4f7f3` · dark: `#12302c` — Tinted background for success alerts, banners, and badges. Carries color.foreground.
+- `color.success.foreground` = `#0f715d` · dark: `#7ae2cf` — Success text and icons on color.surface and color.success.surface, where color.success itself is not readable as text.
+- `color.warning.surface` = `#f6efe4` · dark: `#372b18` — Tinted background for warning alerts, banners, and badges. Carries color.foreground.
+- `color.warning.foreground` = `#946118` · dark: `#e0a64a` — Warning text and icons on color.surface. Identical to color.warning in light mode; lightened in dark mode, where the fill is not readable as text.
+- `color.danger.surface` = `#f9e6e4` · dark: `#3a1f1e` — Tinted background for error alerts, banners, and badges. Carries color.foreground.
+- `color.danger.foreground` = `#d0311e` · dark: `#f0857a` — Error text and icons on color.surface, and the invalid boundary of a control. Identical to color.danger in light mode; lightened in dark mode, where the fill is not readable as text.
 - `color.on.primary` = `#ffffff` — Verified foreground on a color.primary fill.
 - `color.on.secondary` = `#2c3e50` — Verified foreground on a color.secondary fill. Teal is light, so its foreground is dark rather than white.
 - `color.on.accent` = `#ffffff` — Verified foreground on a color.accent fill.
@@ -266,8 +271,22 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 - `color.on.success` = `#2c3e50` — Verified foreground on a color.success fill. Turquoise is light, so its foreground is dark rather than white.
 - `color.on.warning` = `#ffffff` — Verified foreground on a color.warning fill.
 - `color.on.danger` = `#ffffff` — Verified foreground on a color.danger fill.
-- `color.border.subtle` = `#ecf0f1` — Quietest boundary, for separators inside a surface that should stay visually secondary.
-- `color.primary.foreground` = `#884ea0` — Readable amethyst for text, icons, and selection indicators on light and tinted surfaces.
+- `color.border.subtle` = `#ecf0f1` · dark: `#111921` — Quietest boundary, for separators inside a surface that should stay visually secondary.
+- `color.primary.foreground` = `#884ea0` · dark: `#dc95ff` — Readable amethyst for text, icons, and selection indicators on plain and tinted surfaces in both modes.
+- `neutral.350` = `#aeb6be` — Cool light gray that reads as muted text and as the resting control boundary on dark surfaces; clears 4.75:1 on every dark state surface.
+- `neutral.500` = `#727d88` — Cool mid gray reserved for disabled foreground content on dark surfaces.
+- `neutral.800` = `#3a4b5c` — Blue-gray used for structural borders on dark surfaces.
+- `neutral.925` = `#23303d` — Blue-gray one step above the dark surface, used for hover on dark content.
+- `neutral.950` = `#1a2530` — Dark blue-gray used for content, panel, and card surfaces in dark mode.
+- `neutral.975` = `#111921` — Near-black blue-gray used for the dark-mode page background and its quietest boundaries.
+- `purple.900` = `#2d2439` — Deep amethyst tint for selected rows and active navigation on dark surfaces.
+- `teal.900` = `#12302c` — Deep teal tint for success feedback regions on dark surfaces.
+- `blue.400` = `#6fb3e6` — Lightened blue that meets text contrast on dark surfaces; the dark-mode link and informational text color.
+- `blue.900` = `#17293a` — Deep blue tint for informational feedback regions on dark surfaces.
+- `red.400` = `#f0857a` — Lightened red that meets text contrast on dark surfaces; the dark-mode error text color.
+- `red.900` = `#3a1f1e` — Deep red tint for error and destructive feedback regions on dark surfaces.
+- `amber.400` = `#e0a64a` — Lightened amber that meets text contrast on dark surfaces; the dark-mode warning text color.
+- `amber.900` = `#372b18` — Deep amber tint for warning feedback regions on dark surfaces.
 
 ### Typography
 
@@ -349,16 +368,16 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 
 ### Borders
 
-- `border.subtle` = `1px solid #ecf0f1` — Quietest separator inside a surface, for divisions that should remain visually secondary.
-- `border.default` = `1px solid #d8d7d0` — Structural one-pixel border for panels, cards, section edges, and container boundaries.
-- `border.strong` = `1px solid #5f605a` — Resting boundary of an unfilled control, meeting the 3:1 non-text minimum that the structural border does not.
-- `border.focus` = `2px solid #9b59b6` — High-visibility amethyst border for keyboard focus and interaction states that require an unmistakable boundary.
+- `border.subtle` = `1px solid #ecf0f1` · dark: `1px solid #111921` — Quietest separator inside a surface, for divisions that should remain visually secondary.
+- `border.default` = `1px solid #d8d7d0` · dark: `1px solid #3a4b5c` — Structural one-pixel border for panels, cards, section edges, and container boundaries.
+- `border.strong` = `1px solid #5f605a` · dark: `1px solid #aeb6be` — Resting boundary of an unfilled control, meeting the 3:1 non-text minimum that the structural border does not.
+- `border.focus` = `2px solid #9b59b6` · dark: `2px solid #dc95ff` — High-visibility amethyst border for keyboard focus and interaction states that require an unmistakable boundary.
 
 ### Elevation
 
-- `shadow.raised` = `0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)` — Subtle elevation for lightweight floating or raised elements that need gentle separation from the surrounding surface.
-- `shadow.overlay` = `0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)` — Medium elevation for dropdowns, menus, popovers, tooltips, and temporary floating surfaces.
-- `shadow.dialog` = `0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)` — Strongest standard elevation for dialogs, modals, and major temporary surfaces above the main application layer.
+- `shadow.raised` = `0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)` · dark: `0 1px 2px rgb(0 0 0 / 0.32), 0 2px 6px rgb(0 0 0 / 0.28)` — Subtle elevation for lightweight floating or raised elements that need gentle separation from the surrounding surface.
+- `shadow.overlay` = `0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)` · dark: `0 4px 12px rgb(0 0 0 / 0.40), 0 12px 28px rgb(0 0 0 / 0.44)` — Medium elevation for dropdowns, menus, popovers, tooltips, and temporary floating surfaces.
+- `shadow.dialog` = `0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)` · dark: `0 8px 24px rgb(0 0 0 / 0.48), 0 24px 64px rgb(0 0 0 / 0.56)` — Strongest standard elevation for dialogs, modals, and major temporary surfaces above the main application layer.
 
 ### Layout
 
@@ -379,7 +398,7 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 
 - `opacity.disabled` = `0.5` — Fallback opacity for disabled controls and visual elements when dedicated disabled semantic colors are unavailable or insufficient.
 - `opacity.muted` = `0.72` — De-emphasis for decorative, supplementary, or nonessential visual content; avoid using it for required readable text.
-- `opacity.scrim` = `0.4` — Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces.
+- `opacity.scrim` = `0.4` · dark: `0.6` — Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces. Stronger in dark mode, where a dark scrim over dark surfaces needs more opacity to separate the layers.
 
 ### Motion
 
@@ -698,7 +717,7 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 - Decision: Use
 - Inspiration: Ant Design Dropdown
 - Preferences: density=compact, radius=token:radius.lg, elevation=token:shadow.overlay, content=commands and command-like options, never forms, grouping=a divider only between groups that mean different things, destructive_items=their own trailing group, item_anatomy=optional leading icon, label, optional trailing shortcut, length=short enough to scan; filtering means Combobox or Palette, submenus=at most one level
-- Notes: Use the overlay elevation at the overlay layer, anchored to the trigger, flipping to stay in the viewport and never covering the trigger. The trigger keeps its pressed treatment while the menu is open. Item hover and keyboard highlight use the same treatment so pointer and keyboard users see one active item, and the pointer does not steal the highlight from keyboard navigation without movement. Destructive items use color.danger for their label and sit apart from routine items. Disabled items say why nearby or are omitted. A menu is not navigation: destinations that belong in navigation should be discoverable without opening a menu.
+- Notes: Use the overlay elevation at the overlay layer, anchored to the trigger, flipping to stay in the viewport and never covering the trigger. The trigger keeps its pressed treatment while the menu is open. Item hover and keyboard highlight use the same treatment so pointer and keyboard users see one active item, and the pointer does not steal the highlight from keyboard navigation without movement. Destructive items use color.danger.foreground for their label and sit apart from routine items. Disabled items say why nearby or are omitted. A menu is not navigation: destinations that belong in navigation should be discoverable without opening a menu.
 - Inherits: Monet Principles, Foundations, and Patterns
 - Advanced behavior: keyboard_navigation=true, typeahead_navigation=true, escape_closes=true, outside_click_closes=true, returns_focus_to_trigger=true, closes_after_selection=true, trigger_shows_open_state=true, focus_trap=false
 - Advanced rationale: Use Ant Design as the Dropdown Menu inspiration for its compact item anatomy and grouping. The decision that matters is scope: a menu holds actions, and the moment inputs, checkboxes, or paragraphs appear inside one, it has become a Popover with the wrong keyboard model. Keeping that boundary strict is what lets the menu keep arrow-key navigation, typeahead, and close-on-select without special cases.
@@ -1082,7 +1101,7 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 - Decision: Use
 - Inspiration: Ant Design Statistic
 - Preferences: anatomy=label above, value prominent, comparison and period below, value_typography=the largest step the layout allows, tabular figures, period=always stated, comparison=against a named baseline, direction_color=only with an arrow or a word, after deciding direction, container=none by default; spacing and type scale do the separating, precision=rounded consistently across a row, with units visible
-- Notes: Zero, no data, and failed to load are three different states and must look different; only zero is displayed as a number. Use color.success.foreground and color.danger for delta text so both meet contrast on color.surface. Keep the label above the value: users scan values first and need the label already in view. A statistic that reports a problem should lead somewhere — link it to the filtered records behind it and carry the current time range along. Follow the Dashboard pattern for grid, refresh, and time-range behavior.
+- Notes: Zero, no data, and failed to load are three different states and must look different; only zero is displayed as a number. Use color.success.foreground and color.danger.foreground for delta text so both meet contrast on color.surface in both modes. Keep the label above the value: users scan values first and need the label already in view. A statistic that reports a problem should lead somewhere — link it to the filtered records behind it and carry the current time range along. Follow the Dashboard pattern for grid, refresh, and time-range behavior.
 - Inherits: Monet Principles, Foundations, and Patterns
 - Advanced behavior: supports_trend=true, supports_comparison=true, links_to_detail=true, shows_loading_placeholder=true, distinguishes_zero_from_no_data=true
 - Advanced rationale: Use Ant Design as the Statistic inspiration for its compact label, value, and delta anatomy. The decisions that matter here are about honesty rather than layout: a delta with no stated comparison basis, a partial period compared against a complete one, and a green arrow on a metric where down is good are the three ways a number misleads while looking authoritative. Recording them at the component keeps every dashboard from re-deciding them.
@@ -1095,7 +1114,7 @@ Theme files contain overrides only. Resolved values below are Base Monet plus th
 - Decision: Use
 - Inspiration: Mantine UI Input.Wrapper
 - Preferences: structure=label, description, control, message, label=visible and above the control, never a placeholder, required_marking=mark the smaller set, required or optional, message_slot=one reserved slot, so an error cannot change the height, width=sized to the expected value, not to the form's width, spacing=consistent rhythm, larger between groups than within
-- Notes: Follow the Forms pattern for validation timing, copy, and submission. The label uses the medium weight and color.foreground; the description uses color.foreground.muted; the error uses color.danger and is adjacent to the control it describes. Invalid state applies color.danger to the control's boundary, and the focus ring must remain visible over it. Disabled propagates to the control and to the label's foreground, but never removes the description that explains why. A field wrapping a group of controls uses Fieldset so the group has one label and one message rather than one per option.
+- Notes: Follow the Forms pattern for validation timing, copy, and submission. The label uses the medium weight and color.foreground; the description uses color.foreground.muted; the error uses color.danger.foreground and is adjacent to the control it describes. Invalid state applies color.danger.foreground to the control's boundary, and the focus ring must remain visible over it. Disabled propagates to the control and to the label's foreground, but never removes the description that explains why. A field wrapping a group of controls uses Fieldset so the group has one label and one message rather than one per option.
 - Inherits: Monet Principles, Foundations, and Patterns
 - Advanced behavior: associates_label_with_control=true, associates_description_with_control=true, associates_error_with_control=true, preserves_height_on_error=true, propagates_disabled_state=true, propagates_invalid_state=true
 - Advanced rationale: Use Mantine as the Field inspiration because it treats the label, description, error, and control as one composed unit with the accessibility wiring already settled. Field is where Monet's form rules are actually enforced: label placement, required marking, message position, and programmatic association are decided once here rather than re-decided by every control. Reserving the message slot is the small detail that keeps a form from jumping as validation appears.

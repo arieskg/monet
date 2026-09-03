@@ -15,6 +15,7 @@
       "base_resolved_value": "720px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -31,6 +32,7 @@
       "base_resolved_value": "1200px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -47,6 +49,7 @@
       "base_resolved_value": "1440px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -63,6 +66,7 @@
       "base_resolved_value": "240px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -79,6 +83,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -95,6 +100,7 @@
       "base_resolved_value": "24px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -111,6 +117,7 @@
       "base_resolved_value": "1440px",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     }
   ]

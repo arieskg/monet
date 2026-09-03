@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 import { loadWorkspace } from "../server/fileStore.js";
-import type { ContextNoticeKind, DesignContext, RetrievalCoverage } from "./model.js";
+import type { ContextNoticeKind, DesignContext, RetrievalCoverage, ThemeMode } from "./model.js";
 import { createMonetService, type MonetService } from "./service.js";
 
 /**
@@ -25,6 +25,10 @@ interface Case {
   coverage?: RetrievalCoverage;
   /** Notice kinds the result must carry, such as an unsupported capability. */
   notices?: ContextNoticeKind[];
+  /** Notice kinds that would be wrong here, such as calling a supported capability unsupported. */
+  forbidNotices?: ContextNoticeKind[];
+  /** The mode the result must be resolved in, where the query implies one. */
+  mode?: ThemeMode;
 }
 
 const CASES: Case[] = [
@@ -180,11 +184,12 @@ const CASES: Case[] = [
     expect: { components: ["stepper"] },
     notices: ["undecided_guidance"],
   },
-  // Capability Monet does not have
+  // A dark-mode task resolves in dark mode, so the capability is supplied rather than declared missing
   {
     query: "build a dark mode dashboard",
     expect: { patterns: ["dashboard"] },
-    notices: ["unsupported_capability"],
+    forbidNotices: ["unsupported_capability"],
+    mode: "dark",
   },
   // Tasks Monet has no opinion on
   {
@@ -292,6 +297,10 @@ describe("Monet retrieval evaluation", () => {
     for (const kind of testCase.notices ?? []) {
       expect(context.notices.map((notice) => notice.kind), `${query} → notices`).toContain(kind);
     }
+    for (const kind of testCase.forbidNotices ?? []) {
+      expect(context.notices.map((notice) => notice.kind), `${query} → wrong notice`).not.toContain(kind);
+    }
+    if (testCase.mode) expect(context.mode, `${query} → mode`).toBe(testCase.mode);
     expect(context.warnings).toEqual([]);
   });
 

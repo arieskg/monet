@@ -30,6 +30,42 @@ guidance. `shared/tokens.ts` is the single normalization and theme-resolution
 implementation. The compatibility modules under `server/` only re-export these
 shared contracts.
 
+## Themes and modes
+
+Resolution has two axes. A **theme** is override-only product adaptation; a
+**mode** is `light` or `dark`, an appearance the same theme can be resolved in.
+Both are layered over the Foundations rather than copied from them:
+
+```text
+Foundation token value            (light: the value every token already carries)
+  + Foundation token modes.dark   (the Foundation's dark decision for that role)
+  + theme.overrides               (product overrides, every mode)
+  + theme.modes.dark              (product overrides, dark only)
+  → alias resolution → resolved tokens with provenance
+```
+
+Foundations own the dark decisions because a mode value is a semantic decision
+about a role — what `color.surface` is on a dark screen — and not a product
+deviation. A token opts in with `modes: { dark: value }`; light is never stored as
+a mode, so a workspace written before modes existed reads as light-only without
+any migration. A theme supports dark as soon as any token or the theme itself
+supplies a dark value; `themeModes()` derives this, nothing declares it. A mode
+that is not supported resolves as light and the workspace says which mode was
+actually used, so a read-only caller never sees a silent substitution.
+
+Provenance on every resolved token names the mode it was resolved in and the
+highest layer that changed it: `theme` when a theme override contributed (mode
+specific or not), `mode` when only a Foundation's dark value did, `base` when the
+value is Base Monet's light value. `override_dependencies` names the tokens whose
+replaced values carried the change, so a Borders token that only aliases
+`color.border` reports that colour as the reason it changed in dark.
+
+The bundled starter workspace keeps every fill role and every `color.on.*`
+foreground identical across modes and moves only surfaces, text, borders, tinted
+status surfaces, focus, shadows, and the scrim. That is a decision of the
+workspace, not of the tool; `validate` holds a workspace only to resolving in
+every mode it claims and to a dark background that is actually dark.
+
 Canonical storage remains unchanged:
 
 | Entity | Canonical storage | Stable ID authority |
@@ -38,7 +74,7 @@ Canonical storage remains unchanged:
 | Foundations | `monet/foundations/*.json` | record `id` (normally equal to filename) |
 | Patterns | `monet/patterns/*.md` | filename slug |
 | Components | `monet/taxonomy/components.json` + `monet/components/decisions.json` | taxonomy entry `id` |
-| Themes | `monet/themes/*.json` + `monet/themes/config.json` | filename slug |
+| Themes | `monet/themes/*.json` + `monet/themes/config.json`; dark values live on Foundation tokens as `modes.dark` | filename slug |
 | References | `monet/references/registry.json` + bounded assets; collection analysis is separate | registry record `id` |
 
 `DESIGN_SYSTEM.md`, `design-system.json`, and `tokens/` are regenerated projections of the active workspace,
@@ -56,7 +92,9 @@ Elements specimen                     realistic Sample Page
 
 It does not add a file-service endpoint or canonical record. The compiler consumes
 the same resolved theme tokens and active Foundation, Primitive, Component, and
-Pattern decisions as the rest of Monet. Component adapters are reused for the
+Pattern decisions as the rest of Monet, and the Preview page resolves the mode it
+shows in the browser from the base tokens the workspace response already carries,
+so switching between light and dark asks the file service for nothing. Component adapters are reused for the
 Elements fixtures, while their styling remains scoped to Monet's resolved
 Foundation values so a selected inspiration cannot override the design hierarchy.
 The compiled representation is deliberately independent of page state so future
@@ -81,7 +119,8 @@ without losing values. Reference resolution reports missing and circular
 references. Theme resolution replaces only named Foundation token values, then
 resolves aliases again and records direct or transitive override provenance. Themes
 cannot override Principles or Patterns. Every accepted write regenerates readable,
-structured, per-foundation, and per-theme resolved token exports.
+structured, per-foundation, and per-theme resolved token exports, one file per
+theme and mode.
 
 Primitive taxonomy and decisions are separate from component taxonomy and
 decisions, but both reuse status, source mapping, search, and relationship IDs.

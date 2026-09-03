@@ -1,4 +1,4 @@
-import type { Component, ContextNotice, DesignContext, MarkdownDocument, Principle, ResolvedThemeToken, RetrievalCoverage, RetrievalProvenance, Status } from "./model.js";
+import type { Component, ContextNotice, DesignContext, MarkdownDocument, ModeVariants, Principle, ResolvedThemeToken, RetrievalCoverage, RetrievalProvenance, Status, ThemeMode } from "./model.js";
 import { patternAvoid, patternIntent, patternSections } from "./service.js";
 
 /**
@@ -35,7 +35,8 @@ export interface CompactDesignContext {
   query: string;
   coverage: RetrievalCoverage;
   notices: ContextNotice[];
-  theme: { id: string; name: string } | null;
+  /** The theme and the mode the `tokens` were resolved in, plus every mode the theme supports. */
+  theme: { id: string; name: string; mode: ThemeMode; modes: ThemeMode[] } | null;
   principles: CompactPrinciple[];
   foundations: CompactFoundation[];
   patterns: CompactPattern[];
@@ -45,6 +46,8 @@ export interface CompactDesignContext {
   tokens: Record<string, string | number>;
   /** Only tokens whose active-theme value differs from Base Monet, so provenance costs nothing elsewhere. */
   theme_overrides?: Record<string, { base: string | number | null; theme: string | number | null }>;
+  /** Only tokens whose value differs between modes, with the value in each mode, so a light brief carries its dark counterparts and vice versa. */
+  mode_values?: ModeVariants;
   token_issues?: string[];
   retrieval: RetrievalProvenance[];
   warnings: string[];
@@ -151,7 +154,7 @@ export function toCompactContext(context: DesignContext): CompactDesignContext {
     query: context.query,
     coverage: context.coverage,
     notices: context.notices,
-    theme: context.theme ? { id: context.theme.id, name: context.theme.name } : null,
+    theme: context.theme ? { id: context.theme.id, name: context.theme.name, mode: context.mode, modes: context.modes } : null,
     principles: context.principles.map(compactPrinciple),
     foundations: context.foundations.map((foundation) => ({
       id: foundation.id, name: foundation.name, status: foundation.status,
@@ -163,6 +166,7 @@ export function toCompactContext(context: DesignContext): CompactDesignContext {
     references: context.references.map(compactReference),
     tokens: tokenValues(context.resolvedTokens),
     ...(Object.keys(overrides).length ? { theme_overrides: overrides } : {}),
+    ...(Object.keys(context.modeVariants).length ? { mode_values: context.modeVariants } : {}),
     ...(issues.length ? { token_issues: issues } : {}),
     // Principles ship with every brief, so a provenance row saying so on each of them is noise the
     // agent cannot act on. Their entries are dropped here; the full context still carries them.

@@ -6,6 +6,13 @@ import { createMonetService } from "../shared/service.js";
 import { buildCatalog, createMonetMcpServer } from "./server.js";
 
 const service = createMonetService({ loadWorkspace });
+/** The same workspace with its dark mode taken away, so the light-only path can be exercised over the wire. */
+const lightOnlyService = createMonetService({
+  loadWorkspace: async (themeId) => {
+    const workspace = await loadWorkspace(themeId, "light");
+    return { ...workspace, modes: ["light"], foundations: workspace.foundations.map((foundation) => ({ ...foundation, tokens: foundation.tokens.map((token) => ({ ...token, modes: undefined })) })) };
+  },
+});
 
 function firstText(contents: readonly unknown[]): string {
   const content = contents[0];
@@ -111,12 +118,73 @@ describe("Monet MCP adapter", () => {
     expect(JSON.stringify(compact.structuredContent).length).toBeLessThan(JSON.stringify(full.structuredContent).length / 2);
   });
 
-  it("reports an unsupported capability instead of passing light tokens off as dark mode", async () => {
+  it("answers a dark-mode task with dark tokens and their light counterparts", async () => {
     const result = await client.callTool({ name: "get_design_context", arguments: { query: "build a dark mode dashboard" } });
-    const brief = result.structuredContent as { notices: Array<{ kind: string; ids: string[]; message: string }> };
-    const notice = brief.notices.find((item) => item.kind === "unsupported_capability");
-    expect(notice?.ids).toContain("dark-mode");
-    expect(notice?.message).toContain("no dark theme");
+    const brief = result.structuredContent as {
+      theme: { id: string; mode: string; modes: string[] }; tokens: Record<string, string>;
+      mode_values: Record<string, { light?: string; dark?: string }>; notices: Array<{ kind: string }>;
+    };
+    expect(brief.theme).toMatchObject({ id: "default", mode: "dark", modes: ["light", "dark"] });
+    expect(brief.notices.map((item) => item.kind)).not.toContain("unsupported_capability");
+    // The brief's tokens are the dark resolution, and mode_values pairs each changed token with its light value.
+    expect(brief.tokens["color.background"]).toBe("#111921");
+    expect(brief.tokens["color.primary"]).toBe("#9b59b6");
+    expect(brief.mode_values["color.background"]).toEqual({ light: "#ecf0f1", dark: "#111921" });
+    expect(brief.mode_values).not.toHaveProperty("color.primary");
+
+    const explicit = await client.callTool({ name: "get_design_context", arguments: { query: "build a dark mode dashboard", mode: "light" } });
+    const light = explicit.structuredContent as { theme: { mode: string }; tokens: Record<string, string>; notices: Array<{ kind: string }> };
+    expect(light.theme.mode).toBe("light");
+    expect(light.tokens["color.background"]).toBe("#ecf0f1");
+    // Asking for light explicitly while the task says dark is answered honestly: these are light values, and dark is one argument away.
+    const lightNotice = light.notices.find((item) => item.kind === "unsupported_capability") as { message: string } | undefined;
+    expect(lightNotice?.message).toContain("has a dark mode");
+    expect(lightNotice?.message).toContain('mode: "dark"');
+  });
+
+  it("still reports an unsupported capability when the workspace has no dark palette", async () => {
+    const lightServer = createMonetMcpServer(lightOnlyService);
+    const lightClient = new Client({ name: "monet-light-test", version: "1.0.0" });
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await lightServer.connect(serverTransport);
+    await lightClient.connect(clientTransport);
+    try {
+      const result = await lightClient.callTool({ name: "get_design_context", arguments: { query: "build a dark mode dashboard" } });
+      const brief = result.structuredContent as { theme: { mode: string; modes: string[] }; notices: Array<{ kind: string; ids: string[]; message: string }> };
+      expect(brief.theme).toMatchObject({ mode: "light", modes: ["light"] });
+      const notice = brief.notices.find((item) => item.kind === "unsupported_capability");
+      expect(notice?.ids).toContain("dark-mode");
+      expect(notice?.message).toContain("has no dark mode");
+      const catalog = JSON.parse(firstText((await lightClient.readResource({ uri: "monet://catalog" })).contents)) as { themes: Array<{ id: string; modes: string[] }> };
+      expect(catalog.themes[0]?.modes).toEqual(["light"]);
+    } finally {
+      await lightClient.close();
+      await lightServer.close();
+    }
+  });
+
+  it("resolves theme tokens per mode through resources", async () => {
+    const catalog = JSON.parse(firstText((await client.readResource({ uri: "monet://catalog" })).contents)) as { themes: Array<{ id: string; modes: string[] }> };
+    expect(catalog.themes.find((item) => item.id === "default")?.modes).toEqual(["light", "dark"]);
+
+    const light = JSON.parse(firstText((await client.readResource({ uri: "monet://themes/default/tokens" })).contents)) as { mode: string; modes: string[]; tokens: Array<{ name: string; resolved_value: string; source: string }> };
+    expect(light.mode).toBe("light");
+    expect(light.modes).toEqual(["light", "dark"]);
+    expect(light.tokens.every((token) => token.source === "base")).toBe(true);
+
+    const dark = JSON.parse(firstText((await client.readResource({ uri: "monet://themes/default/tokens/dark" })).contents)) as { mode: string; tokens: Array<{ name: string; resolved_value: string; source: string; override_dependencies: string[] }> };
+    expect(dark.mode).toBe("dark");
+    const background = dark.tokens.find((token) => token.name === "color.background");
+    expect(background).toMatchObject({ resolved_value: "#111921", source: "mode", override_dependencies: ["color.background"] });
+    // A Borders token that only aliases a colour follows that colour into dark and says which mode value carried it.
+    expect(dark.tokens.find((token) => token.name === "border.default")).toMatchObject({ resolved_value: "1px solid #3a4b5c", source: "mode", override_dependencies: ["color.border"] });
+    expect(dark.tokens.find((token) => token.name === "color.primary")).toMatchObject({ resolved_value: "#9b59b6", source: "base" });
+
+    const templates = await client.listResourceTemplates();
+    expect(templates.resourceTemplates.map((item) => item.uriTemplate)).toContain("monet://themes/{id}/tokens/{mode}");
+    const listed = await client.listResources();
+    expect(listed.resources.map((item) => item.uri)).toContain("monet://themes/default/tokens/dark");
+    await expect(client.readResource({ uri: "monet://themes/default/tokens/sepia" })).rejects.toThrow(/theme mode/);
   });
 
   it("distinguishes a weak shortlist from a confident answer over the wire", async () => {
@@ -154,6 +222,10 @@ describe("Monet MCP adapter", () => {
     const unknownTheme = await client.callTool({ name: "get_design_context", arguments: { themeId: "not-a-theme" } });
     expect(unknownTheme.isError).toBe(true);
     expect(firstText(unknownTheme.content)).toContain("Unknown Monet theme ID");
+
+    const unknownMode = await client.callTool({ name: "get_design_context", arguments: { mode: "sepia" } });
+    expect(unknownMode.isError).toBe(true);
+    expect(firstText(unknownMode.content)).toContain("Input validation error");
   });
 
   it("searches references through the shared search service", async () => {

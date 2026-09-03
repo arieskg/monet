@@ -7,7 +7,7 @@
       "dark"
     ]
   },
-  "mode": "light",
+  "mode": "dark",
   "tokens": [
     {
       "id": "neutral-white",
@@ -23,7 +23,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -40,7 +40,7 @@
       "base_resolved_value": "#ecf0f1",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -57,7 +57,7 @@
       "base_resolved_value": "#d8d7d0",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -74,7 +74,7 @@
       "base_resolved_value": "#5f605a",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -91,7 +91,7 @@
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -108,7 +108,7 @@
       "base_resolved_value": "#dc95ff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -125,7 +125,7 @@
       "base_resolved_value": "#9b59b6",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -142,7 +142,7 @@
       "base_resolved_value": "#7ae2cf",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -159,7 +159,7 @@
       "base_resolved_value": "#1abc9c",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -176,7 +176,7 @@
       "base_resolved_value": "#3498db",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -193,7 +193,7 @@
       "base_resolved_value": "#cf4173",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -210,7 +210,7 @@
       "base_resolved_value": "#d0311e",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -227,7 +227,7 @@
       "base_resolved_value": "#b7791f",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -236,19 +236,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.100}",
+      "value": "{neutral.975}",
       "description": "Default application background.",
       "order": 13,
       "modes": {
         "dark": "{neutral.975}"
       },
-      "resolved_value": "#ecf0f1",
+      "resolved_value": "#111921",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.background"
+      ]
     },
     {
       "id": "color-surface",
@@ -256,19 +258,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.white}",
+      "value": "{neutral.950}",
       "description": "Default content, panel, card, and elevated surface.",
       "order": 14,
       "modes": {
         "dark": "{neutral.950}"
       },
-      "resolved_value": "#ffffff",
+      "resolved_value": "#1a2530",
       "valid": true,
       "base_resolved_value": "#ffffff",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.surface"
+      ]
     },
     {
       "id": "color-surface-subtle",
@@ -276,19 +280,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.100}",
+      "value": "{neutral.975}",
       "description": "Subtle surface used to distinguish secondary regions without strong containers.",
       "order": 15,
       "modes": {
         "dark": "{neutral.975}"
       },
-      "resolved_value": "#ecf0f1",
+      "resolved_value": "#111921",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.surface.subtle"
+      ]
     },
     {
       "id": "color-foreground",
@@ -296,19 +302,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.900}",
+      "value": "{neutral.100}",
       "description": "Default primary text and foreground content.",
       "order": 16,
       "modes": {
         "dark": "{neutral.100}"
       },
-      "resolved_value": "#2c3e50",
+      "resolved_value": "#ecf0f1",
       "valid": true,
       "base_resolved_value": "#2c3e50",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.foreground"
+      ]
     },
     {
       "id": "color-foreground-muted",
@@ -316,19 +324,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.600}",
+      "value": "{neutral.350}",
       "description": "Secondary text, metadata, descriptions, and lower-emphasis content.",
       "order": 17,
       "modes": {
         "dark": "{neutral.350}"
       },
-      "resolved_value": "#5f605a",
+      "resolved_value": "#aeb6be",
       "valid": true,
       "base_resolved_value": "#5f605a",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.foreground.muted"
+      ]
     },
     {
       "id": "color-foreground-inverse",
@@ -336,19 +346,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.white}",
+      "value": "{neutral.975}",
       "description": "Foreground for content on a surface of the opposite mode: white on dark fills in light mode, near-black on light fills in dark mode. Prefer the verified color.on.* role for a specific fill.",
       "order": 18,
       "modes": {
         "dark": "{neutral.975}"
       },
-      "resolved_value": "#ffffff",
+      "resolved_value": "#111921",
       "valid": true,
       "base_resolved_value": "#ffffff",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.foreground.inverse"
+      ]
     },
     {
       "id": "color-border",
@@ -356,19 +368,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.300}",
+      "value": "{neutral.800}",
       "description": "Default structural border and separator for panels, cards, table rules, and section edges.",
       "order": 19,
       "modes": {
         "dark": "{neutral.800}"
       },
-      "resolved_value": "#d8d7d0",
+      "resolved_value": "#3a4b5c",
       "valid": true,
       "base_resolved_value": "#d8d7d0",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.border"
+      ]
     },
     {
       "id": "color-border-strong",
@@ -376,19 +390,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.600}",
+      "value": "{neutral.350}",
       "description": "Resting boundary of an unfilled control, held to the 3:1 non-text minimum on every state surface in both modes.",
       "order": 20,
       "modes": {
         "dark": "{neutral.350}"
       },
-      "resolved_value": "#5f605a",
+      "resolved_value": "#aeb6be",
       "valid": true,
       "base_resolved_value": "#5f605a",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.border.strong"
+      ]
     },
     {
       "id": "color-primary",
@@ -404,7 +420,7 @@
       "base_resolved_value": "#9b59b6",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -421,7 +437,7 @@
       "base_resolved_value": "#1abc9c",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -438,7 +454,7 @@
       "base_resolved_value": "#dc95ff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -455,7 +471,7 @@
       "base_resolved_value": "#cf4173",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -464,19 +480,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{blue.600}",
+      "value": "{blue.400}",
       "description": "Default link and navigational text emphasis, verified at 4.5:1 against color.surface in both modes.",
       "order": 25,
       "modes": {
         "dark": "{blue.400}"
       },
-      "resolved_value": "#26709f",
+      "resolved_value": "#6fb3e6",
       "valid": true,
       "base_resolved_value": "#26709f",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.link"
+      ]
     },
     {
       "id": "color-info",
@@ -492,7 +510,7 @@
       "base_resolved_value": "#26709f",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -509,7 +527,7 @@
       "base_resolved_value": "#1abc9c",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -526,7 +544,7 @@
       "base_resolved_value": "#946118",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -543,7 +561,7 @@
       "base_resolved_value": "#d0311e",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -552,19 +570,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{purple.500}",
+      "value": "{purple.300}",
       "description": "Visible keyboard-focus indicator, held to the 3:1 non-text minimum against color.surface in both modes.",
       "order": 30,
       "modes": {
         "dark": "{purple.300}"
       },
-      "resolved_value": "#9b59b6",
+      "resolved_value": "#dc95ff",
       "valid": true,
       "base_resolved_value": "#9b59b6",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.focus"
+      ]
     },
     {
       "id": "neutral-50",
@@ -580,7 +600,7 @@
       "base_resolved_value": "#f6f8f8",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -597,7 +617,7 @@
       "base_resolved_value": "#e4e6e4",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -614,7 +634,7 @@
       "base_resolved_value": "#9d9e98",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -631,7 +651,7 @@
       "base_resolved_value": "#f3ebf6",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -648,7 +668,7 @@
       "base_resolved_value": "#884ea0",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -665,7 +685,7 @@
       "base_resolved_value": "#79458e",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -682,7 +702,7 @@
       "base_resolved_value": "#e4f7f3",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -699,7 +719,7 @@
       "base_resolved_value": "#0f715d",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -716,7 +736,7 @@
       "base_resolved_value": "#e7f3fb",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -733,7 +753,7 @@
       "base_resolved_value": "#26709f",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -750,7 +770,7 @@
       "base_resolved_value": "#f6efe4",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -767,7 +787,7 @@
       "base_resolved_value": "#946118",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -784,7 +804,7 @@
       "base_resolved_value": "#f9e6e4",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -801,7 +821,7 @@
       "base_resolved_value": "#b72b1a",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -818,7 +838,7 @@
       "base_resolved_value": "#a22617",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -827,19 +847,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.50}",
+      "value": "{neutral.925}",
       "description": "Surface under the pointer for rows, list items, menu items, cards, and quiet controls.",
       "order": 46,
       "modes": {
         "dark": "{neutral.925}"
       },
-      "resolved_value": "#f6f8f8",
+      "resolved_value": "#23303d",
       "valid": true,
       "base_resolved_value": "#f6f8f8",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.surface.hover"
+      ]
     },
     {
       "id": "color-surface-pressed",
@@ -847,19 +869,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.200}",
+      "value": "{neutral.900}",
       "description": "Surface while a control is held down or while a menu trigger stays open.",
       "order": 47,
       "modes": {
         "dark": "{neutral.900}"
       },
-      "resolved_value": "#e4e6e4",
+      "resolved_value": "#2c3e50",
       "valid": true,
       "base_resolved_value": "#e4e6e4",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.surface.pressed"
+      ]
     },
     {
       "id": "color-surface-selected",
@@ -867,19 +891,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{purple.100}",
+      "value": "{purple.900}",
       "description": "Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis. Carries color.primary.foreground text and a color.primary indicator in both modes.",
       "order": 48,
       "modes": {
         "dark": "{purple.900}"
       },
-      "resolved_value": "#f3ebf6",
+      "resolved_value": "#2d2439",
       "valid": true,
       "base_resolved_value": "#f3ebf6",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.surface.selected"
+      ]
     },
     {
       "id": "color-surface-disabled",
@@ -887,19 +913,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.100}",
+      "value": "{neutral.975}",
       "description": "Surface for disabled controls and non-interactive regions.",
       "order": 49,
       "modes": {
         "dark": "{neutral.975}"
       },
-      "resolved_value": "#ecf0f1",
+      "resolved_value": "#111921",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.surface.disabled"
+      ]
     },
     {
       "id": "color-foreground-disabled",
@@ -907,19 +935,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.400}",
+      "value": "{neutral.500}",
       "description": "Foreground for disabled labels, values, and icons. Never the only signal that a control is unavailable.",
       "order": 50,
       "modes": {
         "dark": "{neutral.500}"
       },
-      "resolved_value": "#9d9e98",
+      "resolved_value": "#727d88",
       "valid": true,
       "base_resolved_value": "#9d9e98",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.foreground.disabled"
+      ]
     },
     {
       "id": "color-primary-hover",
@@ -935,7 +965,7 @@
       "base_resolved_value": "#884ea0",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -952,7 +982,7 @@
       "base_resolved_value": "#79458e",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -969,7 +999,7 @@
       "base_resolved_value": "#b72b1a",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -986,7 +1016,7 @@
       "base_resolved_value": "#a22617",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -995,19 +1025,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{blue.100}",
+      "value": "{blue.900}",
       "description": "Tinted background for informational alerts, banners, and badges. Carries color.foreground.",
       "order": 55,
       "modes": {
         "dark": "{blue.900}"
       },
-      "resolved_value": "#e7f3fb",
+      "resolved_value": "#17293a",
       "valid": true,
       "base_resolved_value": "#e7f3fb",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.info.surface"
+      ]
     },
     {
       "id": "color-info-foreground",
@@ -1015,19 +1047,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{blue.600}",
+      "value": "{blue.400}",
       "description": "Informational text and icons on color.surface. Identical to color.info in light mode; lightened in dark mode, where the fill is not readable as text.",
       "order": 56,
       "modes": {
         "dark": "{blue.400}"
       },
-      "resolved_value": "#26709f",
+      "resolved_value": "#6fb3e6",
       "valid": true,
       "base_resolved_value": "#26709f",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.info.foreground"
+      ]
     },
     {
       "id": "color-success-surface",
@@ -1035,19 +1069,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{teal.100}",
+      "value": "{teal.900}",
       "description": "Tinted background for success alerts, banners, and badges. Carries color.foreground.",
       "order": 57,
       "modes": {
         "dark": "{teal.900}"
       },
-      "resolved_value": "#e4f7f3",
+      "resolved_value": "#12302c",
       "valid": true,
       "base_resolved_value": "#e4f7f3",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.success.surface"
+      ]
     },
     {
       "id": "color-success-foreground",
@@ -1055,19 +1091,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{teal.700}",
+      "value": "{teal.300}",
       "description": "Success text and icons on color.surface and color.success.surface, where color.success itself is not readable as text.",
       "order": 58,
       "modes": {
         "dark": "{teal.300}"
       },
-      "resolved_value": "#0f715d",
+      "resolved_value": "#7ae2cf",
       "valid": true,
       "base_resolved_value": "#0f715d",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.success.foreground"
+      ]
     },
     {
       "id": "color-warning-surface",
@@ -1075,19 +1113,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{amber.100}",
+      "value": "{amber.900}",
       "description": "Tinted background for warning alerts, banners, and badges. Carries color.foreground.",
       "order": 59,
       "modes": {
         "dark": "{amber.900}"
       },
-      "resolved_value": "#f6efe4",
+      "resolved_value": "#372b18",
       "valid": true,
       "base_resolved_value": "#f6efe4",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.warning.surface"
+      ]
     },
     {
       "id": "color-warning-foreground",
@@ -1095,19 +1135,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{amber.700}",
+      "value": "{amber.400}",
       "description": "Warning text and icons on color.surface. Identical to color.warning in light mode; lightened in dark mode, where the fill is not readable as text.",
       "order": 60,
       "modes": {
         "dark": "{amber.400}"
       },
-      "resolved_value": "#946118",
+      "resolved_value": "#e0a64a",
       "valid": true,
       "base_resolved_value": "#946118",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.warning.foreground"
+      ]
     },
     {
       "id": "color-danger-surface",
@@ -1115,19 +1157,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{red.100}",
+      "value": "{red.900}",
       "description": "Tinted background for error alerts, banners, and badges. Carries color.foreground.",
       "order": 61,
       "modes": {
         "dark": "{red.900}"
       },
-      "resolved_value": "#f9e6e4",
+      "resolved_value": "#3a1f1e",
       "valid": true,
       "base_resolved_value": "#f9e6e4",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.danger.surface"
+      ]
     },
     {
       "id": "color-danger-foreground",
@@ -1135,19 +1179,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{red.600}",
+      "value": "{red.400}",
       "description": "Error text and icons on color.surface, and the invalid boundary of a control. Identical to color.danger in light mode; lightened in dark mode, where the fill is not readable as text.",
       "order": 62,
       "modes": {
         "dark": "{red.400}"
       },
-      "resolved_value": "#d0311e",
+      "resolved_value": "#f0857a",
       "valid": true,
       "base_resolved_value": "#d0311e",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.danger.foreground"
+      ]
     },
     {
       "id": "color-on-primary",
@@ -1163,7 +1209,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1180,7 +1226,7 @@
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1197,7 +1243,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1214,7 +1260,7 @@
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1231,7 +1277,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1248,7 +1294,7 @@
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1265,7 +1311,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1282,7 +1328,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1291,19 +1337,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{neutral.100}",
+      "value": "{neutral.975}",
       "description": "Quietest boundary, for separators inside a surface that should stay visually secondary.",
       "order": 71,
       "modes": {
         "dark": "{neutral.975}"
       },
-      "resolved_value": "#ecf0f1",
+      "resolved_value": "#111921",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.border.subtle"
+      ]
     },
     {
       "id": "color-primary-foreground",
@@ -1311,19 +1359,21 @@
       "foundation": "color",
       "type": "color",
       "level": "semantic",
-      "value": "{purple.600}",
+      "value": "{purple.300}",
       "description": "Readable amethyst for text, icons, and selection indicators on plain and tinted surfaces in both modes.",
       "order": 72,
       "modes": {
         "dark": "{purple.300}"
       },
-      "resolved_value": "#884ea0",
+      "resolved_value": "#dc95ff",
       "valid": true,
       "base_resolved_value": "#884ea0",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.primary.foreground"
+      ]
     },
     {
       "id": "neutral-350",
@@ -1339,7 +1389,7 @@
       "base_resolved_value": "#aeb6be",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1356,7 +1406,7 @@
       "base_resolved_value": "#727d88",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1373,7 +1423,7 @@
       "base_resolved_value": "#3a4b5c",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1390,7 +1440,7 @@
       "base_resolved_value": "#23303d",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1407,7 +1457,7 @@
       "base_resolved_value": "#1a2530",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1424,7 +1474,7 @@
       "base_resolved_value": "#111921",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1441,7 +1491,7 @@
       "base_resolved_value": "#2d2439",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1458,7 +1508,7 @@
       "base_resolved_value": "#12302c",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1475,7 +1525,7 @@
       "base_resolved_value": "#6fb3e6",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1492,7 +1542,7 @@
       "base_resolved_value": "#17293a",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1509,7 +1559,7 @@
       "base_resolved_value": "#f0857a",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1526,7 +1576,7 @@
       "base_resolved_value": "#3a1f1e",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1543,7 +1593,7 @@
       "base_resolved_value": "#e0a64a",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1560,7 +1610,7 @@
       "base_resolved_value": "#372b18",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1577,7 +1627,7 @@
       "base_resolved_value": "\"Mona Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1594,7 +1644,7 @@
       "base_resolved_value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Monaco, Consolas, \"Liberation Mono\", monospace",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1611,7 +1661,7 @@
       "base_resolved_value": "12px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1628,7 +1678,7 @@
       "base_resolved_value": "14px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1645,7 +1695,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1662,7 +1712,7 @@
       "base_resolved_value": "20px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1679,7 +1729,7 @@
       "base_resolved_value": "24px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1696,7 +1746,7 @@
       "base_resolved_value": "32px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1713,7 +1763,7 @@
       "base_resolved_value": 400,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1730,7 +1780,7 @@
       "base_resolved_value": 500,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1747,7 +1797,7 @@
       "base_resolved_value": 600,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1764,7 +1814,7 @@
       "base_resolved_value": 700,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1781,7 +1831,7 @@
       "base_resolved_value": 1.2,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1798,7 +1848,7 @@
       "base_resolved_value": 1.3,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1815,7 +1865,7 @@
       "base_resolved_value": 1.4,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1832,7 +1882,7 @@
       "base_resolved_value": 1.5,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1849,7 +1899,7 @@
       "base_resolved_value": 1.6,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1866,7 +1916,7 @@
       "base_resolved_value": "-0.02em",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1883,7 +1933,7 @@
       "base_resolved_value": "0em",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1900,7 +1950,7 @@
       "base_resolved_value": "0.02em",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1917,7 +1967,7 @@
       "base_resolved_value": "68ch",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1934,7 +1984,7 @@
       "base_resolved_value": "12px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1951,7 +2001,7 @@
       "base_resolved_value": "14px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1968,7 +2018,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -1985,7 +2035,7 @@
       "base_resolved_value": "20px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2002,7 +2052,7 @@
       "base_resolved_value": "24px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2019,7 +2069,7 @@
       "base_resolved_value": "32px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2036,7 +2086,7 @@
       "base_resolved_value": "400",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2053,7 +2103,7 @@
       "base_resolved_value": "500",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2070,7 +2120,7 @@
       "base_resolved_value": "600",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2087,7 +2137,7 @@
       "base_resolved_value": "400",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2104,7 +2154,7 @@
       "base_resolved_value": "500",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2121,7 +2171,7 @@
       "base_resolved_value": "\"Mona Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2138,7 +2188,7 @@
       "base_resolved_value": "500",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2155,7 +2205,7 @@
       "base_resolved_value": "0px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2172,7 +2222,7 @@
       "base_resolved_value": "4px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2189,7 +2239,7 @@
       "base_resolved_value": "8px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2206,7 +2256,7 @@
       "base_resolved_value": "12px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2223,7 +2273,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2240,7 +2290,7 @@
       "base_resolved_value": "20px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2257,7 +2307,7 @@
       "base_resolved_value": "24px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2274,7 +2324,7 @@
       "base_resolved_value": "32px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2291,7 +2341,7 @@
       "base_resolved_value": "40px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2308,7 +2358,7 @@
       "base_resolved_value": "48px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2325,7 +2375,7 @@
       "base_resolved_value": "64px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2342,7 +2392,7 @@
       "base_resolved_value": "80px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2359,7 +2409,7 @@
       "base_resolved_value": "4px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2376,7 +2426,7 @@
       "base_resolved_value": "8px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2393,7 +2443,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2410,7 +2460,7 @@
       "base_resolved_value": "24px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2427,7 +2477,7 @@
       "base_resolved_value": "32px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2444,7 +2494,7 @@
       "base_resolved_value": "48px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2461,7 +2511,7 @@
       "base_resolved_value": "0px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2478,7 +2528,7 @@
       "base_resolved_value": "2px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2495,7 +2545,7 @@
       "base_resolved_value": "4px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2512,7 +2562,7 @@
       "base_resolved_value": "7px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2529,7 +2579,7 @@
       "base_resolved_value": "12px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2546,7 +2596,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2563,7 +2613,7 @@
       "base_resolved_value": "9999px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2580,7 +2630,7 @@
       "base_resolved_value": "7px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2597,7 +2647,7 @@
       "base_resolved_value": "32px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2614,7 +2664,7 @@
       "base_resolved_value": "40px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2631,7 +2681,7 @@
       "base_resolved_value": "44px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2648,7 +2698,7 @@
       "base_resolved_value": "12px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2665,7 +2715,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2682,7 +2732,7 @@
       "base_resolved_value": "20px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2694,13 +2744,15 @@
       "value": "1px solid {color.border.subtle}",
       "description": "Quietest separator inside a surface, for divisions that should remain visually secondary.",
       "order": 0,
-      "resolved_value": "1px solid #ecf0f1",
+      "resolved_value": "1px solid #111921",
       "valid": true,
       "base_resolved_value": "1px solid #ecf0f1",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.border.subtle"
+      ]
     },
     {
       "id": "border-default",
@@ -2711,13 +2763,15 @@
       "value": "1px solid {color.border}",
       "description": "Structural one-pixel border for panels, cards, section edges, and container boundaries.",
       "order": 1,
-      "resolved_value": "1px solid #d8d7d0",
+      "resolved_value": "1px solid #3a4b5c",
       "valid": true,
       "base_resolved_value": "1px solid #d8d7d0",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.border"
+      ]
     },
     {
       "id": "border-strong",
@@ -2728,13 +2782,15 @@
       "value": "1px solid {color.border.strong}",
       "description": "Resting boundary of an unfilled control, meeting the 3:1 non-text minimum that the structural border does not.",
       "order": 2,
-      "resolved_value": "1px solid #5f605a",
+      "resolved_value": "1px solid #aeb6be",
       "valid": true,
       "base_resolved_value": "1px solid #5f605a",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.border.strong"
+      ]
     },
     {
       "id": "border-focus",
@@ -2745,13 +2801,15 @@
       "value": "2px solid {color.focus}",
       "description": "High-visibility amethyst border for keyboard focus and interaction states that require an unmistakable boundary.",
       "order": 3,
-      "resolved_value": "2px solid #9b59b6",
+      "resolved_value": "2px solid #dc95ff",
       "valid": true,
       "base_resolved_value": "2px solid #9b59b6",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "color.focus"
+      ]
     },
     {
       "id": "shadow-raised",
@@ -2759,19 +2817,21 @@
       "foundation": "elevation",
       "type": "shadow",
       "level": "primitive",
-      "value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
+      "value": "0 1px 2px rgb(0 0 0 / 0.32), 0 2px 6px rgb(0 0 0 / 0.28)",
       "description": "Subtle elevation for lightweight floating or raised elements that need gentle separation from the surrounding surface.",
       "order": 0,
       "modes": {
         "dark": "0 1px 2px rgb(0 0 0 / 0.32), 0 2px 6px rgb(0 0 0 / 0.28)"
       },
-      "resolved_value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
+      "resolved_value": "0 1px 2px rgb(0 0 0 / 0.32), 0 2px 6px rgb(0 0 0 / 0.28)",
       "valid": true,
       "base_resolved_value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "shadow.raised"
+      ]
     },
     {
       "id": "shadow-overlay",
@@ -2779,19 +2839,21 @@
       "foundation": "elevation",
       "type": "shadow",
       "level": "primitive",
-      "value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
+      "value": "0 4px 12px rgb(0 0 0 / 0.40), 0 12px 28px rgb(0 0 0 / 0.44)",
       "description": "Medium elevation for dropdowns, menus, popovers, tooltips, and temporary floating surfaces.",
       "order": 1,
       "modes": {
         "dark": "0 4px 12px rgb(0 0 0 / 0.40), 0 12px 28px rgb(0 0 0 / 0.44)"
       },
-      "resolved_value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
+      "resolved_value": "0 4px 12px rgb(0 0 0 / 0.40), 0 12px 28px rgb(0 0 0 / 0.44)",
       "valid": true,
       "base_resolved_value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "shadow.overlay"
+      ]
     },
     {
       "id": "shadow-dialog",
@@ -2799,19 +2861,21 @@
       "foundation": "elevation",
       "type": "shadow",
       "level": "primitive",
-      "value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
+      "value": "0 8px 24px rgb(0 0 0 / 0.48), 0 24px 64px rgb(0 0 0 / 0.56)",
       "description": "Strongest standard elevation for dialogs, modals, and major temporary surfaces above the main application layer.",
       "order": 2,
       "modes": {
         "dark": "0 8px 24px rgb(0 0 0 / 0.48), 0 24px 64px rgb(0 0 0 / 0.56)"
       },
-      "resolved_value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
+      "resolved_value": "0 8px 24px rgb(0 0 0 / 0.48), 0 24px 64px rgb(0 0 0 / 0.56)",
       "valid": true,
       "base_resolved_value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "shadow.dialog"
+      ]
     },
     {
       "id": "layout-content-narrow",
@@ -2827,7 +2891,7 @@
       "base_resolved_value": "720px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2844,7 +2908,7 @@
       "base_resolved_value": "1200px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2861,7 +2925,7 @@
       "base_resolved_value": "1440px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2878,7 +2942,7 @@
       "base_resolved_value": "240px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2895,7 +2959,7 @@
       "base_resolved_value": "16px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2912,7 +2976,7 @@
       "base_resolved_value": "24px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2929,7 +2993,7 @@
       "base_resolved_value": "1440px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2946,7 +3010,7 @@
       "base_resolved_value": "2px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2963,7 +3027,7 @@
       "base_resolved_value": "2px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2980,7 +3044,7 @@
       "base_resolved_value": 0.5,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -2997,7 +3061,7 @@
       "base_resolved_value": 0.72,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3006,19 +3070,21 @@
       "foundation": "opacity",
       "type": "number",
       "level": "semantic",
-      "value": 0.4,
+      "value": 0.6,
       "description": "Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces. Stronger in dark mode, where a dark scrim over dark surfaces needs more opacity to separate the layers.",
       "order": 2,
       "modes": {
         "dark": 0.6
       },
-      "resolved_value": 0.4,
+      "resolved_value": 0.6,
       "valid": true,
       "base_resolved_value": 0.4,
-      "source": "base",
+      "source": "mode",
       "theme_id": null,
-      "mode": "light",
-      "override_dependencies": []
+      "mode": "dark",
+      "override_dependencies": [
+        "opacity.scrim"
+      ]
     },
     {
       "id": "motion-fast",
@@ -3034,7 +3100,7 @@
       "base_resolved_value": "120ms",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3051,7 +3117,7 @@
       "base_resolved_value": "180ms",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3068,7 +3134,7 @@
       "base_resolved_value": "280ms",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3085,7 +3151,7 @@
       "base_resolved_value": "cubic-bezier(0.2, 0, 0, 1)",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3102,7 +3168,7 @@
       "base_resolved_value": "480px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3119,7 +3185,7 @@
       "base_resolved_value": "768px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3136,7 +3202,7 @@
       "base_resolved_value": "1024px",
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3153,7 +3219,7 @@
       "base_resolved_value": 0,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3170,7 +3236,7 @@
       "base_resolved_value": 10,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3187,7 +3253,7 @@
       "base_resolved_value": 100,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3204,7 +3270,7 @@
       "base_resolved_value": 200,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     },
     {
@@ -3221,7 +3287,7 @@
       "base_resolved_value": 300,
       "source": "base",
       "theme_id": null,
-      "mode": "light",
+      "mode": "dark",
       "override_dependencies": []
     }
   ],

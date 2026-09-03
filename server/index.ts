@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { analyzeReferences, analyzeSavedReference, deleteMarkdown, deleteReference, deleteSource, deleteTheme, duplicateTheme, initializeStore, loadWorkspace, mergePrimitive, readReferenceAsset, refreshSourceMappings, saveComponents, saveFoundation, saveMarkdown, savePrinciple, savePrimitive, savePrimitiveTaxonomy, saveReference, saveReferenceAnalysis, saveSource, saveTheme, setDefaultTheme, type ReferenceSaveInput } from "./fileStore.js";
-import type { ComponentDecision, Foundation, MarkdownDocument, Principle, PrimitiveDecision, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme } from "./model.js";
+import type { ComponentDecision, Foundation, MarkdownDocument, Principle, PrimitiveDecision, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode } from "./model.js";
+import { THEME_MODES } from "../shared/model.js";
 import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
 import { createMonetService } from "../shared/service.js";
 
@@ -61,7 +62,10 @@ const server = createServer(async (request, response) => {
       response.end(asset.contents);
       return;
     }
-    if (request.method === "GET" && url.pathname === "/api/workspace") return respond(response, 200, await monet.getWorkspace(url.searchParams.get("theme") ?? undefined));
+    if (request.method === "GET" && url.pathname === "/api/workspace") {
+      const mode = url.searchParams.get("mode");
+      return respond(response, 200, await monet.getWorkspace(url.searchParams.get("theme") ?? undefined, THEME_MODES.includes(mode as ThemeMode) ? mode as ThemeMode : undefined));
+    }
     if (request.method === "POST" && url.pathname === "/api/default-theme") {
       const value = await body(request) as { id?: string };
       await setDefaultTheme(value.id ?? "");

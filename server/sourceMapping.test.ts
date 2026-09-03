@@ -18,7 +18,7 @@ const source: Source = {
 };
 
 const workspace = {
-  principles: [], foundations: [], primitives: [], components: [], patterns: [], references: [], referenceAnalysis: { summary: "", recurring_preferences: [], suggestions: [], analyzed_at: "" }, decisionLog: [], themes: [{ id: "default", name: "Default", overrides: {}, updated_at: "" }], defaultThemeId: "default", activeThemeId: "default", baseResolvedTokens: [], resolvedTokens: [], tokenIssues: [], filesRoot: "/tmp/monet",
+  principles: [], foundations: [], primitives: [], components: [], patterns: [], references: [], referenceAnalysis: { summary: "", recurring_preferences: [], suggestions: [], analyzed_at: "" }, decisionLog: [], themes: [{ id: "default", name: "Default", overrides: {}, updated_at: "" }], defaultThemeId: "default", activeThemeId: "default", activeMode: "light", modes: ["light"], baseResolvedTokens: [], resolvedTokens: [], tokenIssues: [], filesRoot: "/tmp/monet",
   taxonomy: [{ id: "controls", name: "Controls", entries: [
     { id: "button", name: "Button", category: "controls", description: "Triggers an action.", aliases: ["action"], relationships: [] },
     { id: "list", name: "List", category: "controls", description: "A collection of items.", aliases: ["item-group"], relationships: [] },

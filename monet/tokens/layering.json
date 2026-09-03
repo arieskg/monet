@@ -15,6 +15,7 @@
       "base_resolved_value": 0,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -31,6 +32,7 @@
       "base_resolved_value": 10,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -47,6 +49,7 @@
       "base_resolved_value": 100,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -63,6 +66,7 @@
       "base_resolved_value": 200,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -79,6 +83,7 @@
       "base_resolved_value": 300,
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     }
   ]

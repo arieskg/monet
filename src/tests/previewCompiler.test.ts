@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { PreviewValidationAreas } from "../components/PreviewValidation";
 import type { ResolvedThemeToken, Workspace } from "../domain";
+import { workspaceWithTheme } from "../exportFormats";
 import { compilePreview, previewDefaults } from "../previewCompiler";
 import generatedTokens from "../../monet/tokens/tokens.json";
 
@@ -10,7 +11,7 @@ function resolvedToken(name: string, foundation: string, resolvedValue: string, 
   return {
     id: name.replaceAll(".", "-"), name, foundation, type: foundation === "color" ? "color" : "dimension", level: "semantic", value: resolvedValue,
     description: `${name} description`, order: 0, resolved_value: resolvedValue, valid: true, base_resolved_value: source === "theme" ? "#000000" : resolvedValue,
-    source, theme_id: source === "theme" ? "product" : null, override_dependencies: source === "theme" ? [name] : [],
+    source, theme_id: source === "theme" ? "product" : null, mode: "light", override_dependencies: source === "theme" ? [name] : [],
   };
 }
 
@@ -27,7 +28,7 @@ const workspace = {
   decisionLog: [],
   themes: [{ id: "product", name: "Product", overrides: { "color.primary": "#6750a4" }, updated_at: "" }],
   defaultThemeId: "product",
-  activeThemeId: "product",
+  activeThemeId: "product", activeMode: "light", modes: ["light"],
   baseResolvedTokens: [],
   resolvedTokens: [
     resolvedToken("color.primary", "color", "#6750a4", "theme"),
@@ -81,6 +82,31 @@ describe("Preview compiler", () => {
     const changed = { ...workspace, resolvedTokens: workspace.resolvedTokens.map((token) => token.name === "color.primary" ? { ...token, resolved_value: "#005fcc" } : token) };
     expect(compilePreview(changed).cssVariables["--pv-primary"]).toBe("#005fcc");
     expect(compilePreview(workspace).cssVariables["--pv-primary"]).toBe("#6750a4");
+  });
+
+  it("compiles the same workspace in dark mode from its base tokens, with on-fill and text roles", () => {
+    const darkable = {
+      ...workspace,
+      baseResolvedTokens: [
+        { id: "neutral-100", name: "neutral.100", foundation: "color", type: "color" as const, level: "primitive" as const, value: "#ecf0f1", description: "", order: 0, resolved_value: "#ecf0f1", valid: true },
+        { id: "neutral-975", name: "neutral.975", foundation: "color", type: "color" as const, level: "primitive" as const, value: "#111921", description: "", order: 1, resolved_value: "#111921", valid: true },
+        { id: "color-background", name: "color.background", foundation: "color", type: "color" as const, level: "semantic" as const, value: "{neutral.100}", description: "", order: 2, resolved_value: "#ecf0f1", valid: true, modes: { dark: "{neutral.975}" } },
+        { id: "color-on-primary", name: "color.on.primary", foundation: "color", type: "color" as const, level: "semantic" as const, value: "#ffffff", description: "", order: 3, resolved_value: "#ffffff", valid: true },
+        { id: "color-danger-foreground", name: "color.danger.foreground", foundation: "color", type: "color" as const, level: "semantic" as const, value: "#d0311e", description: "", order: 4, resolved_value: "#d0311e", valid: true, modes: { dark: "#f0857a" } },
+      ],
+    };
+    const light = compilePreview(workspaceWithTheme(darkable, "product", "light"));
+    const dark = compilePreview(workspaceWithTheme(darkable, "product", "dark"));
+    expect(light).toMatchObject({ mode: "light", modes: ["light", "dark"] });
+    expect(dark).toMatchObject({ mode: "dark", modes: ["light", "dark"] });
+    expect(dark.cssVariables["--pv-background"]).toBe("#111921");
+    expect(dark.cssVariables["--pv-danger-fg"]).toBe("#f0857a");
+    expect(dark.cssVariables["--pv-on-primary"]).toBe("#ffffff");
+    expect(dark.colors.find((token) => token.name === "color.background")).toMatchObject({ value: "#111921", source: "mode" });
+    expect(light.cssVariables["--pv-background"]).toBe("#ecf0f1");
+    // A workspace with no dark values cannot be previewed dark: the request falls back to light and says so.
+    const lightOnly = compilePreview(workspaceWithTheme(workspace, "product", "dark"));
+    expect(lightOnly).toMatchObject({ mode: "light", modes: ["light"] });
   });
 
   it("renders all read-only validation areas from the compiled model", () => {

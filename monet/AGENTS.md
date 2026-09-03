@@ -12,7 +12,8 @@ Before creating or modifying UI:
 
 1. Read `DESIGN_SYSTEM.md`, then the relevant files in `principles/` for overall design philosophy.
 2. Read the relevant `foundations/` records for concept, rationale, and usage guidance.
-3. Read `themes/config.json`, resolve the selected override-only theme over Base Monet, and use its provenance-aware export in `tokens/themes/`. Never copy a theme value back into a base Foundation.
+3. Read `themes/config.json`, resolve the selected override-only theme over Base Monet, and use its provenance-aware export in `tokens/themes/`: `<theme>.json` is light mode and `<theme>.dark.json` is dark mode. Never copy a theme value back into a base Foundation.
+   - Light and dark are the same semantic roles resolved to different values. Build against the role — `color.surface`, `color.danger.foreground`, `shadow.overlay` — and switch the resolved set by mode; never branch on mode in product code or hard-code a dark hex. Fills and their `color.on.*` foregrounds are identical in both modes; surfaces, text, borders, tinted status surfaces, focus, shadows, and the scrim differ.
 4. Use the canonical token records in Foundations and the resolved exports in `tokens/` for color, spacing, typography, sizing, radius, borders, elevation, opacity, motion, breakpoints, and layering. Prefer semantic tokens over raw values when one exists.
 5. Consult `taxonomy/primitives.json` and `primitives/decisions.json` for low-level composition, interaction, visual, and accessibility conventions.
 6. Identify relevant canonical components in `taxonomy/components.json`. Components inherit Principles, resolved Foundations, and Patterns; apply their selection, preferences, notes, and only genuinely relevant Advanced deviations without treating empty Advanced fields as missing requirements.
@@ -26,7 +27,7 @@ Before creating or modifying UI:
 
 The design hierarchy is:
 
-`Principles → Foundations + Theme overrides → Resolved tokens → Primitives → Components → Patterns`
+`Principles → Foundations (light values + dark mode values) + Theme overrides → Resolved tokens per mode → Primitives → Components → Patterns`
 
 ## Authority
 

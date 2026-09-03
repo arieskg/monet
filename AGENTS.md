@@ -46,6 +46,11 @@ No database, no hosted service, no model API. Files on disk, and MCP over stdio.
   and no client-specific instructions.
 - **Derived files stay derived.** `DESIGN_SYSTEM.md` and `tokens/` are generated
   from the canonical records and carry no timestamps. Edit the records, regenerate.
+- **Modes are values, not copies.** Light is a token's `value`; dark is its
+  optional `modes.dark`. Resolution layers theme overrides over mode values over
+  base values in `shared/tokens.ts`, and every surface (UI, exports, MCP,
+  `validate`) resolves through that one function. Never add a parallel dark
+  palette, a dark theme file, or a mode branch in product-facing code.
 - **The starter workspace is a fixture.** Tests assert against it, so changing
   `monet/` can break the suite. Change it deliberately, and keep `pnpm validate`
   passing.

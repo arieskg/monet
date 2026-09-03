@@ -1,6 +1,6 @@
 import { McpServer, ProtocolError, ProtocolErrorCode, ResourceNotFoundError, ResourceTemplate } from "@modelcontextprotocol/server";
 import * as z from "zod/v4";
-import type { Component, DesignContext, Reference, ResolvedThemeToken, Theme } from "../shared/model.js";
+import { THEME_MODES, type Component, type DesignContext, type Reference, type ResolvedThemeToken, type Theme, type ThemeMode } from "../shared/model.js";
 import { resourceUri, toCompactContext } from "../shared/compactContext.js";
 import type { MonetService } from "../shared/service.js";
 
@@ -17,6 +17,7 @@ export const designContextInputSchema = z.object({
   componentIds: idsSchema.describe("Exact canonical Component IDs to include."),
   referenceIds: idsSchema.describe("Exact Reference IDs to include."),
   themeId: idSchema.optional().describe("Theme ID used to resolve Foundation tokens."),
+  mode: z.enum(THEME_MODES as [ThemeMode, ...ThemeMode[]]).optional().describe("Mode to resolve tokens in: light (default) or dark. When omitted, a query that asks for dark mode resolves dark if the theme supports it."),
   detail: z.enum(["compact", "full"]).optional().describe("compact (default) returns an agent-oriented design brief with a monet:// resource URI on every record; full returns the complete editor-shaped records."),
 }).strict();
 
@@ -125,19 +126,28 @@ export async function buildCatalog(service: MonetService) {
     service.listPrinciples(), service.listFoundations(), service.listPatterns(), service.listComponents(),
     service.listThemes(), service.listReferences(), service.getWorkspace(),
   ]);
+  const themeModes = await Promise.all(themes.map(async (theme) => [theme.id, (await service.getWorkspace(theme.id)).modes] as const));
+  const modesById = new Map(themeModes);
   return {
     principles: principles.map((item) => ({ id: item.id, title: item.title })),
     foundations: foundations.map((item) => ({ id: item.id, name: item.name, status: item.status })),
     patterns: patterns.map((item) => ({ id: item.id, title: item.title, summary: item.summary, status: item.status })),
     components: components.map((item) => ({ id: item.id, name: item.name, category: item.category, status: item.decision?.status ?? "undecided" })),
-    themes: themes.map((item) => ({ id: item.id, name: item.name, default: item.id === workspace.defaultThemeId })),
+    themes: themes.map((item) => ({ id: item.id, name: item.name, default: item.id === workspace.defaultThemeId, modes: modesById.get(item.id) ?? ["light"] })),
     references: references.map((item) => ({ id: item.id, title: item.title, type: item.type, source_domain: item.source_domain })),
   };
 }
 
-export async function getThemeTokens(service: MonetService, theme: Theme): Promise<{ theme: Theme; tokens: ResolvedThemeToken[]; tokenIssues: unknown[] }> {
-  const workspace = await service.getWorkspace(theme.id);
-  return { theme, tokens: workspace.resolvedTokens, tokenIssues: workspace.tokenIssues };
+export async function getThemeTokens(service: MonetService, theme: Theme, mode: ThemeMode = "light"): Promise<{ theme: Theme; mode: ThemeMode; modes: ThemeMode[]; tokens: ResolvedThemeToken[]; tokenIssues: unknown[] }> {
+  const workspace = await service.getWorkspace(theme.id, mode);
+  return { theme, mode: workspace.activeMode, modes: workspace.modes, tokens: workspace.resolvedTokens, tokenIssues: workspace.tokenIssues };
+}
+
+function templateMode(uri: URL, value: string | string[] | undefined): ThemeMode {
+  if (typeof value !== "string" || !THEME_MODES.includes(value as ThemeMode)) {
+    throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Invalid Monet theme mode in ${uri.href}. Use one of: ${THEME_MODES.join(", ")}.`);
+  }
+  return value as ThemeMode;
 }
 
 export function createMonetMcpServer(service: MonetService): McpServer {
@@ -206,7 +216,7 @@ export function createMonetMcpServer(service: MonetService): McpServer {
     new ResourceTemplate("monet://themes/{id}", {
       list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(resourceUri("themes", item.id), item.name, "Monet Foundation token overrides")) }),
     }),
-    { title: "Monet theme", description: "One override-only Monet theme.", mimeType: "application/json" },
+    { title: "Monet theme", description: "One override-only Monet theme, with any mode-specific overrides it carries.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
       return jsonResource(uri, await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId)));
@@ -216,13 +226,30 @@ export function createMonetMcpServer(service: MonetService): McpServer {
   server.registerResource(
     "monet-theme-tokens",
     new ResourceTemplate("monet://themes/{id}/tokens", {
-      list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(`monet://themes/${item.id}/tokens`, `${item.name} resolved tokens`, "Resolved token values with base/theme provenance")) }),
+      list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(`monet://themes/${item.id}/tokens`, `${item.name} resolved tokens (light)`, "Resolved token values with base/mode/theme provenance, in light mode")) }),
     }),
-    { title: "Resolved Monet theme tokens", description: "Resolved Foundation tokens and provenance for one theme.", mimeType: "application/json" },
+    { title: "Resolved Monet theme tokens", description: "Resolved Foundation tokens and provenance for one theme in light mode. The response lists the modes the theme supports; monet://themes/{id}/tokens/{mode} resolves another mode.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
       const theme = await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId));
       return jsonResource(uri, await getThemeTokens(service, theme));
+    },
+  );
+
+  server.registerResource(
+    "monet-theme-mode-tokens",
+    new ResourceTemplate("monet://themes/{id}/tokens/{mode}", {
+      list: async () => ({ resources: (await Promise.all((await service.listThemes()).map(async (item) => {
+        const modes = (await service.getWorkspace(item.id)).modes.filter((mode) => mode !== "light");
+        return modes.map((mode) => listedResource(`monet://themes/${item.id}/tokens/${mode}`, `${item.name} resolved tokens (${mode})`, `Resolved token values with base/mode/theme provenance, in ${mode} mode`));
+      }))).flat() }),
+    }),
+    { title: "Resolved Monet theme tokens for one mode", description: "Resolved Foundation tokens and provenance for one theme in one mode (light or dark). A mode the theme does not support resolves as light and says so in `mode`.", mimeType: "application/json" },
+    async (uri, variables) => {
+      const id = templateId(uri, variables.id);
+      const mode = templateMode(uri, variables.mode);
+      const theme = await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId));
+      return jsonResource(uri, await getThemeTokens(service, theme, mode));
     },
   );
 
@@ -243,7 +270,7 @@ export function createMonetMcpServer(service: MonetService): McpServer {
     "get_design_context",
     {
       title: "Get Monet design context",
-      description: "Retrieve task-relevant Monet principles, foundations, patterns, components, references, and resolved tokens for a natural design task. Returns a compact design brief by default, with `coverage` reporting whether Monet had task-specific guidance and `notices` reporting undecided concepts and capabilities Monet does not have. Every record carries a monet:// URI for the full record.",
+      description: "Retrieve task-relevant Monet principles, foundations, patterns, components, references, and resolved tokens for a natural design task. Returns a compact design brief by default, with `coverage` reporting whether Monet had task-specific guidance and `notices` reporting undecided concepts and capabilities Monet does not have. Tokens resolve in the requested `mode` (light or dark); a dark-mode task resolves dark automatically when the theme supports it, and `mode_values` lists every token whose value differs between modes. Every record carries a monet:// URI for the full record.",
       inputSchema: designContextInputSchema,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },

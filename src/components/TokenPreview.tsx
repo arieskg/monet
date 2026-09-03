@@ -20,5 +20,5 @@ export function TokenVisual({ token, resolved }: { token: Token; resolved?: stri
 }
 
 export function TokenPreviewCard({ token }: { token: ResolvedToken }) {
-  return <article className={`registry-token ${token.valid ? "" : "invalid"}`}><TokenVisual token={token} resolved={token.resolved_value} /><div><span><b>{token.name}</b><i>{token.level}</i></span><code>{String(token.value)}</code>{String(token.value) !== String(token.resolved_value) && token.resolved_value !== null && <small>Resolves to {String(token.resolved_value)}</small>}<p>{token.description || `${token.type} token`}</p></div></article>;
+  return <article className={`registry-token ${token.valid ? "" : "invalid"}`}><TokenVisual token={token} resolved={token.resolved_value} /><div><span><b>{token.name}</b><i>{token.level}</i></span><code>{String(token.value)}</code>{String(token.value) !== String(token.resolved_value) && token.resolved_value !== null && <small>Resolves to {String(token.resolved_value)}</small>}{token.modes?.dark !== undefined && <small>Dark: {String(token.modes.dark)}</small>}<p>{token.description || `${token.type} token`}</p></div></article>;
 }

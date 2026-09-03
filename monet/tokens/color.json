@@ -15,6 +15,7 @@
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -31,6 +32,7 @@
       "base_resolved_value": "#ecf0f1",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -47,6 +49,7 @@
       "base_resolved_value": "#d8d7d0",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -63,6 +66,7 @@
       "base_resolved_value": "#5f605a",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -79,6 +83,7 @@
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -95,6 +100,7 @@
       "base_resolved_value": "#dc95ff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -111,6 +117,7 @@
       "base_resolved_value": "#9b59b6",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -127,6 +134,7 @@
       "base_resolved_value": "#7ae2cf",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -143,6 +151,7 @@
       "base_resolved_value": "#1abc9c",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -159,6 +168,7 @@
       "base_resolved_value": "#3498db",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -175,6 +185,7 @@
       "base_resolved_value": "#cf4173",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -191,6 +202,7 @@
       "base_resolved_value": "#d0311e",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -207,6 +219,7 @@
       "base_resolved_value": "#b7791f",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -218,11 +231,15 @@
       "value": "{neutral.100}",
       "description": "Default application background.",
       "order": 13,
+      "modes": {
+        "dark": "{neutral.975}"
+      },
       "resolved_value": "#ecf0f1",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -234,11 +251,15 @@
       "value": "{neutral.white}",
       "description": "Default content, panel, card, and elevated surface.",
       "order": 14,
+      "modes": {
+        "dark": "{neutral.950}"
+      },
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -250,11 +271,15 @@
       "value": "{neutral.100}",
       "description": "Subtle surface used to distinguish secondary regions without strong containers.",
       "order": 15,
+      "modes": {
+        "dark": "{neutral.975}"
+      },
       "resolved_value": "#ecf0f1",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -266,11 +291,15 @@
       "value": "{neutral.900}",
       "description": "Default primary text and foreground content.",
       "order": 16,
+      "modes": {
+        "dark": "{neutral.100}"
+      },
       "resolved_value": "#2c3e50",
       "valid": true,
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -282,11 +311,15 @@
       "value": "{neutral.600}",
       "description": "Secondary text, metadata, descriptions, and lower-emphasis content.",
       "order": 17,
+      "modes": {
+        "dark": "{neutral.350}"
+      },
       "resolved_value": "#5f605a",
       "valid": true,
       "base_resolved_value": "#5f605a",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -296,13 +329,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{neutral.white}",
-      "description": "Foreground content displayed on sufficiently dark backgrounds.",
+      "description": "Foreground for content on a surface of the opposite mode: white on dark fills in light mode, near-black on light fills in dark mode. Prefer the verified color.on.* role for a specific fill.",
       "order": 18,
+      "modes": {
+        "dark": "{neutral.975}"
+      },
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -312,13 +349,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{neutral.300}",
-      "description": "Default subtle border and separator.",
+      "description": "Default structural border and separator for panels, cards, table rules, and section edges.",
       "order": 19,
+      "modes": {
+        "dark": "{neutral.800}"
+      },
       "resolved_value": "#d8d7d0",
       "valid": true,
       "base_resolved_value": "#d8d7d0",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -328,13 +369,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{neutral.600}",
-      "description": "Higher-emphasis border used where stronger visual separation is necessary.",
+      "description": "Resting boundary of an unfilled control, held to the 3:1 non-text minimum on every state surface in both modes.",
       "order": 20,
+      "modes": {
+        "dark": "{neutral.350}"
+      },
       "resolved_value": "#5f605a",
       "valid": true,
       "base_resolved_value": "#5f605a",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -351,6 +396,7 @@
       "base_resolved_value": "#9b59b6",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -367,6 +413,7 @@
       "base_resolved_value": "#1abc9c",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -383,6 +430,7 @@
       "base_resolved_value": "#dc95ff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -399,6 +447,7 @@
       "base_resolved_value": "#cf4173",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -408,13 +457,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{blue.600}",
-      "description": "Default link and navigational text emphasis, verified at 4.5:1 against color.surface.",
+      "description": "Default link and navigational text emphasis, verified at 4.5:1 against color.surface in both modes.",
       "order": 25,
+      "modes": {
+        "dark": "{blue.400}"
+      },
       "resolved_value": "#26709f",
       "valid": true,
       "base_resolved_value": "#26709f",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -424,13 +477,14 @@
       "type": "color",
       "level": "semantic",
       "value": "{blue.600}",
-      "description": "Informational messages, indicators, and feedback. Readable as text on color.surface and carries color.on.info when filled.",
+      "description": "Informational fill for badges, indicators, and filled feedback; carries color.on.info. Use color.info.foreground for informational text.",
       "order": 26,
       "resolved_value": "#26709f",
       "valid": true,
       "base_resolved_value": "#26709f",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -440,13 +494,14 @@
       "type": "color",
       "level": "semantic",
       "value": "{teal.500}",
-      "description": "Successful, completed, and positive states. Use color.success.foreground for success text on light surfaces.",
+      "description": "Successful, completed, and positive states as a fill; carries color.on.success. Use color.success.foreground for success text and icons.",
       "order": 27,
       "resolved_value": "#1abc9c",
       "valid": true,
       "base_resolved_value": "#1abc9c",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -456,13 +511,14 @@
       "type": "color",
       "level": "semantic",
       "value": "{amber.700}",
-      "description": "Warning and caution states that require attention but are not errors. Readable as text on color.surface and carries color.on.warning when filled.",
+      "description": "Warning and caution states as a fill; carries color.on.warning. Use color.warning.foreground for warning text and icons.",
       "order": 28,
       "resolved_value": "#946118",
       "valid": true,
       "base_resolved_value": "#946118",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -472,13 +528,14 @@
       "type": "color",
       "level": "semantic",
       "value": "{red.600}",
-      "description": "Errors, destructive actions, and critical negative states.",
+      "description": "Errors, destructive actions, and critical negative states as a fill; carries color.on.danger. Use color.danger.foreground for error text and icons.",
       "order": 29,
       "resolved_value": "#d0311e",
       "valid": true,
       "base_resolved_value": "#d0311e",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -488,13 +545,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{purple.500}",
-      "description": "Visible keyboard-focus indicator.",
+      "description": "Visible keyboard-focus indicator, held to the 3:1 non-text minimum against color.surface in both modes.",
       "order": 30,
+      "modes": {
+        "dark": "{purple.300}"
+      },
       "resolved_value": "#9b59b6",
       "valid": true,
       "base_resolved_value": "#9b59b6",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -511,6 +572,7 @@
       "base_resolved_value": "#f6f8f8",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -527,6 +589,7 @@
       "base_resolved_value": "#e4e6e4",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -543,6 +606,7 @@
       "base_resolved_value": "#9d9e98",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -559,6 +623,7 @@
       "base_resolved_value": "#f3ebf6",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -575,6 +640,7 @@
       "base_resolved_value": "#884ea0",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -591,6 +657,7 @@
       "base_resolved_value": "#79458e",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -607,6 +674,7 @@
       "base_resolved_value": "#e4f7f3",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -623,6 +691,7 @@
       "base_resolved_value": "#0f715d",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -639,6 +708,7 @@
       "base_resolved_value": "#e7f3fb",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -655,6 +725,7 @@
       "base_resolved_value": "#26709f",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -671,6 +742,7 @@
       "base_resolved_value": "#f6efe4",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -687,6 +759,7 @@
       "base_resolved_value": "#946118",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -703,6 +776,7 @@
       "base_resolved_value": "#f9e6e4",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -719,6 +793,7 @@
       "base_resolved_value": "#b72b1a",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -735,6 +810,7 @@
       "base_resolved_value": "#a22617",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -746,11 +822,15 @@
       "value": "{neutral.50}",
       "description": "Surface under the pointer for rows, list items, menu items, cards, and quiet controls.",
       "order": 46,
+      "modes": {
+        "dark": "{neutral.925}"
+      },
       "resolved_value": "#f6f8f8",
       "valid": true,
       "base_resolved_value": "#f6f8f8",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -762,11 +842,15 @@
       "value": "{neutral.200}",
       "description": "Surface while a control is held down or while a menu trigger stays open.",
       "order": 47,
+      "modes": {
+        "dark": "{neutral.900}"
+      },
       "resolved_value": "#e4e6e4",
       "valid": true,
       "base_resolved_value": "#e4e6e4",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -776,13 +860,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{purple.100}",
-      "description": "Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis.",
+      "description": "Surface for the currently selected row, item, tab, or navigation entry, and for subtle primary emphasis. Carries color.primary.foreground text and a color.primary indicator in both modes.",
       "order": 48,
+      "modes": {
+        "dark": "{purple.900}"
+      },
       "resolved_value": "#f3ebf6",
       "valid": true,
       "base_resolved_value": "#f3ebf6",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -794,11 +882,15 @@
       "value": "{neutral.100}",
       "description": "Surface for disabled controls and non-interactive regions.",
       "order": 49,
+      "modes": {
+        "dark": "{neutral.975}"
+      },
       "resolved_value": "#ecf0f1",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -810,11 +902,15 @@
       "value": "{neutral.400}",
       "description": "Foreground for disabled labels, values, and icons. Never the only signal that a control is unavailable.",
       "order": 50,
+      "modes": {
+        "dark": "{neutral.500}"
+      },
       "resolved_value": "#9d9e98",
       "valid": true,
       "base_resolved_value": "#9d9e98",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -831,6 +927,7 @@
       "base_resolved_value": "#884ea0",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -847,6 +944,7 @@
       "base_resolved_value": "#79458e",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -863,6 +961,7 @@
       "base_resolved_value": "#b72b1a",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -879,6 +978,7 @@
       "base_resolved_value": "#a22617",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -890,11 +990,35 @@
       "value": "{blue.100}",
       "description": "Tinted background for informational alerts, banners, and badges. Carries color.foreground.",
       "order": 55,
+      "modes": {
+        "dark": "{blue.900}"
+      },
       "resolved_value": "#e7f3fb",
       "valid": true,
       "base_resolved_value": "#e7f3fb",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "color-info-foreground",
+      "name": "color.info.foreground",
+      "foundation": "color",
+      "type": "color",
+      "level": "semantic",
+      "value": "{blue.600}",
+      "description": "Informational text and icons on color.surface. Identical to color.info in light mode; lightened in dark mode, where the fill is not readable as text.",
+      "order": 56,
+      "modes": {
+        "dark": "{blue.400}"
+      },
+      "resolved_value": "#26709f",
+      "valid": true,
+      "base_resolved_value": "#26709f",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -905,12 +1029,16 @@
       "level": "semantic",
       "value": "{teal.100}",
       "description": "Tinted background for success alerts, banners, and badges. Carries color.foreground.",
-      "order": 56,
+      "order": 57,
+      "modes": {
+        "dark": "{teal.900}"
+      },
       "resolved_value": "#e4f7f3",
       "valid": true,
       "base_resolved_value": "#e4f7f3",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -920,13 +1048,17 @@
       "type": "color",
       "level": "semantic",
       "value": "{teal.700}",
-      "description": "Success text and icons on color.surface, where color.success itself is too light to read.",
-      "order": 57,
+      "description": "Success text and icons on color.surface and color.success.surface, where color.success itself is not readable as text.",
+      "order": 58,
+      "modes": {
+        "dark": "{teal.300}"
+      },
       "resolved_value": "#0f715d",
       "valid": true,
       "base_resolved_value": "#0f715d",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -937,12 +1069,36 @@
       "level": "semantic",
       "value": "{amber.100}",
       "description": "Tinted background for warning alerts, banners, and badges. Carries color.foreground.",
-      "order": 58,
+      "order": 59,
+      "modes": {
+        "dark": "{amber.900}"
+      },
       "resolved_value": "#f6efe4",
       "valid": true,
       "base_resolved_value": "#f6efe4",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "color-warning-foreground",
+      "name": "color.warning.foreground",
+      "foundation": "color",
+      "type": "color",
+      "level": "semantic",
+      "value": "{amber.700}",
+      "description": "Warning text and icons on color.surface. Identical to color.warning in light mode; lightened in dark mode, where the fill is not readable as text.",
+      "order": 60,
+      "modes": {
+        "dark": "{amber.400}"
+      },
+      "resolved_value": "#946118",
+      "valid": true,
+      "base_resolved_value": "#946118",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -953,12 +1109,36 @@
       "level": "semantic",
       "value": "{red.100}",
       "description": "Tinted background for error alerts, banners, and badges. Carries color.foreground.",
-      "order": 59,
+      "order": 61,
+      "modes": {
+        "dark": "{red.900}"
+      },
       "resolved_value": "#f9e6e4",
       "valid": true,
       "base_resolved_value": "#f9e6e4",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "color-danger-foreground",
+      "name": "color.danger.foreground",
+      "foundation": "color",
+      "type": "color",
+      "level": "semantic",
+      "value": "{red.600}",
+      "description": "Error text and icons on color.surface, and the invalid boundary of a control. Identical to color.danger in light mode; lightened in dark mode, where the fill is not readable as text.",
+      "order": 62,
+      "modes": {
+        "dark": "{red.400}"
+      },
+      "resolved_value": "#d0311e",
+      "valid": true,
+      "base_resolved_value": "#d0311e",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -969,12 +1149,13 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.primary fill.",
-      "order": 60,
+      "order": 63,
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -985,12 +1166,13 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Verified foreground on a color.secondary fill. Teal is light, so its foreground is dark rather than white.",
-      "order": 61,
+      "order": 64,
       "resolved_value": "#2c3e50",
       "valid": true,
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1001,12 +1183,13 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.accent fill.",
-      "order": 62,
+      "order": 65,
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1017,12 +1200,13 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Verified foreground on a color.highlight fill. The expressive purple is light and requires dark foreground.",
-      "order": 63,
+      "order": 66,
       "resolved_value": "#2c3e50",
       "valid": true,
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1033,12 +1217,13 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.info fill.",
-      "order": 64,
+      "order": 67,
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1049,12 +1234,13 @@
       "level": "semantic",
       "value": "{neutral.900}",
       "description": "Verified foreground on a color.success fill. Turquoise is light, so its foreground is dark rather than white.",
-      "order": 65,
+      "order": 68,
       "resolved_value": "#2c3e50",
       "valid": true,
       "base_resolved_value": "#2c3e50",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1065,12 +1251,13 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.warning fill.",
-      "order": 66,
+      "order": 69,
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1081,12 +1268,13 @@
       "level": "semantic",
       "value": "{neutral.white}",
       "description": "Verified foreground on a color.danger fill.",
-      "order": 67,
+      "order": 70,
       "resolved_value": "#ffffff",
       "valid": true,
       "base_resolved_value": "#ffffff",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1097,12 +1285,16 @@
       "level": "semantic",
       "value": "{neutral.100}",
       "description": "Quietest boundary, for separators inside a surface that should stay visually secondary.",
-      "order": 68,
+      "order": 71,
+      "modes": {
+        "dark": "{neutral.975}"
+      },
       "resolved_value": "#ecf0f1",
       "valid": true,
       "base_resolved_value": "#ecf0f1",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     },
     {
@@ -1112,13 +1304,255 @@
       "type": "color",
       "level": "semantic",
       "value": "{purple.600}",
-      "description": "Readable amethyst for text, icons, and selection indicators on light and tinted surfaces.",
-      "order": 69,
+      "description": "Readable amethyst for text, icons, and selection indicators on plain and tinted surfaces in both modes.",
+      "order": 72,
+      "modes": {
+        "dark": "{purple.300}"
+      },
       "resolved_value": "#884ea0",
       "valid": true,
       "base_resolved_value": "#884ea0",
       "source": "base",
       "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "neutral-350",
+      "name": "neutral.350",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#aeb6be",
+      "description": "Cool light gray that reads as muted text and as the resting control boundary on dark surfaces; clears 4.75:1 on every dark state surface.",
+      "order": 73,
+      "resolved_value": "#aeb6be",
+      "valid": true,
+      "base_resolved_value": "#aeb6be",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "neutral-500",
+      "name": "neutral.500",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#727d88",
+      "description": "Cool mid gray reserved for disabled foreground content on dark surfaces.",
+      "order": 74,
+      "resolved_value": "#727d88",
+      "valid": true,
+      "base_resolved_value": "#727d88",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "neutral-800",
+      "name": "neutral.800",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#3a4b5c",
+      "description": "Blue-gray used for structural borders on dark surfaces.",
+      "order": 75,
+      "resolved_value": "#3a4b5c",
+      "valid": true,
+      "base_resolved_value": "#3a4b5c",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "neutral-925",
+      "name": "neutral.925",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#23303d",
+      "description": "Blue-gray one step above the dark surface, used for hover on dark content.",
+      "order": 76,
+      "resolved_value": "#23303d",
+      "valid": true,
+      "base_resolved_value": "#23303d",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "neutral-950",
+      "name": "neutral.950",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#1a2530",
+      "description": "Dark blue-gray used for content, panel, and card surfaces in dark mode.",
+      "order": 77,
+      "resolved_value": "#1a2530",
+      "valid": true,
+      "base_resolved_value": "#1a2530",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "neutral-975",
+      "name": "neutral.975",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#111921",
+      "description": "Near-black blue-gray used for the dark-mode page background and its quietest boundaries.",
+      "order": 78,
+      "resolved_value": "#111921",
+      "valid": true,
+      "base_resolved_value": "#111921",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "purple-900",
+      "name": "purple.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#2d2439",
+      "description": "Deep amethyst tint for selected rows and active navigation on dark surfaces.",
+      "order": 79,
+      "resolved_value": "#2d2439",
+      "valid": true,
+      "base_resolved_value": "#2d2439",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "teal-900",
+      "name": "teal.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#12302c",
+      "description": "Deep teal tint for success feedback regions on dark surfaces.",
+      "order": 80,
+      "resolved_value": "#12302c",
+      "valid": true,
+      "base_resolved_value": "#12302c",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "blue-400",
+      "name": "blue.400",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#6fb3e6",
+      "description": "Lightened blue that meets text contrast on dark surfaces; the dark-mode link and informational text color.",
+      "order": 81,
+      "resolved_value": "#6fb3e6",
+      "valid": true,
+      "base_resolved_value": "#6fb3e6",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "blue-900",
+      "name": "blue.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#17293a",
+      "description": "Deep blue tint for informational feedback regions on dark surfaces.",
+      "order": 82,
+      "resolved_value": "#17293a",
+      "valid": true,
+      "base_resolved_value": "#17293a",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "red-400",
+      "name": "red.400",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#f0857a",
+      "description": "Lightened red that meets text contrast on dark surfaces; the dark-mode error text color.",
+      "order": 83,
+      "resolved_value": "#f0857a",
+      "valid": true,
+      "base_resolved_value": "#f0857a",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "red-900",
+      "name": "red.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#3a1f1e",
+      "description": "Deep red tint for error and destructive feedback regions on dark surfaces.",
+      "order": 84,
+      "resolved_value": "#3a1f1e",
+      "valid": true,
+      "base_resolved_value": "#3a1f1e",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "amber-400",
+      "name": "amber.400",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#e0a64a",
+      "description": "Lightened amber that meets text contrast on dark surfaces; the dark-mode warning text color.",
+      "order": 85,
+      "resolved_value": "#e0a64a",
+      "valid": true,
+      "base_resolved_value": "#e0a64a",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
+      "override_dependencies": []
+    },
+    {
+      "id": "amber-900",
+      "name": "amber.900",
+      "foundation": "color",
+      "type": "color",
+      "level": "primitive",
+      "value": "#372b18",
+      "description": "Deep amber tint for warning feedback regions on dark surfaces.",
+      "order": 86,
+      "resolved_value": "#372b18",
+      "valid": true,
+      "base_resolved_value": "#372b18",
+      "source": "base",
+      "theme_id": null,
+      "mode": "light",
       "override_dependencies": []
     }
   ]

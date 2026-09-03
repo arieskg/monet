@@ -1,10 +1,10 @@
-import type { ComponentDecision, ResolvedThemeToken, Workspace } from "./domain";
+import type { ComponentDecision, ResolvedThemeToken, ThemeMode, Workspace } from "./domain";
 
 export interface PreviewTokenSample {
   name: string;
   value: string | number;
   description: string;
-  source: "base" | "theme" | "default";
+  source: "base" | "mode" | "theme" | "default";
 }
 
 export interface PreviewComponentDecision {
@@ -20,6 +20,9 @@ export interface PreviewComponentDecision {
 
 export interface CompiledPreview {
   theme: { id: string; name: string };
+  /** The mode the variables were resolved in, and every mode the theme can be resolved in. */
+  mode: ThemeMode;
+  modes: ThemeMode[];
   cssVariables: Record<string, string | number>;
   colors: PreviewTokenSample[];
   typography: PreviewTokenSample[];
@@ -41,15 +44,35 @@ export const previewDefaults = {
   "color.foreground": "#2c3e50",
   "color.foreground.muted": "#5f605a",
   "color.foreground.inverse": "#ffffff",
+  "color.foreground.disabled": "#9d9e98",
   "color.border": "#d8d7d0",
   "color.border.strong": "#5f605a",
+  "color.surface.hover": "#f6f8f8",
+  "color.surface.pressed": "#e4e6e4",
+  "color.surface.selected": "#f3ebf6",
+  "color.surface.disabled": "#ecf0f1",
   "color.primary": "#9b59b6",
+  "color.primary.foreground": "#884ea0",
+  "color.on.primary": "#ffffff",
   "color.secondary": "#1abc9c",
   "color.link": "#26709f",
   "color.info": "#26709f",
+  "color.info.foreground": "#26709f",
+  "color.info.surface": "#e7f3fb",
+  "color.on.info": "#ffffff",
   "color.success": "#1abc9c",
+  "color.success.foreground": "#0f715d",
+  "color.success.surface": "#e4f7f3",
+  "color.on.success": "#2c3e50",
   "color.warning": "#946118",
+  "color.warning.foreground": "#946118",
+  "color.warning.surface": "#f6efe4",
+  "color.on.warning": "#ffffff",
   "color.danger": "#d0311e",
+  "color.danger.foreground": "#d0311e",
+  "color.danger.surface": "#f9e6e4",
+  "color.on.danger": "#ffffff",
+  "color.focus": "#9b59b6",
   "font.family.sans": '"Mona Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
   "font.family.mono": 'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", monospace',
   "font.size.xs": "12px",
@@ -151,16 +174,36 @@ export function compilePreview(workspace: Workspace): CompiledPreview {
     "--pv-foreground": foreground,
     "--pv-muted": muted,
     "--pv-inverse": value("color.foreground.inverse"),
+    "--pv-disabled": value("color.foreground.disabled"),
     "--pv-border": border,
     "--pv-border-strong": value("color.border.strong"),
+    "--pv-surface-hover": value("color.surface.hover"),
+    "--pv-surface-pressed": value("color.surface.pressed"),
+    "--pv-surface-selected": value("color.surface.selected"),
+    "--pv-surface-disabled": value("color.surface.disabled"),
     "--pv-primary": primary,
-    "--pv-primary-soft": `color-mix(in srgb, ${primary} 12%, ${surface})`,
+    "--pv-primary-fg": value("color.primary.foreground"),
+    "--pv-on-primary": value("color.on.primary"),
+    "--pv-primary-soft": value("color.surface.selected"),
+    "--pv-focus": value("color.focus"),
     "--pv-secondary": secondary,
     "--pv-link": value("color.link"),
     "--pv-info": value("color.info"),
+    "--pv-info-fg": value("color.info.foreground"),
+    "--pv-info-surface": value("color.info.surface"),
+    "--pv-on-info": value("color.on.info"),
     "--pv-success": value("color.success"),
+    "--pv-success-fg": value("color.success.foreground"),
+    "--pv-success-surface": value("color.success.surface"),
+    "--pv-on-success": value("color.on.success"),
     "--pv-warning": warning,
+    "--pv-warning-fg": value("color.warning.foreground"),
+    "--pv-warning-surface": value("color.warning.surface"),
+    "--pv-on-warning": value("color.on.warning"),
     "--pv-danger": danger,
+    "--pv-danger-fg": value("color.danger.foreground"),
+    "--pv-danger-surface": value("color.danger.surface"),
+    "--pv-on-danger": value("color.on.danger"),
     "--pv-font-sans": value("font.family.sans"),
     "--pv-font-mono": value("font.family.mono"),
     "--pv-font-xs": value("font.size.xs"),
@@ -208,7 +251,7 @@ export function compilePreview(workspace: Workspace): CompiledPreview {
     "--line-soft": subtle,
     "--accent": primary,
     "--accent-dark": primary,
-    "--accent-soft": `color-mix(in srgb, ${primary} 12%, ${surface})`,
+    "--accent-soft": value("color.surface.selected"),
     "--secondary": secondary,
     "--info": value("color.info"),
     "--danger": danger,
@@ -229,6 +272,8 @@ export function compilePreview(workspace: Workspace): CompiledPreview {
 
   return {
     theme: { id: activeTheme?.id ?? workspace.activeThemeId, name: activeTheme?.name ?? "Base Monet" },
+    mode: workspace.activeMode,
+    modes: workspace.modes,
     cssVariables,
     colors: withDefaults(samples(workspace, "color", (token) => token.level === "semantic"), ["color.background", "color.surface", "color.surface.subtle", "color.foreground", "color.foreground.muted", "color.primary", "color.secondary", "color.link", "color.success", "color.warning", "color.danger"]),
     typography: samples(workspace, "typography", (token) => token.level === "semantic" && (token.type === "font-size" || token.type === "font-weight")),

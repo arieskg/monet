@@ -1,15 +1,19 @@
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { PageHeader } from "../components/Common";
 import { RegisteredPreview } from "../components/previewAdapters";
 import { PreviewValidationAreas } from "../components/PreviewValidation";
+import { modeLabels, THEME_MODES, type ThemeMode } from "../domain";
+import { workspaceWithTheme } from "../exportFormats";
 import { compilePreview, type CompiledPreview, type PreviewComponentDecision, type PreviewTokenSample } from "../previewCompiler";
 import { useWorkspace } from "../WorkspaceContext";
 
 type PreviewView = "elements" | "sample";
 
-function TokenOrigin({ token }: { token: PreviewTokenSample }) {
-  return token.source === "theme" ? <i className="compiled-origin">Theme</i> : null;
+function TokenOrigin({ token, mode }: { token: PreviewTokenSample; mode: ThemeMode }) {
+  if (token.source === "theme") return <i className="compiled-origin">Theme</i>;
+  if (token.source === "mode") return <i className="compiled-origin">{modeLabels[mode]}</i>;
+  return null;
 }
 
 function DecisionFixture({ model, componentId, title, children }: { model: CompiledPreview; componentId: string; title: string; children?: ReactNode }) {
@@ -35,6 +39,7 @@ function DecisionOrigin({ decision }: { decision?: PreviewComponentDecision }) {
 function Provenance({ model }: { model: CompiledPreview }) {
   return <section className="compiled-provenance" aria-label="Preview inputs">
     <span><small>Theme</small><b>{model.theme.name}</b></span>
+    <span><small>Mode</small><b>{modeLabels[model.mode]}</b></span>
     <span><small>Foundations</small><b>{model.activeFoundationIds.length} active</b></span>
     <span><small>Components</small><b>{Object.values(model.components).filter((item) => !item.usesDefault).length} selected</b></span>
     <span><small>Patterns</small><b>{model.activePatternIds.length} active</b></span>
@@ -44,7 +49,7 @@ function Provenance({ model }: { model: CompiledPreview }) {
 
 function ElementsView({ model }: { model: CompiledPreview }) {
   return <div className="compiled-elements">
-    <section className="compiled-foundation-card compiled-colors"><header><span className="compiled-kicker">Foundation</span><h2>Colors</h2><p>Semantic roles from the resolved theme.</p></header><div>{model.colors.map((token) => <article key={token.name}><span style={{ background: String(token.value) }} /><b>{token.name.replace("color.", "")}</b><code>{String(token.value)}</code><TokenOrigin token={token} /></article>)}</div></section>
+    <section className="compiled-foundation-card compiled-colors"><header><span className="compiled-kicker">Foundation</span><h2>Colors</h2><p>Semantic roles from the resolved theme.</p></header><div>{model.colors.map((token) => <article key={token.name}><span style={{ background: String(token.value) }} /><b>{token.name.replace("color.", "")}</b><code>{String(token.value)}</code><TokenOrigin token={token} mode={model.mode} /></article>)}</div></section>
     <section className="compiled-foundation-card compiled-type"><header><span className="compiled-kicker">Foundation</span><h2>Typography hierarchy</h2><p>Product hierarchy at realistic interface scale.</p></header><div className="compiled-type-stack"><span><small>Page title · 2xl</small><strong>Design system overview</strong></span><span><small>Section heading · xl</small><b>Recent activity</b></span><span><small>Panel heading · lg</small><h3>Workspace health</h3></span><span><small>Body · md</small><p>Readable body content explains what changed and what needs attention next.</p></span><span><small>UI · sm</small><em>Compact controls, labels, and table values</em></span><span><small>Caption · xs</small><i>Updated just now</i></span></div></section>
     <section className="compiled-foundation-card compiled-spacing"><header><span className="compiled-kicker">Foundation</span><h2>Spacing</h2><p>The active scale, shown at actual size.</p></header><div>{model.spacing.map((token) => <span key={token.name}><i style={{ width: String(token.value) }} /><b>{token.name}</b><code>{String(token.value)}</code></span>)}</div></section>
     <section className="compiled-foundation-card compiled-geometry"><header><span className="compiled-kicker">Foundations</span><h2>Radius, borders, shadows</h2><p>Geometry and elevation in one consistency check.</p></header><div className="compiled-geometry-grid"><div><h3>Radius</h3>{model.radii.map((token) => <span key={token.name} style={{ borderRadius: String(token.value) }}><b>{token.name}</b><code>{String(token.value)}</code></span>)}</div><div><h3>Borders</h3>{model.borders.map((token) => <span key={token.name} style={{ border: String(token.value) }}><b>{token.name}</b><code>{String(token.value)}</code></span>)}</div><div><h3>Shadows</h3>{model.shadows.map((token) => <span key={token.name} style={{ boxShadow: String(token.value) }}><b>{token.name}</b><code>{String(token.value)}</code></span>)}</div></div></section>
@@ -90,8 +95,11 @@ export function PreviewPage() {
   const { workspace, reload } = useWorkspace();
   const { view } = useParams();
   const [refreshing, setRefreshing] = useState(false);
+  const [mode, setMode] = useState<ThemeMode>("light");
   const activeView: PreviewView = view === "sample" ? "sample" : "elements";
-  const model = workspace ? compilePreview(workspace) : null;
+  // The preview resolves its own mode in the browser from the base tokens the workspace already
+  // carries, so switching modes never asks the file service for anything.
+  const model = useMemo(() => workspace ? compilePreview(workspaceWithTheme(workspace, workspace.activeThemeId, mode)) : null, [workspace, mode]);
   async function refreshPreview() {
     if (refreshing) return;
     setRefreshing(true);
@@ -103,9 +111,9 @@ export function PreviewPage() {
   }
   if (!workspace || !model) return null;
   if (view && view !== "elements" && view !== "sample") return <Navigate to="/preview/elements" replace />;
-  return <div className="page preview-page"><PageHeader eyebrow="Derived design system" title="Preview" description="A read-only visual compilation of the active theme, foundations, component decisions, and patterns. Make changes in their source sections; this page updates from the same workspace model." action={<div className="preview-header-actions"><button className="button preview-refresh-button" type="button" disabled={refreshing} aria-live="polite" onClick={() => void refreshPreview()}>{refreshing && <i aria-hidden="true" />}<span>{refreshing ? "Re-rendering…" : "Refresh Preview"}</span></button><nav className="preview-view-switch" aria-label="Preview view"><Link className={activeView === "elements" ? "active" : ""} to="/preview/elements">Elements</Link><Link className={activeView === "sample" ? "active" : ""} to="/preview/sample">Sample Page</Link></nav></div>} />
+  return <div className="page preview-page"><PageHeader eyebrow="Derived design system" title="Preview" description="A read-only visual compilation of the active theme, foundations, component decisions, and patterns. Make changes in their source sections; this page updates from the same workspace model." action={<div className="preview-header-actions"><button className="button preview-refresh-button" type="button" disabled={refreshing} aria-live="polite" onClick={() => void refreshPreview()}>{refreshing && <i aria-hidden="true" />}<span>{refreshing ? "Re-rendering…" : "Refresh Preview"}</span></button><div className="preview-view-switch" role="group" aria-label="Preview mode">{THEME_MODES.map((item) => <button type="button" className={model.mode === item ? "active" : ""} key={item} disabled={!model.modes.includes(item)} title={model.modes.includes(item) ? undefined : `The ${model.theme.name} theme has no ${modeLabels[item].toLowerCase()} mode`} aria-pressed={model.mode === item} onClick={() => setMode(item)}>{modeLabels[item]}</button>)}</div><nav className="preview-view-switch" aria-label="Preview view"><Link className={activeView === "elements" ? "active" : ""} to="/preview/elements">Elements</Link><Link className={activeView === "sample" ? "active" : ""} to="/preview/sample">Sample Page</Link></nav></div>} />
     <Provenance model={model} />
-    <div className={`compiled-preview ${refreshing ? "is-refreshing" : ""}`} aria-busy={refreshing} style={model.cssVariables} data-theme={model.theme.id} data-foundations={model.activeFoundationIds.join(" ")} data-patterns={model.activePatternIds.join(" ")}>
+    <div className={`compiled-preview ${refreshing ? "is-refreshing" : ""}`} aria-busy={refreshing} style={{ ...model.cssVariables, colorScheme: model.mode }} data-theme={model.theme.id} data-mode={model.mode} data-foundations={model.activeFoundationIds.join(" ")} data-patterns={model.activePatternIds.join(" ")}>
       {activeView === "elements" ? <ElementsView model={model} /> : <SamplePageView model={model} />}
     </div>
   </div>;

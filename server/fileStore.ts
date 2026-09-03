@@ -1,9 +1,10 @@
 import { mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
-import type { ComponentDecision, Foundation, MappingConfidence, MappingMatchType, MappingStatus, MarkdownDocument, Principle, PrimitiveDecision, Reference, ReferenceCollectionAnalysis, ReferenceSuggestionStatus, ReferenceType, Source, SourceMapping, Status, TaxonomyCategory, Theme, Workspace } from "./model.js";
+import type { ComponentDecision, Foundation, MappingConfidence, MappingMatchType, MappingStatus, MarkdownDocument, Principle, PrimitiveDecision, Reference, ReferenceCollectionAnalysis, ReferenceSuggestionStatus, ReferenceType, Source, SourceMapping, Status, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./model.js";
+import { THEME_MODES } from "../shared/model.js";
 import { analyzeReference, analyzeReferenceCollection } from "./referenceAnalysis.js";
 import { generateSourceMappings, type MappingRefreshResult } from "./sourceMapping.js";
-import { normalizeFoundation, normalizeTokens, resolveThemeTokens, resolveTokens } from "./tokens.js";
+import { normalizeFoundation, normalizeTokens, resolveThemeTokens, resolveTokens, themeModes } from "./tokens.js";
 import { workspaceRoot } from "./workspace.js";
 
 const STATUSES: Status[] = ["undecided", "selected", "needs_review", "experimental", "do_not_use"];
@@ -105,6 +106,21 @@ async function writeReferenceAsset(id: string, dataUrl: string, filename: string
 function overrideMap(value: unknown): Record<string, string | number> {
   if (!value || typeof value !== "object" || Array.isArray(value)) return {};
   return Object.fromEntries(Object.entries(value as Record<string, unknown>).filter((entry): entry is [string, string | number] => typeof entry[1] === "string" || typeof entry[1] === "number"));
+}
+
+/** A theme's mode-specific override maps. Light is the baseline and never a mode; empty maps are dropped so a theme without them stays as it was. */
+function themeModeOverrides(value: unknown): Theme["modes"] {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter((entry): entry is [Exclude<ThemeMode, "light">, unknown] => entry[0] !== "light" && THEME_MODES.includes(entry[0] as ThemeMode))
+    .map(([mode, overrides]) => [mode, overrideMap(overrides)] as const)
+    .filter(([, overrides]) => Object.keys(overrides).length);
+  return entries.length ? Object.fromEntries(entries) : undefined;
+}
+
+function themeRecord(id: string, raw: Partial<Theme>, updatedAt: string): Theme {
+  const modes = themeModeOverrides(raw.modes);
+  return { id, name: text(raw.name, id).trim() || id, overrides: overrideMap(raw.overrides), ...(modes ? { modes } : {}), updated_at: updatedAt };
 }
 
 function sourceMapping(input: SourceMapping): SourceMapping {
@@ -246,8 +262,7 @@ async function readThemes(): Promise<{ themes: Theme[]; defaultThemeId: string }
   const files = (await readDirectoryOrEmpty(directory)).filter((name) => name.endsWith(".json") && name !== "config.json").sort();
   const themes = await Promise.all(files.map(async (name) => {
     const raw = await readJson<Theme>(path.join(directory, name));
-    const id = cleanId(name.slice(0, -5));
-    return { id, name: text(raw.name, id), overrides: overrideMap(raw.overrides), updated_at: text(raw.updated_at) };
+    return themeRecord(cleanId(name.slice(0, -5)), raw, text(raw.updated_at));
   }));
   let defaultThemeId = themes[0]?.id ?? "default";
   try {
@@ -257,13 +272,17 @@ async function readThemes(): Promise<{ themes: Theme[]; defaultThemeId: string }
   return { themes, defaultThemeId };
 }
 
-export async function loadWorkspace(requestedThemeId?: string): Promise<Workspace> {
+export async function loadWorkspace(requestedThemeId?: string, requestedMode?: ThemeMode): Promise<Workspace> {
   const foundationFiles = (await readDirectoryOrEmpty(path.join(root(), "foundations"))).filter((name) => name.endsWith(".json")).sort();
   const foundations = await Promise.all(foundationFiles.map(async (name) => normalizeFoundation(await readJson<Foundation>(path.join(root(), "foundations", name)))));
   const baseResolution = resolveTokens(foundations);
   const { themes, defaultThemeId } = await readThemes();
   const activeTheme = themes.find((theme) => theme.id === requestedThemeId) ?? themes.find((theme) => theme.id === defaultThemeId) ?? themes[0] ?? null;
-  const resolution = resolveThemeTokens(foundations, activeTheme);
+  const modes = themeModes(foundations, activeTheme);
+  // A mode the theme cannot resolve falls back to light rather than failing: light is the value
+  // every token already carries, and the workspace's `modes` says what was actually available.
+  const activeMode: ThemeMode = requestedMode && modes.includes(requestedMode) ? requestedMode : "light";
+  const resolution = resolveThemeTokens(foundations, activeTheme, activeMode);
   const components = (await readJsonOrEmpty<ComponentDecision[]>(path.join(root(), "components", "decisions.json"), [])).map((item) => ({
     ...item,
     selection: componentSelection(item),
@@ -289,6 +308,8 @@ export async function loadWorkspace(requestedThemeId?: string): Promise<Workspac
     themes,
     defaultThemeId,
     activeThemeId: activeTheme?.id ?? "default",
+    activeMode,
+    modes,
     baseResolvedTokens: baseResolution.tokens,
     resolvedTokens: resolution.tokens,
     tokenIssues: resolution.issues,
@@ -298,6 +319,10 @@ export async function loadWorkspace(requestedThemeId?: string): Promise<Workspac
 
 export async function regenerateExports(): Promise<void> {
   const workspace = await loadWorkspace();
+  const activeTheme = workspace.themes.find((theme) => theme.id === workspace.activeThemeId) ?? null;
+  const darkResolution = workspace.modes.includes("dark")
+    ? new Map(resolveThemeTokens(workspace.foundations, activeTheme, "dark").tokens.map((token) => [token.name, token.resolved_value]))
+    : null;
   const entries = workspace.taxonomy.flatMap((category) => category.entries.map((entry) => ({ ...entry, categoryName: category.name })));
   const primitiveEntries = workspace.primitiveTaxonomy.flatMap((category) => category.entries);
   const selected = workspace.components.filter((item) => item.status === "selected" || item.status === "do_not_use");
@@ -307,11 +332,17 @@ export async function regenerateExports(): Promise<void> {
     "## Principles", "", ...workspace.principles.flatMap((item) => [`### ${item.title}`, "", item.body.replace(/^#\s+[^\n]+\n*/, "").trim(), ""]),
     "## Foundations", "", ...workspace.foundations.map((item) => `- **${item.name}** (${item.status}) — ${item.description}`), "",
     "## Active theme", "", `${workspace.themes.find((theme) => theme.id === workspace.activeThemeId)?.name ?? "Default"} (${workspace.activeThemeId})`, "",
-    "Theme files contain overrides only. Resolved values below are Base Monet plus the active theme.", "",
+    "Theme files contain overrides only. Resolved values below are Base Monet plus the active theme, in light mode.",
+    ...(darkResolution ? ["", `This theme also resolves in dark mode. Where a token's dark value differs it is listed as \`dark:\`; every other token keeps its light value in both modes. The complete dark resolution is in \`tokens/themes/${workspace.activeThemeId}.dark.json\`.`] : []), "",
     "## Tokens", "", ...workspace.foundations.flatMap((foundation) => [
       `### ${foundation.name}`,
       "",
-      ...foundation.tokens.map((token) => { const resolved = workspace.resolvedTokens.find((item) => item.name === token.name); return `- \`${token.name}\` = \`${String(resolved?.resolved_value ?? token.value)}\`${resolved?.source === "theme" ? ` — theme override: ${resolved.override_dependencies.join(", ")}` : token.description ? ` — ${token.description}` : ""}`; }),
+      ...foundation.tokens.map((token) => {
+        const resolved = workspace.resolvedTokens.find((item) => item.name === token.name);
+        const dark = darkResolution?.get(token.name);
+        const darkNote = dark !== undefined && dark !== null && String(dark) !== String(resolved?.resolved_value ?? token.value) ? ` · dark: \`${String(dark)}\`` : "";
+        return `- \`${token.name}\` = \`${String(resolved?.resolved_value ?? token.value)}\`${darkNote}${resolved?.source === "theme" ? ` — theme override: ${resolved.override_dependencies.join(", ")}` : token.description ? ` — ${token.description}` : ""}`;
+      }),
       "",
     ]),
     "## Primitive decisions", "", ...selectedPrimitives.map((item) => {
@@ -342,10 +373,20 @@ export async function regenerateExports(): Promise<void> {
   // Exports carry no timestamp. They are derived entirely from the canonical records, so a stamp
   // would rewrite every file on every save and make each commit look like a change that was not one.
   await writeJson(path.join(root(), "tokens", "tokens.json"), { tokens: workspace.resolvedTokens, issues: workspace.tokenIssues });
+  // One resolved file per theme and mode. The light file keeps the theme's plain name so existing
+  // consumers keep working; each further mode adds `<theme>.<mode>.json` beside it.
   await mkdir(path.join(root(), "tokens", "themes"), { recursive: true });
   for (const theme of workspace.themes) {
-    const themed = resolveThemeTokens(workspace.foundations, theme);
-    await writeJson(path.join(root(), "tokens", "themes", `${theme.id}.json`), { theme: { id: theme.id, name: theme.name }, tokens: themed.tokens, issues: themed.issues });
+    const modes = themeModes(workspace.foundations, theme);
+    for (const mode of modes) {
+      const themed = resolveThemeTokens(workspace.foundations, theme, mode);
+      const file = mode === "light" ? `${theme.id}.json` : `${theme.id}.${mode}.json`;
+      await writeJson(path.join(root(), "tokens", "themes", file), { theme: { id: theme.id, name: theme.name, modes }, mode, tokens: themed.tokens, issues: themed.issues });
+    }
+    for (const mode of THEME_MODES) {
+      if (modes.includes(mode) || mode === "light") continue;
+      await unlink(path.join(root(), "tokens", "themes", `${theme.id}.${mode}.json`)).catch(() => undefined);
+    }
   }
   await writeJson(path.join(root(), "design-system.json"), { ...workspace, filesRoot: undefined, decisionLog: undefined });
 }
@@ -394,6 +435,9 @@ export async function saveFoundation(id: string, input: Foundation): Promise<voi
   const prospective = workspace.foundations.map((foundation) => foundation.id === safeId ? record : foundation);
   const circular = resolveTokens(prospective).issues.find((issue) => issue.type === "circular_reference");
   if (circular) throw new Error(circular.message);
+  // A dark value may alias a different token than the light one, so the dark resolution is checked too.
+  const darkCircular = themeModes(prospective, null).includes("dark") ? resolveThemeTokens(prospective, null, "dark").issues.find((issue) => issue.type === "circular_reference") : undefined;
+  if (darkCircular) throw new Error(`In dark mode, ${darkCircular.message}`);
   await writeJson(path.join(root(), "foundations", `${safeId}.json`), record);
   await regenerateExports();
 }
@@ -402,12 +446,14 @@ export async function saveTheme(id: string, input: Theme): Promise<Theme> {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const knownTokens = new Set(workspace.baseResolvedTokens.map((token) => token.name));
-  const overrides = overrideMap(input.overrides);
-  const unknown = Object.keys(overrides).find((name) => !knownTokens.has(name));
+  const theme = themeRecord(safeId, input, new Date().toISOString());
+  const overrideNames = [...Object.keys(theme.overrides), ...Object.values(theme.modes ?? {}).flatMap((overrides) => Object.keys(overrides))];
+  const unknown = overrideNames.find((name) => !knownTokens.has(name));
   if (unknown) throw new Error(`Theme override references unknown token ${unknown}.`);
-  const theme: Theme = { id: safeId, name: text(input.name, safeId).trim() || safeId, overrides, updated_at: new Date().toISOString() };
-  const resolution = resolveThemeTokens(workspace.foundations, theme);
-  if (resolution.issues.length) throw new Error(resolution.issues[0]!.message);
+  for (const mode of themeModes(workspace.foundations, theme)) {
+    const resolution = resolveThemeTokens(workspace.foundations, theme, mode);
+    if (resolution.issues.length) throw new Error(resolution.issues[0]!.message);
+  }
   await writeJson(path.join(root(), "themes", `${safeId}.json`), theme);
   await regenerateExports();
   return theme;
