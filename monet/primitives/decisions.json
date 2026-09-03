@@ -49,7 +49,7 @@
     "preferences": {
       "default_gap": "token:space.control-gap, or token:space.inline-gap beside text",
       "wrap": "true",
-      "alignment": "centred on the shared text baseline",
+      "alignment": "baseline where children carry text, centred otherwise",
       "overflow": "wraps onto another line, never scrolls sideways",
       "relationship": "the horizontal half of the decision Stack makes vertically"
     },
@@ -61,7 +61,7 @@
       "space.control-gap"
     ],
     "inspiration": null,
-    "notes": "Inline is the horizontal half of the same spacing decision Stack makes vertically: the container owns the gap and children carry no margins of their own. Wrapping is on, because a run of tags, filters, or actions has to be able to grow onto another line rather than clip or scroll out of reach. Use space.inline-gap between an icon and its label and space.control-gap between repeated controls. When the arrangement needs alignment or distribution rather than an even gap, that is the Flex primitive; when items must line up across rows, it is Grid.",
+    "notes": "Inline is the horizontal half of the same spacing decision Stack makes vertically: the container owns the gap and children carry no margins of their own. Wrapping is on, because a run of tags, filters, or actions has to be able to grow onto another line rather than clip or scroll out of reach. Use space.inline-gap between an icon and its label and space.control-gap between repeated controls. Children carrying text align on their shared baseline, so labels of different sizes sit on one line; children that do not, such as a run of controls of unequal height, centre on the cross axis instead. When the arrangement needs alignment or distribution rather than an even gap, that is the Flex primitive; when items must line up across rows, it is Grid.",
     "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
@@ -105,7 +105,7 @@
       "breakpoint.lg"
     ],
     "inspiration": null,
-    "notes": "Tracks are defined by the narrowest width an item stays readable at, so a collection reflows on its own instead of being re-tuned at every breakpoint. Gaps come from the spacing scale and match the vertical rhythm of the surrounding Stack. Never reorder items through grid placement: visual order and document order have to agree, or the layout becomes incoherent to keyboard and screen-reader users. A single-track grid is a Stack, and values compared across shared attributes belong in a table rather than in tracks.",
+    "notes": "Tracks are defined by the narrowest width an item stays readable at, so a collection reflows on its own instead of being re-tuned at every breakpoint. Gaps come from the spacing scale and match the vertical rhythm of the surrounding Stack. Never reorder items through grid placement: visual order and document order have to agree, or the layout becomes incoherent to keyboard and screen-reader users. A collection therefore needs no breakpoint rule of its own; breakpoint.md and breakpoint.lg apply to page-level regions that change shape, which is what the Breakpoints foundation reserves viewport thresholds for. A single-track grid is a Stack, and values compared across shared attributes belong in a table rather than in tracks.",
     "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
@@ -270,7 +270,7 @@
       "stroke": "consistent",
       "semantics": "decorative and hidden, or labeled and announced",
       "alignment": "optically centred on the text it accompanies",
-      "family": "one icon set across the whole product"
+      "family": "one set, chosen by the adopting product"
     },
     "tokens": [
       "size.icon.sm",
@@ -279,7 +279,7 @@
       "space.inline-gap"
     ],
     "inspiration": null,
-    "notes": "An icon is decorative whenever visible text already says the same thing, and is hidden from assistive technology in that case; an icon standing alone takes its name from the Accessible Label primitive. Sizes come from the sizing scale: size.icon.sm for chevrons and metadata, size.icon.md for controls and navigation, size.icon.lg where a control needs more presence. Colour is inherited rather than set, so an icon in muted text is muted and an icon on a fill takes that fill's foreground. Keep space.inline-gap between an icon and its label. An icon is never the only carrier of meaning, and icon families are never mixed within one interface.",
+    "notes": "An icon is decorative whenever visible text already says the same thing, and is hidden from assistive technology in that case; an icon standing alone takes its name from the Accessible Label primitive. Sizes come from the sizing scale: size.icon.sm for chevrons and metadata, size.icon.md for controls and navigation, size.icon.lg where a control needs more presence. Colour is inherited rather than set, so an icon in muted text is muted and an icon on a fill takes that fill's foreground. Keep space.inline-gap between an icon and its label. Monet has not chosen an icon set and does not intend to: the adopting product picks one and uses it everywhere. An icon is never the only carrier of meaning, and icon families are never mixed within one interface.",
     "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {

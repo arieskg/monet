@@ -442,8 +442,8 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Status: selected
 - Purpose: Arrange related children horizontally with a consistent tokenized gap and deliberate wrapping.
 - Tokens: `space.1`, `space.2`, `space.3`, `space.inline-gap`, `space.control-gap`
-- Preferences: default_gap=token:space.control-gap, or token:space.inline-gap beside text, wrap=true, alignment=centred on the shared text baseline, overflow=wraps onto another line, never scrolls sideways, relationship=the horizontal half of the decision Stack makes vertically
-- Notes: Inline is the horizontal half of the same spacing decision Stack makes vertically: the container owns the gap and children carry no margins of their own. Wrapping is on, because a run of tags, filters, or actions has to be able to grow onto another line rather than clip or scroll out of reach. Use space.inline-gap between an icon and its label and space.control-gap between repeated controls. When the arrangement needs alignment or distribution rather than an even gap, that is the Flex primitive; when items must line up across rows, it is Grid.
+- Preferences: default_gap=token:space.control-gap, or token:space.inline-gap beside text, wrap=true, alignment=baseline where children carry text, centred otherwise, overflow=wraps onto another line, never scrolls sideways, relationship=the horizontal half of the decision Stack makes vertically
+- Notes: Inline is the horizontal half of the same spacing decision Stack makes vertically: the container owns the gap and children carry no margins of their own. Wrapping is on, because a run of tags, filters, or actions has to be able to grow onto another line rather than clip or scroll out of reach. Use space.inline-gap between an icon and its label and space.control-gap between repeated controls. Children carrying text align on their shared baseline, so labels of different sizes sit on one line; children that do not, such as a run of controls of unequal height, centre on the cross axis instead. When the arrangement needs alignment or distribution rather than an even gap, that is the Flex primitive; when items must line up across rows, it is Grid.
 ### Flex
 
 - Status: selected
@@ -457,7 +457,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Purpose: Create tokenized two-dimensional tracks and gaps that reflow without a fixed count per breakpoint.
 - Tokens: `space.2`, `space.4`, `space.6`, `space.component-gap`, `space.group-gap`, `breakpoint.md`, `breakpoint.lg`
 - Preferences: default_gap=token:space.component-gap, track_sizing=the narrowest width an item stays readable at, alignment=items stretch, so a row shares one height, order=visual order follows the order in the document
-- Notes: Tracks are defined by the narrowest width an item stays readable at, so a collection reflows on its own instead of being re-tuned at every breakpoint. Gaps come from the spacing scale and match the vertical rhythm of the surrounding Stack. Never reorder items through grid placement: visual order and document order have to agree, or the layout becomes incoherent to keyboard and screen-reader users. A single-track grid is a Stack, and values compared across shared attributes belong in a table rather than in tracks.
+- Notes: Tracks are defined by the narrowest width an item stays readable at, so a collection reflows on its own instead of being re-tuned at every breakpoint. Gaps come from the spacing scale and match the vertical rhythm of the surrounding Stack. Never reorder items through grid placement: visual order and document order have to agree, or the layout becomes incoherent to keyboard and screen-reader users. A collection therefore needs no breakpoint rule of its own; breakpoint.md and breakpoint.lg apply to page-level regions that change shape, which is what the Breakpoints foundation reserves viewport thresholds for. A single-track grid is a Stack, and values compared across shared attributes belong in a table rather than in tracks.
 ### Container
 
 - Status: selected
@@ -519,8 +519,8 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Status: selected
 - Purpose: Render symbols at predictable sizes with explicit decorative or labeled semantics.
 - Tokens: `size.icon.sm`, `size.icon.md`, `size.icon.lg`, `space.inline-gap`
-- Preferences: default_size=token:size.icon.md, color=currentColor, inherited from the text it sits with, stroke=consistent, semantics=decorative and hidden, or labeled and announced, alignment=optically centred on the text it accompanies, family=one icon set across the whole product
-- Notes: An icon is decorative whenever visible text already says the same thing, and is hidden from assistive technology in that case; an icon standing alone takes its name from the Accessible Label primitive. Sizes come from the sizing scale: size.icon.sm for chevrons and metadata, size.icon.md for controls and navigation, size.icon.lg where a control needs more presence. Colour is inherited rather than set, so an icon in muted text is muted and an icon on a fill takes that fill's foreground. Keep space.inline-gap between an icon and its label. An icon is never the only carrier of meaning, and icon families are never mixed within one interface.
+- Preferences: default_size=token:size.icon.md, color=currentColor, inherited from the text it sits with, stroke=consistent, semantics=decorative and hidden, or labeled and announced, alignment=optically centred on the text it accompanies, family=one set, chosen by the adopting product
+- Notes: An icon is decorative whenever visible text already says the same thing, and is hidden from assistive technology in that case; an icon standing alone takes its name from the Accessible Label primitive. Sizes come from the sizing scale: size.icon.sm for chevrons and metadata, size.icon.md for controls and navigation, size.icon.lg where a control needs more presence. Colour is inherited rather than set, so an icon in muted text is muted and an icon on a fill takes that fill's foreground. Keep space.inline-gap between an icon and its label. Monet has not chosen an icon set and does not intend to: the adopting product picks one and uses it everywhere. An icon is never the only carrier of meaning, and icon families are never mixed within one interface.
 ### Surface
 
 - Status: selected
@@ -662,7 +662,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: A familiar icon communicates a compact secondary or utility action; Toolbar actions where visible text would create unnecessary visual density; Repeated actions such as edit, delete, copy, refresh, close, or more options; Navigation controls such as previous, next, expand, collapse, or dismiss; A compact action must sit beside related content without competing with the primary action
 - Advanced avoid when: The icon meaning is ambiguous or unfamiliar to the expected user; The action is the primary action for a page, dialog, or workflow; The action requires explanatory text to be understood confidently; Several similar icon buttons would be difficult to distinguish without labels; A standard text Button would provide clearer hierarchy; The entire surrounding row, card, or region already acts as the interaction target
 - Advanced Foundation deviations: `color`, `typography`, `spacing`, `radius`, `borders`
-- Advanced primitives: `pressable`, `icon`, `focus-ring`
+- Advanced primitives: `pressable`, `icon`, `focus-ring`, `accessible-label`
 ### Textarea
 
 - Decision: Use
@@ -881,7 +881,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: One action is clearly the most common or recommended choice and closely related alternatives are also needed; A primary action and a small menu of variants should remain visually connected; Showing every related action as a separate button would create unnecessary clutter; The default action can be triggered immediately without requiring the user to inspect the menu
 - Advanced avoid when: The available actions have similar importance or usage frequency; The menu contains unrelated commands; There is no meaningful default action; Users need to review options before safely choosing an action; A simple Button plus separate overflow menu would provide clearer hierarchy; The control would contain destructive and routine actions in a way that increases accidental activation
 - Advanced Foundation deviations: `color`, `typography`, `spacing`, `radius`, `borders`
-- Advanced primitives: `pressable`, `text`, `icon`, `focus-ring`
+- Advanced primitives: `pressable`, `text`, `icon`, `focus-ring`, `accessible-label`
 ### Floating Action Button
 
 - Decision: Use
@@ -955,7 +955,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: Choosing one of a few mutually exclusive values that applies at once; Switching a chart or collection between a small set of groupings; A compact alternative to a radio group in a dense filter row
 - Advanced avoid when: Switching between peer views of one record, which is Tabs; The segments are independent actions, which is a Button Group; More than five options, or labels that would truncate; The value is only committed on save, which is a Radio group
 - Advanced Foundation deviations: `color`, `typography`, `spacing`, `radius`, `interaction`
-- Advanced primitives: `pressable`, `text`, `inline`, `focus-ring`
+- Advanced primitives: `pressable`, `text`, `inline`, `focus-ring`, `accessible-label`
 ### Autocomplete
 
 - Decision: Use
@@ -1189,7 +1189,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: A short localized wait inside a control or a small region; An action in flight on the control that started it; A wait whose duration cannot be estimated
 - Advanced avoid when: The layout of incoming content is known, which is a Skeleton; Real progress can be reported, which is Progress; It would cover the whole page for one region's request; The operation has already failed
 - Advanced Foundation deviations: `motion`, `color`, `sizing`
-- Advanced primitives: `box`, `icon`
+- Advanced primitives: `box`, `icon`, `accessible-label`
 ### Status Indicator
 
 - Decision: Use
@@ -1241,7 +1241,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: Representing an active filter that the user can remove; Tokens entered into a multi-value input; User-applied labels on a record; A selectable category chip in a compact filter row
 - Advanced avoid when: The value is read-only status, which is a Badge; The tag would trigger an action rather than change a value; The label names only the filter category without its value; There are so many tags that the set needs its own scroll region
 - Advanced Foundation deviations: `color`, `typography`, `spacing`, `radius`, `interaction`
-- Advanced primitives: `inline`, `text`, `pressable`, `icon`, `focus-ring`
+- Advanced primitives: `inline`, `text`, `pressable`, `icon`, `focus-ring`, `accessible-label`
 ### Avatar
 
 - Decision: Use
@@ -1254,15 +1254,15 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: Identifying the person or team responsible for a record; The account control in an app shell; Attribution in comments and activity feeds; Showing several collaborators compactly as a group
 - Advanced avoid when: It would be the only identification of the person; A generic placeholder would stand in for a real identity; The image is illustrative content rather than an identity; Only presence is being shown, which is a Status Indicator
 - Advanced Foundation deviations: `color`, `typography`, `radius`, `sizing`, `borders`
-- Advanced primitives: `box`, `text`, `icon`, `surface`
+- Advanced primitives: `box`, `text`, `icon`, `surface`, `accessible-label`
 ### Accordion
 
 - Decision: Use
 - Inspiration: Mantine UI Accordion
 - Preferences: density=compact, header=a button spanning the whole row, with a chevron indicator, indicator=rotates on expand, in the same position across the set, mode=several open at once, unless the sections are alternatives, default_state=collapsed, unless one section is the expected task, separators=token:border.subtle between sections, motion=token:motion.standard height change, reduced-motion aware, addressing=an open section survives reload and can be linked to, nesting=never; two levels of disclosure is a Tree
-- Notes: The header is a real button spanning the row, so the whole row is the target and the focus ring outlines what will be activated; the chevron is an indicator, not the hit area. Several sections may be open at once, since an accordion that closes one section to open another is an alternation, which suits only a small set of mutually exclusive panels. Keep the open set addressable so a reload, a back navigation, or a shared link lands on the same view. Content may be rendered lazily, but anything findable by the browser's find-in-page or by an in-app search has to expand rather than stay invisible. Animate the height with motion.standard and honour reduced motion. Do not nest accordions: two levels of disclosure is a Tree, and three is a page that needs restructuring.
+- Notes: The header is a real button spanning the row, so the whole row is the target and the focus ring outlines what will be activated; the chevron is an indicator, not the hit area. Several sections may be open at once, since an accordion that closes one section to open another is an alternation, which suits only a small set of mutually exclusive panels. Keep the open set addressable so a reload, a back navigation, or a shared link lands on the same view. Collapsed content stays in the document and is hidden by the disclosure, so the browser's find-in-page and any in-app search can reach it and expand the section that holds it. Defer the expensive part — a fetch, a chart, an embedded view — rather than the content itself; a section whose data has not loaded cannot claim to be searchable, so it expands and loads when a search names it. Animate the height with motion.standard and honour reduced motion. Do not nest accordions: two levels of disclosure is a Tree, and three is a page that needs restructuring.
 - Inherits: Monet Principles, Foundations, and Patterns
-- Advanced behavior: keyboard_operable=true, focus_visible=true, multiple_open=true, expands_for_search_and_errors=true, preserves_open_state=true, renders_content_lazily=true, hides_required_input=false, nested_accordions=false
+- Advanced behavior: keyboard_operable=true, focus_visible=true, multiple_open=true, expands_for_search_and_errors=true, preserves_open_state=true, hides_required_input=false, nested_accordions=false, keeps_collapsed_content_in_the_dom=true, defers_expensive_data_until_open=true
 - Advanced rationale: Use Mantine's Accordion as the inspiration for its clear header-button anatomy and keyboard model. The decision Monet records comes straight from revealing complexity gradually: an accordion is honest only when the hidden content is genuinely optional. Collapsing something the user must read or fill in does not simplify a page, it hides the work — and it lets a form be submitted with an error nobody ever saw. So anything required, invalid, or matched by a search expands itself, and the collapse stays a convenience rather than becoming a gate.
 - Advanced use when: Optional detail on a long page, such as advanced settings; Several independent sections people read selectively; Shortening a reference page without removing anything from it; Grouping supplementary information beside a primary task
 - Advanced avoid when: The content is required reading or required input; Only one section exists, which is a plain disclosure; The sections are peer views of one subject, which is Tabs; The structure is hierarchical, which is a Tree
@@ -1311,8 +1311,8 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 
 - Decision: Use
 - Inspiration: Ant Design Grid
-- Preferences: density=compact, tracks=twelve at page level; collections size by a minimum item width, track_sizing=the narrowest an item stays readable, not a count per breakpoint, gutter=token:space.component-gap, token:space.group-gap on wide layouts, collapse=to a single track below token:breakpoint.md, alignment=items stretch, so a row shares one height, nesting=a nested grid inherits the parent's gutter, placement=explicit spans; never a visual order the DOM does not have
-- Notes: The Container around a grid owns the maximum width, using the Layout foundation's values; the grid never sets its own. Gutters come from the spacing scale and match the vertical rhythm of the surrounding Stack. Items stretch so a row shares one height, and their interiors truncate or scroll rather than making one item taller than its neighbours, which is the same rule the Card record states. A grid of one track is a Stack. A set of values compared across shared attributes is a Table: a grid has no headers, no row identity, and nothing to sort.
+- Preferences: density=compact, track_sizing=the narrowest an item stays readable, not a count per breakpoint, gutter=token:space.component-gap, token:space.group-gap on wide layouts, collapse=falls out of the minimum track width, not a breakpoint rule, alignment=items stretch, so a row shares one height, nesting=a nested grid inherits the parent's gutter, placement=explicit spans; never a visual order the DOM does not have
+- Notes: The Container around a grid owns the maximum width, using the Layout foundation's values; the grid never sets its own. Gutters come from the spacing scale and match the vertical rhythm of the surrounding Stack. Items stretch so a row shares one height, and their interiors truncate or scroll rather than making one item taller than its neighbours, which is the same rule the Card record states. A collection reflows intrinsically: the minimum track width is what drops it to one track on a narrow viewport, so no breakpoint rule is written for it. Monet defines no page column count — the Layout foundation owns content widths and the Breakpoints foundation owns where a page-level region changes shape, which is the only place a viewport threshold belongs. A grid of one track is a Stack. A set of values compared across shared attributes is a Table: a grid has no headers, no row identity, and nothing to sort.
 - Inherits: Monet Principles, Foundations, and Patterns
 - Advanced behavior: reflows_responsively=true, uniform_row_heights=true, inherits_gutter_when_nested=true, supports_span=true, preserves_reading_order=true, fixed_pixel_tracks=false, used_for_tabular_values=false
 - Advanced rationale: Use Ant Design as the Grid inspiration for its responsive row-and-track model. The decision Monet records is the sizing model: a collection of cards or tiles is defined by the narrowest width an item stays readable at, not by a count enumerated per breakpoint. A count-per-breakpoint layout has to be re-tuned every time an item's content changes and breaks at widths nobody listed, while a minimum-width track adapts on its own. The second decision is that visual order and DOM order stay in agreement, because grid placement is the easiest way in modern CSS to produce a page that reads correctly to the eye and incoherently to a screen reader or the Tab key.
@@ -1390,9 +1390,9 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Decision: Use
 - Inspiration: Ant Design Upload
 - Preferences: density=compact, radius=token:radius.lg, primary_control=a real focusable button; the drop zone is an accelerator, drop_zone=a dashed token:color.border.strong edge, filled on drag-over, constraints=types, size, and count stated before the picker opens, file_list=one row per file, each with its own progress and state, errors=on the row that failed, not on the whole control, removal=each file removable before and after its transfer, retry=per file, without reselecting the others
-- Notes: State the accepted types, the size limit, and the maximum number of files in the description before the picker opens, and validate on selection so a rejection arrives immediately rather than after a long transfer. Each file gets a row with its name, its size, a determinate Progress where the total is known, and a terminal state; follow the Loading pattern where the work is indeterminate. Removing a file also cancels its transfer. Announce added, failed, and finished files so the state is knowable without watching the list. Make the dragging state obvious using color.surface.selected and a stronger boundary, and make the whole zone a valid target rather than a narrow strip. When an upload is one step of a form, the form is not submittable while transfers are in flight, and a rejected submission never clears the references to files already uploaded.
+- Notes: State the accepted types, the size limit, and the maximum number of files in the description before the picker opens, and validate on selection so a rejection arrives immediately rather than after a long transfer. Each file gets a row with its name, its size, a determinate Progress where the total is known, and a terminal state; follow the Loading pattern where the work is indeterminate. Removing a file also cancels its transfer. Announce added, failed, and finished files so the state is knowable without watching the list. Make the dragging state obvious using color.surface.selected and a stronger boundary, and make the whole zone a valid target rather than a narrow strip. When an upload is one step of a form, submit stays enabled: the Forms pattern's rule against disabling it to express incompleteness applies here too. Submitting while transfers are in flight shows the pending state on the submit control and commits once they settle; a transfer that failed is reported at its own row, and submit moves focus there exactly as it would to any other invalid field. A rejected submission never clears the references to files that already uploaded.
 - Inherits: Monet Principles, Foundations, and Patterns
-- Advanced behavior: keyboard_operable=true, accepts_drag_and_drop=true, shows_per_file_progress=true, shows_per_file_errors=true, allows_removal=true, allows_retry=true, validates_on_selection=true, announces_state_changes=true, drag_and_drop_only=false, clears_list_on_error=false
+- Advanced behavior: keyboard_operable=true, accepts_drag_and_drop=true, shows_per_file_progress=true, shows_per_file_errors=true, allows_removal=true, allows_retry=true, validates_on_selection=true, announces_state_changes=true, drag_and_drop_only=false, clears_list_on_error=false, disables_submit_while_uploading=false
 - Advanced rationale: Use Ant Design's Upload as the inspiration because it treats the file list, its per-file progress, and its per-file errors as part of the component rather than as the product's problem. Two decisions matter more than the visual treatment. Dragging is an accelerator and never the control: it is invisible to keyboard users, unavailable on touch, and undiscoverable, so a real focusable button is always present. And transfers fail one at a time — a single rejected file must not discard the nine that succeeded, and the error belongs on the row that caused it, which is the same preserved-work rule the Forms pattern states.
 - Advanced use when: Attaching documents or images to a record; Importing a file the system will parse and act on; Replacing an existing asset such as a profile picture or a logo; Any transfer where progress and per-file failure need to be visible
 - Advanced avoid when: Dragging would be the only way to add a file; The content is text the user could paste, which is a Textarea; The file is chosen from files already held in the product; Progress and failures would be reported only as a Toast
@@ -1410,7 +1410,7 @@ This theme also resolves in dark mode. Where a token's dark value differs it is 
 - Advanced use when: An approximate value in a small bounded range; A setting whose effect is visible immediately, such as zoom or opacity; A bounded numeric filter where the shape of the range matters; Choosing between two ends that are both meaningful to see
 - Advanced avoid when: The exact figure matters and cannot be typed, which is a Number Input; The range is large or has no known ends; The choices are discrete named options, which is a Select; The value would be visible only while dragging
 - Advanced Foundation deviations: `color`, `spacing`, `sizing`, `interaction`, `radius`
-- Advanced primitives: `pressable`, `text`, `focus-ring`, `box`
+- Advanced primitives: `pressable`, `text`, `focus-ring`, `box`, `accessible-label`
 ### Clipboard
 
 - Decision: Use
