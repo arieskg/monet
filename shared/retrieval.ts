@@ -256,6 +256,9 @@ interface Hit {
    * be recognised from the word that actually names it, without letting shape words alone do it.
    */
   distinctiveCoverage: number;
+  /** How many distinctive tokens the field has, and how many of them the query accounted for. */
+  distinctiveTokens: number;
+  distinctiveMatches: number;
 }
 
 const EXPANDED_TERM_WEIGHT = 0.65;
@@ -270,6 +273,8 @@ function hit(terms: Set<string>, expanded: Set<string>, value: string): Hit {
     weight, matched,
     fieldCoverage: tokens.length ? matched.length / tokens.length : 0,
     distinctiveCoverage: distinctive.length ? distinctiveMatched.length / distinctive.length : 0,
+    distinctiveTokens: distinctive.length,
+    distinctiveMatches: distinctiveMatched.length,
   };
 }
 
@@ -318,6 +323,8 @@ interface Signal { score: number; reason: RetrievalScore["reason"] }
  */
 const BROAD_NAME_FACTOR = 0.8;
 const BROAD_ALIAS_FACTOR = 0.5;
+/** One distinctive word out of a name's several names part of the concept, rather than the whole of it. */
+const PARTIAL_NAME_FACTOR = 0.8;
 
 /**
  * Identity is claimed differently by a canonical name and by an alias.
@@ -343,7 +350,12 @@ function nameSignals(terms: Set<string>, expanded: Set<string>, queryPhrase: str
       || (distinctiveIdentity && current.distinctiveCoverage === 1);
     const factor = specific(current.matched) ? 1 : broadFactor;
     if (whole) return [{ score: exactScore * factor * (current.weight / Math.max(1, current.matched.length)), reason }];
-    const partial = evidence(current, ceiling, saturation, distinctiveIdentity);
+    // A name built from several distinctive words is identified by more than one of them. "File
+    // Upload" met by "file" alone is the trap the alias rule already covers — "right click of a
+    // file" is not a request to upload one — so one distinctive word out of several is graded as
+    // evidence rather than identity, and has to be corroborated to survive the retrieval floor.
+    const partOfTheName = distinctiveIdentity && current.distinctiveTokens > 1 && current.distinctiveMatches === 1;
+    const partial = evidence(current, ceiling, saturation, distinctiveIdentity) * (partOfTheName ? PARTIAL_NAME_FACTOR : 1);
     return partial ? [{ score: partial * factor, reason }] : [];
   });
 }

@@ -1,23 +1,356 @@
 [
-  { "id": "box", "status": "selected", "purpose": "Provide the neutral base for tokenized layout without adding product semantics.", "preferences": { "default_element": "div", "responsive_props": "limited" }, "tokens": ["space.1", "space.2", "space.4"], "inspiration": { "source": "github-primer", "source_item": "Box" }, "notes": "Prefer semantic HTML at call sites when the element carries meaning.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "stack", "status": "selected", "purpose": "Arrange children vertically with a consistent spacing token.", "preferences": { "direction": "vertical", "default_gap": "token:space.4", "alignment": "stretch" }, "tokens": ["space.1", "space.2", "space.3", "space.4", "space.6"], "inspiration": { "source": "github-primer", "source_item": "Stack" }, "notes": "Use structural gap rather than margins on children.", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "inline", "status": "needs_review", "purpose": "Arrange peer content horizontally and allow deliberate wrapping.", "preferences": { "default_gap": "token:space.2", "wrap": "true" }, "tokens": ["space.1", "space.2", "space.3", "space.4"], "inspiration": null, "notes": "", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "flex", "status": "undecided", "purpose": "Expose lower-level alignment when Stack or Inline is insufficient.", "preferences": {}, "tokens": [], "inspiration": null, "notes": "", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "grid", "status": "undecided", "purpose": "Compose repeatable two-dimensional layouts.", "preferences": {}, "tokens": ["space.2", "space.4", "space.6"], "inspiration": null, "notes": "", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "container", "status": "needs_review", "purpose": "Keep content widths and gutters predictable across breakpoints.", "preferences": { "default_width": "token:layout.content-default" }, "tokens": ["layout.content-narrow", "layout.content-default", "layout.content-wide", "breakpoint.md"], "inspiration": null, "notes": "", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "center", "status": "undecided", "purpose": "Center constrained content without repeated alignment code.", "preferences": {}, "tokens": [], "inspiration": null, "notes": "", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "spacer", "status": "do_not_use", "purpose": "Represent exceptional intentional space.", "preferences": {}, "tokens": [], "inspiration": null, "notes": "Prefer Stack or Inline gap. A Spacer should be rare and justified.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "separator", "status": "selected", "purpose": "Create a semantic boundary only when spacing or surface contrast is insufficient.", "preferences": { "default_style": "token:border.subtle" }, "tokens": ["border.subtle", "color.border"], "inspiration": null, "notes": "", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "aspect-ratio", "status": "undecided", "purpose": "Preserve a media or preview ratio.", "preferences": {}, "tokens": [], "inspiration": null, "notes": "", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "text", "status": "selected", "purpose": "Render body, label, caption, and metadata roles consistently.", "preferences": { "default_role": "body", "inherit_color": "true" }, "tokens": ["font.family.sans", "font.size.sm", "font.size.md", "color.foreground", "color.foreground.muted"], "inspiration": null, "notes": "Visual role must not override semantic HTML.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "heading", "status": "selected", "purpose": "Express document hierarchy while allowing visual size to vary independently.", "preferences": { "weight": "semibold", "balance": "true" }, "tokens": ["font.family.sans", "font.size.lg", "font.size.xl", "color.foreground"], "inspiration": null, "notes": "Never choose heading levels for their default browser size.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "code", "status": "needs_review", "purpose": "Distinguish technical identifiers and code with appropriate measure and contrast.", "preferences": {}, "tokens": ["font.family.mono", "font.size.sm"], "inspiration": null, "notes": "", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "pressable", "status": "selected", "purpose": "Normalize keyboard, pointer, pressed, disabled, and loading interaction behavior.", "preferences": { "keyboard_activation": "native", "minimum_target": "token:size.target" }, "tokens": ["size.target", "motion.fast", "ease.standard"], "inspiration": null, "notes": "Use a native button or link before adding press behavior to a generic element.", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "focus-ring", "status": "selected", "purpose": "Make keyboard focus unmistakable without changing layout.", "preferences": { "trigger": "focus-visible", "offset": "token:focus.ring.offset" }, "tokens": ["color.focus", "border.focus"], "inspiration": null, "notes": "Never remove focus styling without an equivalent replacement.", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "icon", "status": "needs_review", "purpose": "Render symbols at predictable sizes with explicit decorative or labeled semantics.", "preferences": { "default_size": "token:size.icon.md", "stroke": "consistent" }, "tokens": ["size.icon.sm", "size.icon.md", "size.icon.lg"], "inspiration": null, "notes": "", "updated_at": "2026-09-02T17:30:00.000Z" },
-  { "id": "surface", "status": "selected", "purpose": "Apply semantic background, border, radius, and elevation as one intentional layer.", "preferences": { "default_elevation": "none" }, "tokens": ["color.surface", "color.border", "radius.lg", "shadow.raised"], "inspiration": null, "notes": "Do not turn every content group into a raised card.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "visually-hidden", "status": "selected", "purpose": "Keep essential labels or descriptions available to assistive technology.", "preferences": { "focusable_variant": "supported" }, "tokens": [], "inspiration": null, "notes": "Hidden content must remain meaningful in its reading context.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "accessible-label", "status": "selected", "purpose": "Provide a programmatic name when visible text does not already do so.", "preferences": { "prefer_visible_text": "true" }, "tokens": [], "inspiration": null, "notes": "Do not duplicate visible labels with conflicting accessible names.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "portal", "status": "experimental", "purpose": "Place layered UI outside clipping and stacking contexts.", "preferences": { "default_root": "application-overlay-root" }, "tokens": ["z.overlay", "z.dialog"], "inspiration": null, "notes": "Preserve logical focus and ownership when DOM position changes.", "updated_at": "2026-09-01T00:00:00.000Z" },
-  { "id": "slot", "status": "experimental", "purpose": "Compose behavior onto caller-owned elements without unnecessary wrappers.", "preferences": { "api": "as-child" }, "tokens": [], "inspiration": { "source": "shadcn", "source_item": "Radix Slot" }, "notes": "Keep polymorphism constrained so semantics remain legible.", "updated_at": "2026-09-01T00:00:00.000Z" }
+  {
+    "id": "box",
+    "status": "selected",
+    "purpose": "Provide the neutral base for tokenized layout without adding product semantics.",
+    "preferences": {
+      "default_element": "div",
+      "responsive_props": "limited"
+    },
+    "tokens": [
+      "space.1",
+      "space.2",
+      "space.4"
+    ],
+    "inspiration": {
+      "source": "github-primer",
+      "source_item": "Box"
+    },
+    "notes": "Prefer semantic HTML at call sites when the element carries meaning.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "stack",
+    "status": "selected",
+    "purpose": "Arrange children vertically with a consistent spacing token.",
+    "preferences": {
+      "direction": "vertical",
+      "default_gap": "token:space.4",
+      "alignment": "stretch"
+    },
+    "tokens": [
+      "space.1",
+      "space.2",
+      "space.3",
+      "space.4",
+      "space.6"
+    ],
+    "inspiration": {
+      "source": "github-primer",
+      "source_item": "Stack"
+    },
+    "notes": "Use structural gap rather than margins on children.",
+    "updated_at": "2026-09-02T17:30:00.000Z"
+  },
+  {
+    "id": "inline",
+    "status": "selected",
+    "purpose": "Arrange related children horizontally with a consistent tokenized gap and deliberate wrapping.",
+    "preferences": {
+      "default_gap": "token:space.control-gap, or token:space.inline-gap beside text",
+      "wrap": "true",
+      "alignment": "centred on the shared text baseline",
+      "overflow": "wraps onto another line, never scrolls sideways",
+      "relationship": "the horizontal half of the decision Stack makes vertically"
+    },
+    "tokens": [
+      "space.1",
+      "space.2",
+      "space.3",
+      "space.inline-gap",
+      "space.control-gap"
+    ],
+    "inspiration": null,
+    "notes": "Inline is the horizontal half of the same spacing decision Stack makes vertically: the container owns the gap and children carry no margins of their own. Wrapping is on, because a run of tags, filters, or actions has to be able to grow onto another line rather than clip or scroll out of reach. Use space.inline-gap between an icon and its label and space.control-gap between repeated controls. When the arrangement needs alignment or distribution rather than an even gap, that is the Flex primitive; when items must line up across rows, it is Grid.",
+    "updated_at": "2026-09-03T00:00:00.000Z"
+  },
+  {
+    "id": "flex",
+    "status": "selected",
+    "purpose": "Expose deliberate one-dimensional alignment and distribution when an even gap is not the point.",
+    "preferences": {
+      "default_gap": "token:space.control-gap",
+      "intent": "alignment or distribution; an even gap alone is Stack or Inline",
+      "min_width": "zero on a flexible child, so its text can truncate",
+      "wrap": "true"
+    },
+    "tokens": [
+      "space.1",
+      "space.2",
+      "space.3",
+      "space.4",
+      "space.control-gap"
+    ],
+    "inspiration": null,
+    "notes": "Flex sits beneath Stack and Inline as the escape hatch, not as the default layout element. Reach for it when alignment or distribution is the actual requirement: two groups pulling apart to opposite edges, one child growing while its neighbours do not, content centred against a fixed-height sibling. A flexible child needs an explicit zero minimum width or its text will refuse to truncate and force the row wider than its container. Distribution is not a track system — when items must line up across rows, use Grid.",
+    "updated_at": "2026-09-03T00:00:00.000Z"
+  },
+  {
+    "id": "grid",
+    "status": "selected",
+    "purpose": "Create tokenized two-dimensional tracks and gaps that reflow without a fixed count per breakpoint.",
+    "preferences": {
+      "default_gap": "token:space.component-gap",
+      "track_sizing": "the narrowest width an item stays readable at",
+      "alignment": "items stretch, so a row shares one height",
+      "order": "visual order follows the order in the document"
+    },
+    "tokens": [
+      "space.2",
+      "space.4",
+      "space.6",
+      "space.component-gap",
+      "space.group-gap",
+      "breakpoint.md",
+      "breakpoint.lg"
+    ],
+    "inspiration": null,
+    "notes": "Tracks are defined by the narrowest width an item stays readable at, so a collection reflows on its own instead of being re-tuned at every breakpoint. Gaps come from the spacing scale and match the vertical rhythm of the surrounding Stack. Never reorder items through grid placement: visual order and document order have to agree, or the layout becomes incoherent to keyboard and screen-reader users. A single-track grid is a Stack, and values compared across shared attributes belong in a table rather than in tracks.",
+    "updated_at": "2026-09-03T00:00:00.000Z"
+  },
+  {
+    "id": "container",
+    "status": "selected",
+    "purpose": "Constrain content width and apply responsive gutters from one place.",
+    "preferences": {
+      "default_width": "token:layout.content-default",
+      "narrow_width": "token:layout.content-narrow",
+      "wide_width": "token:layout.content-wide",
+      "gutters": "token:layout.gutter-mobile, token:layout.gutter-desktop",
+      "surface": "none; a container carries no background or border"
+    },
+    "tokens": [
+      "layout.content-narrow",
+      "layout.content-default",
+      "layout.content-wide",
+      "layout.page-shell-max",
+      "layout.gutter-mobile",
+      "layout.gutter-desktop",
+      "breakpoint.md"
+    ],
+    "inspiration": null,
+    "notes": "Every width and gutter comes from the Layout foundation; a container never invents a number of its own. It controls horizontal bounds and alignment only — background, border, radius, and elevation belong to Surface. Nesting a narrower region inside the page container is how a form or a run of prose gets a readable measure without changing the width of the page around it.",
+    "updated_at": "2026-09-03T00:00:00.000Z"
+  },
+  {
+    "id": "center",
+    "status": "undecided",
+    "purpose": "Center constrained content without repeated alignment code.",
+    "preferences": {},
+    "tokens": [],
+    "inspiration": null,
+    "notes": "",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "spacer",
+    "status": "do_not_use",
+    "purpose": "Represent exceptional intentional space.",
+    "preferences": {},
+    "tokens": [],
+    "inspiration": null,
+    "notes": "Prefer Stack or Inline gap. A Spacer should be rare and justified.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "separator",
+    "status": "selected",
+    "purpose": "Create a semantic boundary only when spacing or surface contrast is insufficient.",
+    "preferences": {
+      "default_style": "token:border.subtle"
+    },
+    "tokens": [
+      "border.subtle",
+      "color.border"
+    ],
+    "inspiration": null,
+    "notes": "",
+    "updated_at": "2026-09-02T17:30:00.000Z"
+  },
+  {
+    "id": "aspect-ratio",
+    "status": "undecided",
+    "purpose": "Preserve a media or preview ratio.",
+    "preferences": {},
+    "tokens": [],
+    "inspiration": null,
+    "notes": "",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "text",
+    "status": "selected",
+    "purpose": "Render body, label, caption, and metadata roles consistently.",
+    "preferences": {
+      "default_role": "body",
+      "inherit_color": "true"
+    },
+    "tokens": [
+      "font.family.sans",
+      "font.size.sm",
+      "font.size.md",
+      "color.foreground",
+      "color.foreground.muted"
+    ],
+    "inspiration": null,
+    "notes": "Visual role must not override semantic HTML.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "heading",
+    "status": "selected",
+    "purpose": "Express document hierarchy while allowing visual size to vary independently.",
+    "preferences": {
+      "weight": "semibold",
+      "balance": "true"
+    },
+    "tokens": [
+      "font.family.sans",
+      "font.size.lg",
+      "font.size.xl",
+      "color.foreground"
+    ],
+    "inspiration": null,
+    "notes": "Never choose heading levels for their default browser size.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "code",
+    "status": "needs_review",
+    "purpose": "Distinguish technical identifiers and code with appropriate measure and contrast.",
+    "preferences": {},
+    "tokens": [
+      "font.family.mono",
+      "font.size.sm"
+    ],
+    "inspiration": null,
+    "notes": "",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "pressable",
+    "status": "selected",
+    "purpose": "Normalize keyboard, pointer, pressed, disabled, and loading interaction behavior.",
+    "preferences": {
+      "keyboard_activation": "native",
+      "minimum_target": "token:size.target"
+    },
+    "tokens": [
+      "size.target",
+      "motion.fast",
+      "ease.standard"
+    ],
+    "inspiration": null,
+    "notes": "Use a native button or link before adding press behavior to a generic element.",
+    "updated_at": "2026-09-02T17:30:00.000Z"
+  },
+  {
+    "id": "focus-ring",
+    "status": "selected",
+    "purpose": "Make keyboard focus unmistakable without changing layout.",
+    "preferences": {
+      "trigger": "focus-visible",
+      "offset": "token:focus.ring.offset"
+    },
+    "tokens": [
+      "color.focus",
+      "border.focus"
+    ],
+    "inspiration": null,
+    "notes": "Never remove focus styling without an equivalent replacement.",
+    "updated_at": "2026-09-02T17:30:00.000Z"
+  },
+  {
+    "id": "icon",
+    "status": "selected",
+    "purpose": "Render symbols at predictable sizes with explicit decorative or labeled semantics.",
+    "preferences": {
+      "default_size": "token:size.icon.md",
+      "color": "currentColor, inherited from the text it sits with",
+      "stroke": "consistent",
+      "semantics": "decorative and hidden, or labeled and announced",
+      "alignment": "optically centred on the text it accompanies",
+      "family": "one icon set across the whole product"
+    },
+    "tokens": [
+      "size.icon.sm",
+      "size.icon.md",
+      "size.icon.lg",
+      "space.inline-gap"
+    ],
+    "inspiration": null,
+    "notes": "An icon is decorative whenever visible text already says the same thing, and is hidden from assistive technology in that case; an icon standing alone takes its name from the Accessible Label primitive. Sizes come from the sizing scale: size.icon.sm for chevrons and metadata, size.icon.md for controls and navigation, size.icon.lg where a control needs more presence. Colour is inherited rather than set, so an icon in muted text is muted and an icon on a fill takes that fill's foreground. Keep space.inline-gap between an icon and its label. An icon is never the only carrier of meaning, and icon families are never mixed within one interface.",
+    "updated_at": "2026-09-03T00:00:00.000Z"
+  },
+  {
+    "id": "surface",
+    "status": "selected",
+    "purpose": "Apply semantic background, border, radius, and elevation as one intentional layer.",
+    "preferences": {
+      "default_elevation": "none"
+    },
+    "tokens": [
+      "color.surface",
+      "color.border",
+      "radius.lg",
+      "shadow.raised"
+    ],
+    "inspiration": null,
+    "notes": "Do not turn every content group into a raised card.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "visually-hidden",
+    "status": "selected",
+    "purpose": "Keep essential labels or descriptions available to assistive technology.",
+    "preferences": {
+      "focusable_variant": "supported"
+    },
+    "tokens": [],
+    "inspiration": null,
+    "notes": "Hidden content must remain meaningful in its reading context.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "accessible-label",
+    "status": "selected",
+    "purpose": "Provide a programmatic name when visible text does not already do so.",
+    "preferences": {
+      "prefer_visible_text": "true"
+    },
+    "tokens": [],
+    "inspiration": null,
+    "notes": "Do not duplicate visible labels with conflicting accessible names.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "portal",
+    "status": "experimental",
+    "purpose": "Place layered UI outside clipping and stacking contexts.",
+    "preferences": {
+      "default_root": "application-overlay-root"
+    },
+    "tokens": [
+      "z.overlay",
+      "z.dialog"
+    ],
+    "inspiration": null,
+    "notes": "Preserve logical focus and ownership when DOM position changes.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  },
+  {
+    "id": "slot",
+    "status": "experimental",
+    "purpose": "Compose behavior onto caller-owned elements without unnecessary wrappers.",
+    "preferences": {
+      "api": "as-child"
+    },
+    "tokens": [],
+    "inspiration": {
+      "source": "shadcn",
+      "source_item": "Radix Slot"
+    },
+    "notes": "Keep polymorphism constrained so semantics remain legible.",
+    "updated_at": "2026-09-01T00:00:00.000Z"
+  }
 ]

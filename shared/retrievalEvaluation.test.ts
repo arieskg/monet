@@ -161,7 +161,7 @@ const CASES: Case[] = [
   {
     query: "let people drag and drop a file to attach it",
     expect: { components: ["file-upload"] },
-    notices: ["undecided_guidance"],
+    forbidNotices: ["undecided_guidance"],
   },
   {
     query: "make a card grid of documents like Linear docs",

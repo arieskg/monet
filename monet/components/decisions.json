@@ -1605,9 +1605,24 @@
       "Search adds interaction cost without meaningfully helping users find an option.",
       "The choices require extensive descriptions, previews, or comparison that cannot be understood in a compact option list."
     ],
-    "foundations": [],
-    "primitives": [],
-    "updated_at": "2026-09-02T17:30:00.000Z",
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "radius",
+      "borders",
+      "layering"
+    ],
+    "primitives": [
+      "box",
+      "text",
+      "pressable",
+      "icon",
+      "focus-ring",
+      "portal",
+      "accessible-label"
+    ],
+    "updated_at": "2026-09-03T00:00:00.000Z",
     "selection": {
       "source": "shadcn",
       "source_component": "Combobox"
@@ -3372,16 +3387,65 @@
   },
   {
     "id": "number-input",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "NumberInput"
+    },
+    "preferences": {
+      "density": "compact",
+      "size": "token:size.control.md",
+      "radius": "token:radius.control",
+      "border": "token:color.border.strong",
+      "background": "token:color.surface",
+      "alignment": "left with the other fields; right only inside a table column",
+      "figures": "tabular, so digits line up between rows",
+      "steppers": "small bounded adjustments only, never an open range",
+      "units": "a muted suffix inside the field, not part of the value",
+      "clamping": "on blur or submit, never while the user is still typing",
+      "width": "sized to the largest expected value"
+    },
+    "behavior": {
+      "typeable": true,
+      "keyboard_increment": true,
+      "tabular_figures": true,
+      "clamps_on_commit": true,
+      "accepts_pasted_formatting": true,
+      "validation_state": true,
+      "error_state": true,
+      "disabled_state": true,
+      "changes_value_on_scroll": false,
+      "clamps_while_typing": false
+    },
+    "rationale": "Use Mantine's NumberInput as the inspiration because it keeps a real text field underneath and treats the stepper as an optional affordance rather than the way in. That is the decision Monet records: a number is typed. Steppers earn their place for small bounded adjustments — a quantity of one to ten, a page size, a retry count — and are actively harmful on an open range, where the user faces a control that cannot reach most of its own values. The remaining decisions are about not destroying work: clamping a half-entered number to its minimum eats the value mid-keystroke, and a scroll wheel that moves a focused field corrupts forms silently.",
+    "notes": "Follow Text Input for label, helper text, validation, focus, and boundary treatment; the resting border is color.border.strong for the same reason it is there. Use tabular figures so a column of values aligns, and keep the field left-aligned with the rest of the form, since right alignment is a table convention rather than a form one. Accept what people paste: thousand separators, currency symbols, and stray whitespace should be parsed rather than rejected. State the unit and the accepted range in the field's description before validation has to say it. Arrow keys increment by a step that matches what the value means, and nothing changes on scroll. A small, bounded, imprecise value is often better as a Slider, and a value chosen from a fixed set is a Select.",
+    "use_when": [
+      "A quantity, count, measurement, or percentage",
+      "A value that benefits from digit alignment across rows",
+      "Small bounded adjustments where a stepper is genuinely faster",
+      "Enforcing a numeric range with a minimum, maximum, and step"
+    ],
+    "avoid_when": [
+      "The value is an identifier or code, which is a Text Input",
+      "Position in a range matters more than the exact figure, which is a Slider",
+      "The choices are a short fixed set, which is a Select",
+      "A stepper would be offered for a range too large to step through"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "radius",
+      "borders"
+    ],
+    "primitives": [
+      "box",
+      "text",
+      "pressable",
+      "icon",
+      "focus-ring",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3419,9 +3483,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded as a typed field with an optional stepper, and with clamping moved to commit rather than keystroke."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "otp-input",
@@ -3478,16 +3549,58 @@
   },
   {
     "id": "segmented-control",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Segmented"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.control",
+      "options": "two to five, all visible at once, never scrolling",
+      "widths": "equal per segment, sized to the longest label",
+      "labels": "one or two words, sentence case, never truncated",
+      "selected_style": "a raised token:color.surface segment on a recessed track",
+      "icons": "allowed beside a label, never instead of one",
+      "semantics": "a radio group in a compact shape, not a tab list",
+      "commit": "applies immediately, with nothing to confirm"
+    },
+    "behavior": {
+      "applies_immediately": true,
+      "keyboard_arrow_navigation": true,
+      "focus_visible": true,
+      "always_one_selected": true,
+      "equal_segment_widths": true,
+      "used_for_navigation": false,
+      "scrolls_or_overflows": false,
+      "icon_only_segments": false
+    },
+    "rationale": "Use Ant Design's Segmented as the inspiration for its compact, evenly divided track. The decision that matters is what the control means: it sets a value, so it is a radio group wearing a smaller shape, and it takes effect at once. That separates it from Tabs, which switch between peer views of one subject and belong in the URL, and from a Button Group, whose members are independent actions. Keeping the three apart is what makes any of them predictable — someone who has learned that segments change a value should never meet one that navigates.",
+    "notes": "Every option is visible: if the set does not fit on one line at the default content width, the answer is a Select or a Radio group, never a segmented control that scrolls. The selected segment reads as a raised color.surface panel on a recessed track, and the label weight changes with it so selection never rests on colour alone. Arrow keys move the selection, matching the radio keyboard model. Because the change applies at once, a segmented control inside a form committed by Save contradicts what it appears to do, exactly as a Switch does there; use a Radio group instead. Icon-only segments still need accessible names and a tooltip — three unlabelled glyphs are a guessing game.",
+    "use_when": [
+      "Choosing one of a few mutually exclusive values that applies at once",
+      "Switching a chart or collection between a small set of groupings",
+      "A compact alternative to a radio group in a dense filter row"
+    ],
+    "avoid_when": [
+      "Switching between peer views of one record, which is Tabs",
+      "The segments are independent actions, which is a Button Group",
+      "More than five options, or labels that would truncate",
+      "The value is only committed on save, which is a Radio group"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "radius",
+      "interaction"
+    ],
+    "primitives": [
+      "pressable",
+      "text",
+      "inline",
+      "focus-ring"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3525,22 +3638,77 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded as a value control that applies immediately, separating it from Tabs and Button Group."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "autocomplete",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "Autocomplete"
+    },
+    "preferences": {
+      "density": "compact",
+      "size": "token:size.control.md",
+      "radius": "token:radius.control",
+      "border": "token:color.border.strong",
+      "background": "token:color.surface",
+      "value_model": "whatever the user typed; suggestions are optional help",
+      "suggestions": "offered after input, and never selected by default",
+      "inline_completion": "never; typed characters are not overwritten",
+      "list_length": "short and ranked, with the strongest match first",
+      "latency": "the previous results stay visible while new ones load",
+      "empty_result": "silence, not an error"
+    },
+    "behavior": {
+      "accepts_arbitrary_input": true,
+      "filters_while_typing": true,
+      "keyboard_navigation": true,
+      "announces_suggestion_count": true,
+      "preserves_typed_value_on_blur": true,
+      "supports_async_suggestions": true,
+      "preselects_first_suggestion": false,
+      "overwrites_typed_text": false,
+      "requires_a_selection": false
+    },
+    "rationale": "Use Mantine's Autocomplete as the inspiration because it is explicitly a text field with suggestions rather than a constrained picker. The distinction from Combobox is the whole decision: a Combobox commits to one of its options, so it can show a no-results state and refuse anything else, while an Autocomplete's value is the text, and the list is assistance the user is free to ignore. Systems that blur the two produce the worst failure in this family — a field that quietly replaces what someone wrote with the nearest match. Monet forbids it here: suggestions never overwrite input, and nothing is chosen until the user chooses it.",
+    "notes": "Follow Text Input for label, helper text, validation, sizing, focus, and boundary. The suggestion list is an anchored overlay on the overlay layer with the overlay elevation, and follows the Overlays pattern for dismissal and focus: Escape closes the list without clearing the field, and focus stays in the input throughout. Announce how many suggestions are available so someone who cannot see the list still knows it changed. When suggestions are fetched, keep the previous results on screen rather than emptying the list on every keystroke, and never make typing wait on the request. Having no suggestions is an ordinary state, shown by an absent list rather than by an error. If the value must be one of the options, that is a Combobox; if several values are collected, that is a Multi-select.",
+    "use_when": [
+      "Freeform text where past or common values speed entry",
+      "A search field offering query completions the user may ignore",
+      "Entering a value that may not exist yet, such as a new label",
+      "Assisting entry of long or error-prone strings"
+    ],
+    "avoid_when": [
+      "The value must be one of a known set, which is a Combobox",
+      "The option set is short and stable, which is a Select",
+      "Several values are collected at once, which is a Multi-select",
+      "A suggestion would be applied without the user choosing it"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "radius",
+      "borders",
+      "layering"
+    ],
+    "primitives": [
+      "box",
+      "text",
+      "focus-ring",
+      "portal",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3578,22 +3746,80 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded as a text field whose value is the typed text, which is what separates it from Combobox."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "multi-select",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "MultiSelect"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.control",
+      "border": "token:color.border.strong",
+      "background": "token:color.surface",
+      "selected_values": "Tags inside the field, each one individually removable",
+      "overflow": "the field wraps and grows; it never scrolls sideways",
+      "summary": "collapse to a count once the tags outgrow two lines",
+      "menu_behavior": "stays open after each selection",
+      "order": "the order values were chosen, not the list's order",
+      "select_all": "only for a bounded set that is already fully loaded",
+      "empty_result": "an explicit no-results state"
+    },
+    "behavior": {
+      "multiple_selection": true,
+      "removable_values": true,
+      "keyboard_removable": true,
+      "keeps_menu_open_on_select": true,
+      "filters_while_typing": true,
+      "marks_selected_options": true,
+      "announces_selection_changes": true,
+      "supports_async_options": true,
+      "clears_query_after_select": true,
+      "scrolls_horizontally": false
+    },
+    "rationale": "Use Mantine's MultiSelect as the inspiration for its tokens-in-field anatomy. The decisions Monet records are the three that break most multi-selects. The menu stays open after a selection, because closing it means reopening and re-filtering for every single value, which is the complaint this control attracts more than any other. The field wraps and grows rather than scrolling sideways, because a horizontally scrolling field hides the user's own choices behind an invisible edge. And the selected values are Tags, so removing one is a first-class keyboard action rather than a hover-only affordance nobody can reach.",
+    "notes": "Selected values follow the Tag record: each names its value in full, each is removable on its own, and removing one returns focus predictably to the next tag or to the input. Backspace on an empty query removes the last value, and must never be the only way to remove one. The option list marks what is already chosen — a checkbox in the row is clearer than a highlight — and typing filters, with the query cleared after each selection so the next one starts fresh. Once the selection outgrows about two lines, collapse it to a count such as \"3 selected\" with the full set still reachable, rather than letting the field push the form apart. Select all is honest only when the whole set is loaded; on an asynchronously fetched list it selects whatever happens to have arrived. Announce additions and removals so the current selection is knowable without sight.",
+    "use_when": [
+      "Choosing several values from a list too long to show as checkboxes",
+      "Assigning multiple labels, owners, or categories to a record",
+      "Filter controls where several values combine, following the Filtering pattern",
+      "Choosing from a large or remotely fetched option set"
+    ],
+    "avoid_when": [
+      "Fewer than about seven options, which is a checkbox group in a Fieldset",
+      "Exactly one value is allowed, which is a Select or a Combobox",
+      "The user may enter values not in the list, which is an Autocomplete",
+      "Chosen values would be hidden behind a sideways-scrolling field"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "radius",
+      "borders",
+      "layering"
+    ],
+    "primitives": [
+      "box",
+      "text",
+      "inline",
+      "pressable",
+      "icon",
+      "focus-ring",
+      "portal"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3631,22 +3857,74 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded around the menu staying open, values shown as removable Tags, and a field that grows rather than scrolls."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "date-input",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "DateInput"
+    },
+    "preferences": {
+      "density": "compact",
+      "size": "token:size.control.md",
+      "radius": "token:radius.control",
+      "border": "token:color.border.strong",
+      "background": "token:color.surface",
+      "format_hint": "in the description, as a worked example rather than a mask",
+      "parsing": "several separators and shorthands accepted, then normalized",
+      "masking": "none; the caret is never moved on the user's behalf",
+      "normalization": "on blur, showing the interpreted date back",
+      "calendar": "optional; the field is complete without one"
+    },
+    "behavior": {
+      "typeable": true,
+      "accepts_multiple_formats": true,
+      "normalizes_on_blur": true,
+      "respects_locale_format": true,
+      "validation_state": true,
+      "error_state": true,
+      "disabled_state": true,
+      "rigid_input_mask": false,
+      "requires_calendar": false
+    },
+    "rationale": "Use Mantine's DateInput as the inspiration because it is a text field that understands dates rather than a calendar with a field attached. The decision Monet records is that this, not the Date Picker, is the default for a date the user already knows. Birth dates, invoice dates, and deadlines are recalled rather than browsed, and making someone page a calendar grid back through hundreds of months is the clearest case of a control chosen for how it looks instead of how it is used. The second decision is parsing over masking: a rigid mask that rewrites the field as the user types is hostile to correction, to pasting, and to screen readers, so Monet accepts what people write and normalizes once, on blur.",
+    "notes": "Follow Text Input for label, helper text, validation, focus, and boundary treatment. Put the expected format in the description as a worked example rather than as a placeholder that vanishes on the first keystroke. Accept the separators people actually use, two-digit years, and month names, then show the interpreted date back on blur so the reading can be confirmed. Never silently resolve an ambiguous value: where 03/09 could be two different months, say which one was used. Availability, blackout dates, and anything the user needs to see while choosing belong in a Date Picker. A Date Input may still offer a calendar as an optional aid, and when it does, that calendar follows the Date Picker record rather than inventing its own behaviour.",
+    "use_when": [
+      "A date the user already knows, such as a birth date or an invoice date",
+      "Dates far from today, where calendar navigation is slow",
+      "Dense forms and filter rows where an overlay is unnecessary",
+      "Keyboard-first entry"
+    ],
+    "avoid_when": [
+      "Weekday, weekend, or nearness to today matters, which is a Date Picker",
+      "Availability or blackout dates must be visible while choosing",
+      "A start and an end are chosen together, which is a Date Range Picker",
+      "A time is part of the value, which is a Date-Time Picker"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "radius",
+      "borders"
+    ],
+    "primitives": [
+      "box",
+      "text",
+      "focus-ring",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "mantine",
@@ -3677,22 +3955,78 @@
         "old_selection": "mantine",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded as the default control for a known date, with parsing preferred over a rigid mask."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "date-range-picker",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "DatePicker.RangePicker"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.lg",
+      "elevation": "token:shadow.overlay",
+      "anatomy": "two typeable fields sharing one calendar overlay",
+      "months_visible": "two, so a range crossing a boundary stays visible",
+      "presets": "a short list of named ranges beside the calendar",
+      "boundaries": "inclusive, and stated in words rather than implied",
+      "reversed_order": "reinterpreted, never rejected as an error",
+      "preview": "the pending range is previewed while the second end is chosen",
+      "summary": "the chosen range restated as text beneath the fields"
+    },
+    "behavior": {
+      "typeable_input": true,
+      "keyboard_navigation": true,
+      "shows_two_months": true,
+      "offers_named_presets": true,
+      "previews_pending_range": true,
+      "escape_closes": true,
+      "returns_focus_to_trigger": true,
+      "states_timezone_for_reports": true,
+      "rejects_reversed_order": false,
+      "calendar_only_entry": false
+    },
+    "rationale": "Use Ant Design's RangePicker as the inspiration for its paired-field anatomy and preset rail. The decisions that matter are about ambiguity rather than layout. A range has two ends and people genuinely disagree about whether the last day is inside it, so the interpretation is stated in words instead of being inferred from a highlight. Presets exist because most ranges are not arbitrary — the last seven days, this month, last quarter — and assembling those from a grid is needless work. And someone who picks the end before the start has expressed a range, not made a mistake: the control reorders the two ends and carries on.",
+    "notes": "Both ends are typeable and follow Date Input for parsing and normalization, and the calendar follows Date Picker for its grid keyboard model, its distinct today, selected, and focused states, and its treatment of disabled dates. Showing two months keeps a range that crosses a boundary visible without navigating. While the second end is being chosen, preview the pending range under the pointer and under keyboard focus alike. Restate the result as text — the two dates and the number of days — so both the length and the boundary rule are visible. For reporting, name the timezone the range is evaluated in, because a day boundary is not the same everywhere. Follow the Dashboard pattern when a range governs a page of metrics: one control, in a consistent position, carried into any detail view it leads to.",
+    "use_when": [
+      "A start and an end chosen together as one value",
+      "A reporting time range, following the Dashboard pattern",
+      "Narrowing a collection to a period, following the Filtering pattern",
+      "Bookings and reservations where availability spans several days"
+    ],
+    "avoid_when": [
+      "Only one date is needed, which is a Date Picker or a Date Input",
+      "The two dates are unrelated fields that happen to both be dates",
+      "A named period alone is enough, which is a Select of presets",
+      "Times of day form the boundaries rather than whole days"
+    ],
+    "foundations": [
+      "spacing",
+      "radius",
+      "elevation",
+      "interaction",
+      "layering",
+      "typography"
+    ],
+    "primitives": [
+      "pressable",
+      "text",
+      "icon",
+      "grid",
+      "portal",
+      "focus-ring"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3730,9 +4064,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded around stated boundaries, named presets, and reordering a reversed range instead of rejecting it."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "calendar",
@@ -3796,16 +4137,63 @@
   },
   {
     "id": "time-picker",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "TimePicker"
+    },
+    "preferences": {
+      "density": "compact",
+      "size": "token:size.control.md",
+      "radius": "token:radius.control",
+      "border": "token:color.border.strong",
+      "background": "token:color.surface",
+      "entry": "typeable; the list of times is an aid, not the way in",
+      "granularity": "the coarsest step the task allows, commonly fifteen minutes",
+      "clock": "twelve- or twenty-four-hour from the locale, not a preference",
+      "seconds": "hidden unless the task is genuinely about them",
+      "timezone": "named whenever anyone else will read the time",
+      "list_position": "opens at the current or chosen time, not at midnight"
+    },
+    "behavior": {
+      "typeable_input": true,
+      "keyboard_navigation": true,
+      "respects_locale_clock": true,
+      "escape_closes": true,
+      "returns_focus_to_trigger": true,
+      "states_timezone_when_shared": true,
+      "accepts_free_minute_entry": true,
+      "error_state": true,
+      "disabled_state": true
+    },
+    "rationale": "Use Ant Design's TimePicker as the inspiration for its typeable field with a scrolling list of times. The decisions Monet records are granularity and timezone. A list offering every minute is a thousand-row scroll for a value the user could have typed in three keystrokes, so the list carries a coarse step and typing remains the way to reach anything between the steps. And a time without a zone is unambiguous only while nobody else reads it: the moment a time is shared — a meeting, a deadline, a scheduled send — the zone is part of the value and has to be visible rather than assumed from whichever browser is looking.",
+    "notes": "Follow Text Input for label, helper text, validation, focus, and boundary, and Date Picker for the overlay's dismissal and focus return. Open the list at the current or already-chosen time rather than at the beginning, so the useful part is on screen. Accept what people type: 9, 9am, 0900, and 09:00 are the same time, and the field normalizes on blur. Take the twelve- or twenty-four-hour clock from the locale rather than making it a product setting, and leave seconds out unless the task needs them. When a time is combined with a date, do not build a fused control; see the Date-Time Picker record.",
+    "use_when": [
+      "A time of day on its own, such as an opening hour or a reminder",
+      "Times that fall on a predictable interval",
+      "Scheduling or narrowing within one known day"
+    ],
+    "avoid_when": [
+      "A date is part of the value, which is a Date-Time Picker",
+      "A duration is being entered, which is a Number Input with a unit",
+      "Every minute would need to be scrollable in the list",
+      "The time is shared across zones but no zone would be shown"
+    ],
+    "foundations": [
+      "color",
+      "spacing",
+      "radius",
+      "borders",
+      "interaction",
+      "layering"
+    ],
+    "primitives": [
+      "pressable",
+      "text",
+      "focus-ring",
+      "portal",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3836,22 +4224,70 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded around a coarse list with free typing, and a timezone that is stated whenever the time is shared."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "date-time-picker",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "DateTimePicker"
+    },
+    "preferences": {
+      "density": "compact",
+      "composition": "a date control and a time control side by side",
+      "value": "one value, committed together and validated together",
+      "order": "date, then time, then the zone",
+      "timezone": "always visible; never inferred in silence",
+      "time_default": "a plausible hour for the task, never midnight",
+      "overlays": "the calendar and the time list never open together",
+      "granularity": "the time step matches the task, not the clock"
+    },
+    "behavior": {
+      "typeable_input": true,
+      "shares_one_value": true,
+      "validates_as_one_value": true,
+      "states_timezone": true,
+      "keyboard_navigation": true,
+      "stores_an_absolute_instant": true,
+      "error_state": true,
+      "disabled_state": true,
+      "single_fused_overlay": false
+    },
+    "rationale": "Use Mantine's DateTimePicker as the anatomy reference, but the decision Monet records is compositional: a date and a time are entered by two controls sharing one value, not by one control trying to be both. Fused pickers put a calendar grid and a time list in the same overlay, where they compete for space, break the calendar's keyboard model, and leave it unclear which half the arrow keys are moving. Two adjacent fields keep the Date Input and Time Picker records intact and let each half be typed independently, which is faster in every case where the user already knows the value. The second decision is that the zone is part of the value and is always shown.",
+    "notes": "The pair follows the Forms pattern's rule for fields that make up one value: they sit side by side, share one label and one message slot, and validate together, so a date with no time is one incomplete value rather than two separate errors. Each half behaves exactly as its own record says — the date follows Date Input, with a Date Picker calendar only where calendar context helps, and the time follows Time Picker — and only one overlay is open at a time. Default the time to a plausible hour for the task rather than to midnight, which is almost never what anyone meant. Show the zone beside the value, and where the viewer's zone differs from the record's, show both rather than converting in silence. Store and transmit an absolute instant; the displayed zone is presentation.",
+    "use_when": [
+      "Scheduling something that happens at a specific moment",
+      "A deadline or publish time where the hour matters",
+      "Recording an event whose day and hour are entered together"
+    ],
+    "avoid_when": [
+      "Only the day matters, which is a Date Input or a Date Picker",
+      "Only the time of day matters, which is a Time Picker",
+      "A period is being chosen, which is a Date Range Picker",
+      "The two halves would be fused into one overlay"
+    ],
+    "foundations": [
+      "spacing",
+      "typography",
+      "interaction",
+      "layering"
+    ],
+    "primitives": [
+      "inline",
+      "text",
+      "focus-ring",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -3882,9 +4318,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded as a composition of the date and time controls rather than a fused overlay, with the zone always shown."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "breadcrumb",
@@ -4549,16 +4992,62 @@
   },
   {
     "id": "context-menu",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Dropdown contextMenu"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.lg",
+      "elevation": "token:shadow.overlay",
+      "discoverability": "every action is also reachable from a visible control",
+      "trigger": "right click, long press, and the context-menu key",
+      "target": "the item under the pointer becomes the selected target",
+      "contents": "commands for that item, grouped, destructive ones last",
+      "length": "short enough to read without scrolling",
+      "position": "at the pointer, flipped to stay inside the viewport"
+    },
+    "behavior": {
+      "keyboard_openable": true,
+      "touch_openable": true,
+      "selects_target_on_open": true,
+      "escape_closes": true,
+      "returns_focus_to_target": true,
+      "groups_commands": true,
+      "sole_path_to_an_action": false,
+      "suppresses_browser_menu_globally": false
+    },
+    "rationale": "Use Ant Design's context-menu Dropdown as the anatomy reference. The decision Monet records is a hard rule rather than a style: a context menu is an accelerator and never the only way to reach an action. The right-click gesture is undiscoverable, absent on touch, and reached through an unfamiliar key for keyboard users, so anything available only there is effectively hidden from most people who use the product. The second decision is that opening the menu selects what it will act on — a menu floating over an unhighlighted row leaves the user guessing which item they are about to delete.",
+    "notes": "The menu itself follows Dropdown Menu for item anatomy, grouping, keyboard model, and destructive treatment, and the Overlays pattern for dismissal, focus, and layering: Escape closes it and focus returns to the item it acted on rather than to the head of the list. Suppress the browser's own menu only over elements that have one of their own, never across the whole page — people still need to copy, inspect, and open links elsewhere. Offer the same commands from a visible affordance, normally an overflow Icon Button on the row, and keep the two lists in agreement so nothing exists in one and not the other. On touch, a long press is the equivalent gesture and must select the target and produce the same menu. Where several items are already selected and the target is one of them, act on the selection and say how many items the commands will affect.",
+    "use_when": [
+      "Fast access to commands on a row, node, or canvas object",
+      "A file or tree interface where people expect the right-click gesture",
+      "An accelerator for commands a visible menu already offers"
+    ],
+    "avoid_when": [
+      "The action would exist nowhere else",
+      "It would replace the browser's own menu across the whole page",
+      "There is one obvious action, which is a Button",
+      "The content is a form rather than a list of commands"
+    ],
+    "foundations": [
+      "spacing",
+      "radius",
+      "elevation",
+      "layering",
+      "interaction",
+      "motion"
+    ],
+    "primitives": [
+      "portal",
+      "surface",
+      "text",
+      "icon",
+      "pressable",
+      "focus-ring",
+      "separator"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -4582,9 +5071,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded as an accelerator that must never be the only path to an action, and that selects its target on open."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "alert",
@@ -4673,16 +5169,60 @@
   },
   {
     "id": "banner",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Alert banner"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.none",
+      "placement": "beneath the app shell header, above the page content",
+      "width": "the full width of the shell, edge to edge",
+      "count": "one at a time; the product decides which is most urgent",
+      "variants": "the tinted status surfaces, matching Alert",
+      "content": "one line and at most one action",
+      "dismissal": "remembered per person, and refused for unresolved problems",
+      "layout": "its space is reserved, so content never jumps when it appears"
+    },
+    "behavior": {
+      "page_level_scope": true,
+      "dismissible_when_informational": true,
+      "remembers_dismissal": true,
+      "supports_action": true,
+      "announced_when_dynamic": true,
+      "reserves_layout_space": true,
+      "stacks_multiple": false,
+      "blocks_interaction": false
+    },
+    "rationale": "Use Ant Design's banner-mode Alert as the anatomy reference. Banner is the third member of the Alert and Toast family and the only thing distinguishing it is scope: a Toast is transient, an Alert belongs to the region it describes, and a Banner speaks for a condition affecting the whole product — an outage, an expiring trial, a read-only or impersonated session. That scope is also its constraint. Because it sits above everything and pushes the page down, more than one at a time turns the head of the product into a noticeboard nobody reads, so Monet allows exactly one and makes the product choose which condition is the most urgent.",
+    "notes": "The banner belongs to the App shell rather than to a page: it renders once, beneath the header and above the content region, and every route inherits it. Use the tinted .surface variants with ordinary color.foreground text exactly as Alert does, and square corners, because the banner meets both edges of the shell. Reserve its space rather than inserting it after paint, so nothing shifts under the pointer. Dismissal is remembered for that person and that condition — a banner returning on every navigation is worse than none — but a condition the user cannot resolve, such as a lapsed payment method blocking the account, is not dismissible at all. Keep the message to one line with at most one action; anything needing explanation links to somewhere with room for it. Never use a banner for promotion, or for feedback about something the user just did, which is a Toast.",
+    "use_when": [
+      "A product-wide condition such as an outage or a maintenance window",
+      "An account state affecting everything the user is about to do",
+      "A degraded, read-only, or impersonated session that must stay visible",
+      "A deadline the user must act on before it passes"
+    ],
+    "avoid_when": [
+      "The condition affects one region, which is an Alert",
+      "It confirms something the user just did, which is a Toast",
+      "Another banner is already showing",
+      "The content is promotional"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "spacing",
+      "layout",
+      "layering"
+    ],
+    "primitives": [
+      "surface",
+      "inline",
+      "text",
+      "icon",
+      "pressable"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -4706,9 +5246,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded as the product-wide member of the Alert family, capped at one and owned by the app shell."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "progress",
@@ -5249,16 +5796,58 @@
   },
   {
     "id": "avatar",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Avatar"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.full",
+      "shape": "circular for people, token:radius.md for teams and projects",
+      "fallback": "initials from the name, never a generic silhouette",
+      "fallback_color": "derived from the identity, from the palette, never random",
+      "sizes": "a small fixed set, the smallest at token:size.icon.lg",
+      "accessible_name": "the person or team, never the word avatar",
+      "group_overflow": "cap the row and show a count for the remainder",
+      "status": "a separate Status Indicator, not baked into the image"
+    },
+    "behavior": {
+      "image_with_initials_fallback": true,
+      "deterministic_fallback_color": true,
+      "names_the_identity": true,
+      "supports_grouping": true,
+      "decorative_beside_a_name": true,
+      "sole_identifier": false,
+      "interactive_by_default": false
+    },
+    "rationale": "Use Ant Design as the Avatar inspiration for its image, initials, and group anatomy. Two decisions carry the weight. The first is the fallback: a generic silhouette says nothing and makes everyone without a photograph look identical, while initials taken from the name stay distinguishable and degrade gracefully at every size. The second is that an avatar is never an identity on its own — a colour and a face are not a name — so a row of circles with no text is unreadable to anyone using a screen reader and ambiguous to everyone else. Wherever avatars identify people, the name is present or one interaction away.",
+    "notes": "Where the avatar sits beside the person's name it is decorative and hidden from assistive technology; where it stands alone, its accessible name is the person or team it represents. Derive fallback colours deterministically from a stable identifier so the same person is the same colour everywhere, and take them from the palette so contrast against the matching color.on roles holds in both modes. Circles read as people and a small radius reads as a team, project, or organization, which makes entity type legible at a glance. In a stacked group, overlap slightly, cap the row, and show the remainder as a count with the full list reachable — never let a group grow until it wraps. Presence and status use a Status Indicator positioned against the avatar rather than a treatment built into it. An avatar that opens a menu is an Icon Button wrapping the avatar, with its own accessible name and focus ring.",
+    "use_when": [
+      "Identifying the person or team responsible for a record",
+      "The account control in an app shell",
+      "Attribution in comments and activity feeds",
+      "Showing several collaborators compactly as a group"
+    ],
+    "avoid_when": [
+      "It would be the only identification of the person",
+      "A generic placeholder would stand in for a real identity",
+      "The image is illustrative content rather than an identity",
+      "Only presence is being shown, which is a Status Indicator"
+    ],
+    "foundations": [
+      "color",
+      "typography",
+      "radius",
+      "sizing",
+      "borders"
+    ],
+    "primitives": [
+      "box",
+      "text",
+      "icon",
+      "surface"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -5296,9 +5885,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded around an initials fallback, deterministic colour, and the rule that an avatar never identifies alone."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "timeline",
@@ -5355,16 +5951,61 @@
   },
   {
     "id": "accordion",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "Accordion"
+    },
+    "preferences": {
+      "density": "compact",
+      "header": "a button spanning the whole row, with a chevron indicator",
+      "indicator": "rotates on expand, in the same position across the set",
+      "mode": "several open at once, unless the sections are alternatives",
+      "default_state": "collapsed, unless one section is the expected task",
+      "separators": "token:border.subtle between sections",
+      "motion": "token:motion.standard height change, reduced-motion aware",
+      "addressing": "an open section survives reload and can be linked to",
+      "nesting": "never; two levels of disclosure is a Tree"
+    },
+    "behavior": {
+      "keyboard_operable": true,
+      "focus_visible": true,
+      "multiple_open": true,
+      "expands_for_search_and_errors": true,
+      "preserves_open_state": true,
+      "renders_content_lazily": true,
+      "hides_required_input": false,
+      "nested_accordions": false
+    },
+    "rationale": "Use Mantine's Accordion as the inspiration for its clear header-button anatomy and keyboard model. The decision Monet records comes straight from revealing complexity gradually: an accordion is honest only when the hidden content is genuinely optional. Collapsing something the user must read or fill in does not simplify a page, it hides the work — and it lets a form be submitted with an error nobody ever saw. So anything required, invalid, or matched by a search expands itself, and the collapse stays a convenience rather than becoming a gate.",
+    "notes": "The header is a real button spanning the row, so the whole row is the target and the focus ring outlines what will be activated; the chevron is an indicator, not the hit area. Several sections may be open at once, since an accordion that closes one section to open another is an alternation, which suits only a small set of mutually exclusive panels. Keep the open set addressable so a reload, a back navigation, or a shared link lands on the same view. Content may be rendered lazily, but anything findable by the browser's find-in-page or by an in-app search has to expand rather than stay invisible. Animate the height with motion.standard and honour reduced motion. Do not nest accordions: two levels of disclosure is a Tree, and three is a page that needs restructuring.",
+    "use_when": [
+      "Optional detail on a long page, such as advanced settings",
+      "Several independent sections people read selectively",
+      "Shortening a reference page without removing anything from it",
+      "Grouping supplementary information beside a primary task"
+    ],
+    "avoid_when": [
+      "The content is required reading or required input",
+      "Only one section exists, which is a plain disclosure",
+      "The sections are peer views of one subject, which is Tabs",
+      "The structure is hierarchical, which is a Tree"
+    ],
+    "foundations": [
+      "borders",
+      "spacing",
+      "typography",
+      "motion",
+      "interaction"
+    ],
+    "primitives": [
+      "stack",
+      "pressable",
+      "text",
+      "icon",
+      "focus-ring",
+      "separator"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -5402,9 +6043,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded around optional content only, with required and invalid content expanding itself."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "carousel",
@@ -5620,16 +6268,54 @@
   },
   {
     "id": "stack",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "Stack"
+    },
+    "preferences": {
+      "density": "compact",
+      "gap": "token:space.component-gap by default, always from the spacing scale",
+      "axis": "one axis; a horizontal run composes the Inline primitive",
+      "child_margins": "none; the container owns every gap",
+      "alignment": "stretch, so children share the container's measure",
+      "semantic_gaps": "token:space.control-gap within a group, token:space.group-gap between",
+      "nesting": "a nested stack steps the gap down, never up",
+      "separators": "spacing first; a Divider only where spacing cannot separate"
+    },
+    "behavior": {
+      "owns_child_spacing": true,
+      "uses_spacing_scale": true,
+      "supports_horizontal_axis": true,
+      "omits_gap_for_absent_children": true,
+      "arbitrary_gap_values": false,
+      "child_margins": false,
+      "controls_alignment_and_distribution": false
+    },
+    "rationale": "Use Mantine's Stack as the inspiration because it is a spacing container and nothing else. The decision worth recording is that rhythm has exactly one owner: when children carry their own margins, the space between two elements becomes the sum of decisions made in different files, collapses unpredictably, and cannot be changed without auditing every child. Stack is deliberately not a general flexbox wrapper — the moment a layout needs alignment or distribution, it is a Flex — and holding that boundary is what stops the default layout element from becoming an untyped bag of style props.",
+    "notes": "Gaps come from the spacing scale, and from its semantic aliases where they say what the space means: space.control-gap between repeated controls, space.component-gap between related regions, space.group-gap between distinct groups, space.section-gap between sections of a page. A Stack sets no background, border, radius, or elevation; that is a Surface or a Card. An absent or conditionally rendered child must not leave a gap behind it. Below breakpoint.md a horizontal arrangement may become vertical, but it keeps the same gap token rather than inventing a smaller one. A Stack with one child is not a Stack.",
+    "use_when": [
+      "Placing related elements in a single column with one consistent gap",
+      "The default arrangement for a form, a panel body, or a page section",
+      "A short horizontal run of related controls with even spacing",
+      "Replacing per-child margins with one spacing decision"
+    ],
+    "avoid_when": [
+      "Items need alignment or distribution along the axis, which is a Flex",
+      "Content is arranged in two dimensions, which is a Grid",
+      "The container also needs a surface, border, or elevation, which is a Card",
+      "Only one child would be placed",
+      "Every gap in the sequence is a different size"
+    ],
+    "foundations": [
+      "spacing",
+      "layout"
+    ],
+    "primitives": [
+      "stack",
+      "inline",
+      "box"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -5667,22 +6353,66 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Stack is the default arrangement, so the record fixes gap ownership rather than borrowing a layout API."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "flex",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Flex"
+    },
+    "preferences": {
+      "density": "compact",
+      "gap": "token:space.control-gap by default, always from the spacing scale",
+      "intent": "alignment or distribution; an even gap alone is a Stack",
+      "distribution": "pull two groups apart, never to imply aligned tracks",
+      "wrapping": "on, so a run of items never overflows its container",
+      "min_width": "zero on a flexible child, so its text can truncate",
+      "growth": "one child grows; the rest keep their natural size",
+      "nesting": "two levels before the layout is really a Grid"
+    },
+    "behavior": {
+      "supports_alignment": true,
+      "supports_distribution": true,
+      "wraps_by_default": true,
+      "allows_flexible_child_truncation": true,
+      "uses_spacing_scale": true,
+      "default_layout_container": false,
+      "replaces_grid_for_tracks": false
+    },
+    "rationale": "Use Ant Design's Flex as the inspiration for its explicit align, justify, and gap API. The decision that matters is that Flex is an escape hatch rather than the default: Stack already covers even spacing along one axis, and reaching past it first is how a codebase accumulates alignment decisions scattered through hundreds of one-off style objects. Flex earns its place when alignment or distribution is the actual requirement — a bar whose two halves pull apart, a row where one child grows and its neighbours do not, content centred against a fixed-height sibling — and stops being justified the moment the answer is simply an even gap.",
+    "notes": "A flexible child needs an explicit zero minimum width or its text will refuse to truncate and push the whole row wide; this is the single most common flexbox defect in product UI. Distribution is not a track system: space-between hands out leftover space, so two rows built that way stop aligning as soon as their content differs, and anything that must line up across rows belongs in a Grid. Gaps still come from the spacing scale, and Flex carries no surface treatment of its own. Where a run of controls is a toolbar, hierarchy still comes from the Button record rather than from position.",
+    "use_when": [
+      "A row whose two groups pull apart to opposite edges",
+      "One child grows while its neighbours keep their natural size",
+      "Centring content against a fixed-height sibling",
+      "A wrapping run of items of unequal width"
+    ],
+    "avoid_when": [
+      "Items only need one consistent gap, which is a Stack",
+      "Content must line up across rows, which is a Grid",
+      "It would be a generic wrapper with no alignment intent",
+      "Distribution is being used to imitate a table"
+    ],
+    "foundations": [
+      "spacing",
+      "layout"
+    ],
+    "primitives": [
+      "flex",
+      "inline",
+      "box"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -5720,22 +6450,67 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Flex is recorded as the escape hatch beneath Stack rather than as the default layout element."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "grid",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Grid"
+    },
+    "preferences": {
+      "density": "compact",
+      "tracks": "twelve at page level; collections size by a minimum item width",
+      "track_sizing": "the narrowest an item stays readable, not a count per breakpoint",
+      "gutter": "token:space.component-gap, token:space.group-gap on wide layouts",
+      "collapse": "to a single track below token:breakpoint.md",
+      "alignment": "items stretch, so a row shares one height",
+      "nesting": "a nested grid inherits the parent's gutter",
+      "placement": "explicit spans; never a visual order the DOM does not have"
+    },
+    "behavior": {
+      "reflows_responsively": true,
+      "uniform_row_heights": true,
+      "inherits_gutter_when_nested": true,
+      "supports_span": true,
+      "preserves_reading_order": true,
+      "fixed_pixel_tracks": false,
+      "used_for_tabular_values": false
+    },
+    "rationale": "Use Ant Design as the Grid inspiration for its responsive row-and-track model. The decision Monet records is the sizing model: a collection of cards or tiles is defined by the narrowest width an item stays readable at, not by a count enumerated per breakpoint. A count-per-breakpoint layout has to be re-tuned every time an item's content changes and breaks at widths nobody listed, while a minimum-width track adapts on its own. The second decision is that visual order and DOM order stay in agreement, because grid placement is the easiest way in modern CSS to produce a page that reads correctly to the eye and incoherently to a screen reader or the Tab key.",
+    "notes": "The Container around a grid owns the maximum width, using the Layout foundation's values; the grid never sets its own. Gutters come from the spacing scale and match the vertical rhythm of the surrounding Stack. Items stretch so a row shares one height, and their interiors truncate or scroll rather than making one item taller than its neighbours, which is the same rule the Card record states. A grid of one track is a Stack. A set of values compared across shared attributes is a Table: a grid has no headers, no row identity, and nothing to sort.",
+    "use_when": [
+      "A collection of cards or tiles that reflows across viewport widths",
+      "A dashboard whose tiles occupy different spans of the same layout",
+      "Page regions that align to one shared track structure",
+      "Fields that pair onto one line on wide screens and stack on narrow ones"
+    ],
+    "avoid_when": [
+      "Content is one-dimensional, which is a Stack or a Flex",
+      "Values are compared across shared attributes, which is a Table",
+      "Placement would put visual order out of step with reading order",
+      "The layout needs fixed widths that cannot reflow"
+    ],
+    "foundations": [
+      "layout",
+      "spacing",
+      "breakpoints"
+    ],
+    "primitives": [
+      "grid",
+      "box",
+      "container"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -5773,22 +6548,65 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "The grid's sizing model is recorded as minimum item width rather than a count enumerated per breakpoint."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "divider",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Divider"
+    },
+    "preferences": {
+      "density": "compact",
+      "style": "token:border.subtle, one pixel, never doubled",
+      "orientation": "horizontal; a vertical rule needs a defined height",
+      "spacing": "equal on both sides, from the spacing scale",
+      "inset": "full width of its container, or inset to the content edge",
+      "label": "only for a real section break, in muted small text",
+      "frequency": "one per group boundary, never between every item",
+      "semantics": "hidden from assistive technology when only decorative"
+    },
+    "behavior": {
+      "supports_vertical_orientation": true,
+      "supports_label": true,
+      "exposed_as_separator_when_meaningful": true,
+      "hidden_when_decorative": true,
+      "carries_own_margin": false,
+      "used_between_every_item": false
+    },
+    "rationale": "Use Ant Design as the Divider inspiration because it treats the labelled variant as part of one component rather than a separate one. The decision Monet records is restraint, and it follows directly from preferring hierarchy over decoration: space separates content, and a line is what you add after space has been tried and genuinely failed — inside a dense list, between a menu's groups of commands, or where two regions share one surface with no room to breathe. Rules drawn between every item turn a list into a stack of boxes and make the real group boundaries invisible, which is the opposite of what the line was added for.",
+    "notes": "Use border.subtle, which resolves through color.border.subtle and is quieter than the structural color.border that draws panel and card edges. A divider carries no margin of its own: the surrounding Stack owns the space, and it is equal on both sides so the line reads as a boundary rather than as belonging to the block above it. A vertical rule needs an explicit height from its container, since a zero-height flex child renders nothing at all. Where a divider is decoration, hide it from assistive technology; where it genuinely separates named groups, expose it as a separator so the structure is announced. A divider is never the edge of a Card or Surface — that edge is border.default and belongs to the surface.",
+    "use_when": [
+      "Separating groups of commands inside a Dropdown Menu",
+      "A boundary in a dense list where spacing alone reads as noise",
+      "Splitting two regions that share one surface",
+      "Marking a labelled section break on a long settings page"
+    ],
+    "avoid_when": [
+      "Spacing or a heading would express the same grouping",
+      "It would fall between every item in a list",
+      "It would act as the border of a card, panel, or other surface",
+      "It is purely decorative around a title"
+    ],
+    "foundations": [
+      "borders",
+      "color",
+      "spacing"
+    ],
+    "primitives": [
+      "separator",
+      "box"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -5826,22 +6644,67 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded as a last resort after spacing, with the decorative and semantic cases separated."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "scroll-area",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "ScrollArea"
+    },
+    "preferences": {
+      "density": "compact",
+      "scrollbar": "always discoverable, never revealed only on hover",
+      "axis": "one per region; sideways scrolling only for a wide table",
+      "bounds": "height from the surrounding layout, not a fixed pixel height",
+      "overflow_cue": "a shadow or fade at the clipped edge while more remains",
+      "sticky_content": "headers and action bars sit outside the scrolling child",
+      "position": "preserved when the user leaves and comes back",
+      "nesting": "never two regions scrolling the same axis in one view"
+    },
+    "behavior": {
+      "keyboard_scrollable": true,
+      "focusable_when_overflowing": true,
+      "preserves_position": true,
+      "shows_overflow_affordance": true,
+      "respects_reduced_motion": true,
+      "hover_only_scrollbars": false,
+      "nested_same_axis_scrolling": false
+    },
+    "rationale": "Use Mantine's ScrollArea as the inspiration for its predictable cross-platform scrollbar handling. The decision Monet records is that the page scrolls by default: a bounded scroll region exists so that something else can stay in place — a navigation column, a dialog's actions, a table's header row — and for no other reason. Custom scroll containers are the origin of the two worst scrolling defects in product UI, a region that swallows the wheel and a scrollbar that appears only under the pointer, so discoverability and single-axis nesting are stated here rather than left to whichever implementation arrives first.",
+    "notes": "A region that overflows must be reachable and scrollable from the keyboard, which means it takes focus when there is more to see. Show that the content continues: a shadow or fade at the clipped edge, present only while something is actually clipped. Keep sticky headers and action bars outside the scrolling child so they neither scroll away nor fight the cue. Do not hide scrollbars until hover — on a trackpad that is no signal at all, and on touch the edge cue is the only one left. Respect reduced motion for programmatic scrolling by jumping rather than animating. Follow the App shell pattern for which region of a page scrolls; two independent regions scrolling the same axis in one view is a layout problem, not a scrolling one.",
+    "use_when": [
+      "A navigation column that scrolls independently of the page",
+      "A dialog or drawer body that scrolls while its actions stay visible",
+      "A table body beneath a sticky header row",
+      "A bounded list inside a popover or menu"
+    ],
+    "avoid_when": [
+      "The page itself can scroll, which is almost always the better answer",
+      "It would add a second region scrolling the same axis as the page",
+      "It would hide overflow that should have been truncated instead",
+      "Restyling the scrollbar is the actual goal"
+    ],
+    "foundations": [
+      "layout",
+      "elevation",
+      "motion",
+      "interaction"
+    ],
+    "primitives": [
+      "box",
+      "surface"
+    ],
     "candidates": [
       {
         "source": "mantine",
@@ -5872,9 +6735,16 @@
         "old_selection": "mantine",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded as a bounded region that lets something else stay in place, not as a scrollbar treatment."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "resizable-panels",
@@ -6143,16 +7013,65 @@
   },
   {
     "id": "file-upload",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Upload"
+    },
+    "preferences": {
+      "density": "compact",
+      "radius": "token:radius.lg",
+      "primary_control": "a real focusable button; the drop zone is an accelerator",
+      "drop_zone": "a dashed token:color.border.strong edge, filled on drag-over",
+      "constraints": "types, size, and count stated before the picker opens",
+      "file_list": "one row per file, each with its own progress and state",
+      "errors": "on the row that failed, not on the whole control",
+      "removal": "each file removable before and after its transfer",
+      "retry": "per file, without reselecting the others"
+    },
+    "behavior": {
+      "keyboard_operable": true,
+      "accepts_drag_and_drop": true,
+      "shows_per_file_progress": true,
+      "shows_per_file_errors": true,
+      "allows_removal": true,
+      "allows_retry": true,
+      "validates_on_selection": true,
+      "announces_state_changes": true,
+      "drag_and_drop_only": false,
+      "clears_list_on_error": false
+    },
+    "rationale": "Use Ant Design's Upload as the inspiration because it treats the file list, its per-file progress, and its per-file errors as part of the component rather than as the product's problem. Two decisions matter more than the visual treatment. Dragging is an accelerator and never the control: it is invisible to keyboard users, unavailable on touch, and undiscoverable, so a real focusable button is always present. And transfers fail one at a time — a single rejected file must not discard the nine that succeeded, and the error belongs on the row that caused it, which is the same preserved-work rule the Forms pattern states.",
+    "notes": "State the accepted types, the size limit, and the maximum number of files in the description before the picker opens, and validate on selection so a rejection arrives immediately rather than after a long transfer. Each file gets a row with its name, its size, a determinate Progress where the total is known, and a terminal state; follow the Loading pattern where the work is indeterminate. Removing a file also cancels its transfer. Announce added, failed, and finished files so the state is knowable without watching the list. Make the dragging state obvious using color.surface.selected and a stronger boundary, and make the whole zone a valid target rather than a narrow strip. When an upload is one step of a form, the form is not submittable while transfers are in flight, and a rejected submission never clears the references to files already uploaded.",
+    "use_when": [
+      "Attaching documents or images to a record",
+      "Importing a file the system will parse and act on",
+      "Replacing an existing asset such as a profile picture or a logo",
+      "Any transfer where progress and per-file failure need to be visible"
+    ],
+    "avoid_when": [
+      "Dragging would be the only way to add a file",
+      "The content is text the user could paste, which is a Textarea",
+      "The file is chosen from files already held in the product",
+      "Progress and failures would be reported only as a Toast"
+    ],
+    "foundations": [
+      "color",
+      "spacing",
+      "radius",
+      "borders",
+      "interaction",
+      "motion"
+    ],
+    "primitives": [
+      "box",
+      "stack",
+      "text",
+      "icon",
+      "pressable",
+      "focus-ring",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -6190,22 +7109,71 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded around a focusable button with dragging as an accelerator, and per-file progress, failure, and retry."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "slider",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "ant-design",
+      "source_component": "Slider"
+    },
+    "preferences": {
+      "density": "compact",
+      "range": "bounded and known, with both ends labelled",
+      "value_display": "always visible, and editable where precision matters",
+      "track": "unfilled token:color.border.strong, filled token:color.primary",
+      "thumb": "at least token:size.target of interactive area",
+      "step": "a step the value actually needs, not one unit per pixel",
+      "marks": "only where the named positions themselves matter",
+      "feedback": "applied live where the change is cheap to reverse"
+    },
+    "behavior": {
+      "keyboard_operable": true,
+      "focus_visible": true,
+      "shows_current_value": true,
+      "supports_two_thumbs": true,
+      "announces_value_changes": true,
+      "respects_step": true,
+      "sole_path_to_a_precise_value": false,
+      "shows_value_only_while_dragging": false
+    },
+    "rationale": "Use Ant Design as the Slider inspiration for its track, thumb, and two-thumb anatomy. The decision Monet records is when a slider is the right control at all: it is good at approximate values in a small bounded range where the effect is visible at once — a volume, an opacity, a zoom — and poor at everything else. Its resolution is limited by how many pixels the track happens to have, so any value someone must hit exactly has to be typeable too. That is why the value is always shown and, where precision matters, editable: a slider revealing its number only while dragging leaves the user unable to check what they set.",
+    "notes": "A thumb is a small target and must carry at least size.target of interactive area even when it looks smaller. Arrow keys move by one step, page keys by a larger one, and Home and End reach the ends; every change is announced with the value and its unit rather than as a bare number. Label both ends of the track so the range is understandable before anyone touches it. Use marks only where specific positions are meaningful, since a marked track invites the belief that nothing between them can be chosen. Apply the effect live when it is cheap to reverse and on release when it is expensive. Two thumbs need two accessible names, naming the lower and upper bound rather than saying slider twice, and they must not be able to cross. Where the exact figure is the point, pair the slider with a Number Input bound to the same value.",
+    "use_when": [
+      "An approximate value in a small bounded range",
+      "A setting whose effect is visible immediately, such as zoom or opacity",
+      "A bounded numeric filter where the shape of the range matters",
+      "Choosing between two ends that are both meaningful to see"
+    ],
+    "avoid_when": [
+      "The exact figure matters and cannot be typed, which is a Number Input",
+      "The range is large or has no known ends",
+      "The choices are discrete named options, which is a Select",
+      "The value would be visible only while dragging"
+    ],
+    "foundations": [
+      "color",
+      "spacing",
+      "sizing",
+      "interaction",
+      "radius"
+    ],
+    "primitives": [
+      "pressable",
+      "text",
+      "focus-ring",
+      "box"
+    ],
     "candidates": [
       {
         "source": "ant-design",
@@ -6243,9 +7211,16 @@
         "old_selection": "ant-design",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected ant-design inspiration.",
+        "old_selection": null,
+        "new_selection": "ant-design",
+        "rationale": "Recorded as an approximate control that always shows its value and never becomes the only path to a precise one."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "rating",
@@ -6302,16 +7277,57 @@
   },
   {
     "id": "clipboard",
-    "status": "undecided",
-    "selection": null,
-    "preferences": {},
-    "behavior": {},
-    "rationale": "",
-    "notes": "",
-    "use_when": [],
-    "avoid_when": [],
-    "foundations": [],
-    "primitives": [],
+    "status": "selected",
+    "selection": {
+      "source": "mantine",
+      "source_component": "CopyButton"
+    },
+    "preferences": {
+      "density": "compact",
+      "trigger": "an Icon Button beside the value, named for what it copies",
+      "icon_size": "token:size.icon.md",
+      "confirmation": "in place at the control, for about two seconds",
+      "confirmation_style": "the icon changes and the accessible name says copied",
+      "scope": "names what was copied when it is not the adjacent value",
+      "value_visibility": "the value itself stays readable and selectable",
+      "failure": "reported in place, with the value left on screen"
+    },
+    "behavior": {
+      "keyboard_operable": true,
+      "focus_visible": true,
+      "confirms_in_place": true,
+      "announces_result": true,
+      "reports_failure": true,
+      "restores_after_confirming": true,
+      "sole_path_to_the_value": false,
+      "copies_silently": false
+    },
+    "rationale": "Use Mantine's CopyButton as the inspiration for its transient confirmed state. The decision worth recording is that a copy has no visible consequence anywhere on the screen, so the control has to supply the entire result itself: nothing on the page changes, the clipboard is invisible, and a user who is unsure will press it again and paste twice. Confirmation therefore belongs at the control, where the eye already is, rather than as a Toast in a corner. Failure has to be reported for the same reason — clipboard writes are refused often enough, in insecure contexts and under permission policies, that a silent no-op is a real outcome rather than a theoretical one.",
+    "notes": "The control follows Icon Button for size, target, and accessible naming, and its name says what will be copied rather than just the verb. Change the icon and the accessible name together on success, hold for about two seconds, then restore, and announce the change politely so it is not missed without sight. Keep the value selectable so manual copying still works, and never truncate it so that the visible text differs from what is copied without saying so. Where the copied value is not the text beside the button, say what it was. If the write fails, leave the value on screen and say so in place rather than implying success.",
+    "use_when": [
+      "An identifier, key, token, or link the user needs somewhere else",
+      "A generated value nobody could reasonably retype",
+      "A command or code block in documentation"
+    ],
+    "avoid_when": [
+      "The value is neither visible nor named anywhere",
+      "Copying would be the only way to obtain the value",
+      "The confirmation would appear away from the control",
+      "The content is long-form text people would select themselves"
+    ],
+    "foundations": [
+      "spacing",
+      "sizing",
+      "interaction",
+      "motion"
+    ],
+    "primitives": [
+      "pressable",
+      "icon",
+      "text",
+      "focus-ring",
+      "accessible-label"
+    ],
     "candidates": [
       {
         "source": "mantine",
@@ -6342,9 +7358,16 @@
         "old_selection": "mantine",
         "new_selection": null,
         "rationale": "Monet has not decided this component. The candidates remain available; none of them is a selection."
+      },
+      {
+        "date": "2026-09-03T00:00:00.000Z",
+        "change": "Selected mantine inspiration.",
+        "old_selection": null,
+        "new_selection": "mantine",
+        "rationale": "Recorded around confirmation at the control and an explicit failure state, since a copy has no other visible result."
       }
     ],
-    "updated_at": "2026-09-02T17:30:00.000Z"
+    "updated_at": "2026-09-03T00:00:00.000Z"
   },
   {
     "id": "keyboard-shortcut",

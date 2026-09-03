@@ -114,6 +114,16 @@ describe("Monet retrieval scoring", () => {
     expect(score("confirmation dialog", { name: "Unrelated Record", aliases: ["confirmation dialog"] })).toBeGreaterThanOrEqual(85);
   });
 
+  it("treats one distinctive word out of a name's several as evidence, not identity", () => {
+    // "Password Input" is identified by "password" because "input" is shape. "File Upload" is two
+    // distinctive words, so "file" alone names part of the concept and has to be corroborated —
+    // otherwise right-clicking a file resolves to the control for uploading one.
+    expect(score("context menu on right click of a file", { name: "File Upload" })).toBeLessThan(62);
+    // The whole name, however it is reached, still identifies outright.
+    expect(score("drag and drop a file to attach it", { name: "File Upload" })).toBeGreaterThanOrEqual(62);
+    expect(score("date range picker", { name: "Date Range Picker" })).toBeGreaterThanOrEqual(85);
+  });
+
   it("still recognises a canonical name from its distinctive half", () => {
     // The asymmetry is deliberate: a name is the record's own word for itself, an alias is a pointer.
     expect(score("password", { name: "Password Input" })).toBeGreaterThanOrEqual(85);
