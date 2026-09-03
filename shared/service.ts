@@ -1,6 +1,7 @@
 import type { Component, ContextNotice, DesignContext, DesignContextRequest, Foundation, MarkdownDocument, ModeVariants, Principle, RankedReference, Reference, ResolvedThemeToken, RetrievalCoverage, RetrievalEntityType, RetrievalProvenance, RetrievalReason, Theme, ThemeMode, Workspace } from "./model.js";
 import { retrievalAliases, scoreRetrieval, type RetrievalFields } from "./retrieval.js";
 import { resolveThemeTokens } from "./tokens.js";
+import { DARK_BACKGROUND_LUMINANCE, luminance } from "./contrast.js";
 
 export interface WorkspaceReader {
   loadWorkspace(themeId?: string, mode?: ThemeMode): Promise<Workspace>;
@@ -59,8 +60,6 @@ const MAX_RELATED_COMPONENTS = 6;
 const MAX_RELATED_PER_SOURCE = 3;
 const MAX_REVERSE_PATTERNS = 1;
 const MAX_PATTERN_COMPONENTS = 10;
-/** Below this relative luminance a resolved page background reads as a dark surface. */
-const DARK_BACKGROUND_LUMINANCE = 0.4;
 
 interface ScoredRecord<T> { record: T; score: number; reason: RetrievalProvenance["reason"]; strength: RetrievalProvenance["strength"] }
 
@@ -136,13 +135,9 @@ function referenceFields(reference: Reference): RetrievalFields {
   };
 }
 
-/** Relative luminance of a resolved hex colour, used only to tell a dark surface from a light one. */
+/** Relative luminance of the resolved page background, used only to tell a dark surface from a light one. */
 function backgroundLuminance(tokens: ResolvedThemeToken[]): number | null {
-  const value = String(tokens.find((token) => token.name === "color.background")?.resolved_value ?? "");
-  if (!/^#[0-9a-f]{6}$/i.test(value)) return null;
-  const channels = [1, 3, 5].map((offset) => Number.parseInt(value.slice(offset, offset + 2), 16) / 255)
-    .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) as [number, number, number];
-  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+  return luminance(String(tokens.find((token) => token.name === "color.background")?.resolved_value ?? ""));
 }
 
 /** Whether a task is asking for a dark interface, so the mode can be inferred when the caller did not name one. */
@@ -159,8 +154,8 @@ export function queryWantsDarkMode(query: string): boolean {
  */
 function capabilityNotices(query: string, tokens: ResolvedThemeToken[], theme: Theme | null, mode: ThemeMode, modes: ThemeMode[]): ContextNotice[] {
   if (!queryWantsDarkMode(query)) return [];
-  const luminance = backgroundLuminance(tokens);
-  if (luminance !== null && luminance < DARK_BACKGROUND_LUMINANCE) return [];
+  const background = backgroundLuminance(tokens);
+  if (background !== null && background < DARK_BACKGROUND_LUMINANCE) return [];
   const name = theme?.name ?? "active";
   const reason = mode === "dark"
     ? `The ${name} theme was resolved in dark mode but its color.background is still a light value.`

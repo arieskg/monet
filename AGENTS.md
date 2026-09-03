@@ -61,7 +61,9 @@ No database, no hosted service, no model API. Files on disk, and MCP over stdio.
   prompts with expected and forbidden IDs. Never pin an exact result set, and never
   add one alias per test phrase — fix the mechanism, not the prompt.
 - Workspace invariants belong in `shared/designIntegrity.test.ts` and
-  `server/validate.ts`, which should agree.
+  `server/validate.ts`, which should agree. Colour contracts — which roles must
+  reach which contrast on which backgrounds — live once in `shared/contrast.ts`,
+  and both read them; add a pairing there, not in either consumer.
 
 ## Checks
 

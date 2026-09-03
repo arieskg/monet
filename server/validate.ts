@@ -4,16 +4,8 @@ import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./wo
 import { preferenceViolations } from "../shared/preferences.js";
 import { joinComponents } from "../shared/service.js";
 import { resolveThemeTokens, themeModes } from "../shared/tokens.js";
-import { THEME_MODES, type Workspace } from "../shared/model.js";
-
-/** Relative luminance of a hex colour; below the threshold a page background reads as dark. */
-function luminance(hex: string): number | null {
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) return null;
-  const [r, g, b] = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255)
-    .map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) as [number, number, number];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-const DARK_BACKGROUND_LUMINANCE = 0.4;
+import { contrastFailures, DARK_BACKGROUND_LUMINANCE, luminance, type ContrastFailure } from "../shared/contrast.js";
+import { THEME_MODES, type Foundation, type ResolvedThemeToken, type Theme, type ThemeMode, type Workspace } from "../shared/model.js";
 
 /**
  * `monet validate` — the integrity checks a workspace has to pass, in a form a person can read.
@@ -30,6 +22,40 @@ function check(level: Finding["level"], name: string, details: string[]): Findin
   return details.map((detail) => ({ level, check: name, detail }));
 }
 
+/** One theme resolved in one mode it supports. */
+interface ModeResolution { theme: Theme; mode: ThemeMode; tokens: ResolvedThemeToken[]; issues: { token: string; message: string }[] }
+
+/**
+ * Where a resolved value came from, named precisely enough to act on. A theme override that
+ * applies in every mode is the usual reason a dark resolution fails: it was written before modes
+ * existed and pins a light value, and the fix is a `modes.dark` override or dropping it.
+ */
+function origin(theme: Theme, mode: ThemeMode, token: ResolvedThemeToken): string {
+  if (token.source === "base") return mode === "light" ? "Base Monet value" : `light value; no ${mode} value`;
+  const via = (name: string) => name === token.name ? "" : ` via ${name}`;
+  return [...new Set(token.override_dependencies.map((name) => {
+    if (mode !== "light" && Object.hasOwn(theme.modes?.[mode] ?? {}, name)) return `${theme.id} ${mode} override${via(name)}`;
+    if (Object.hasOwn(theme.overrides, name)) return `${theme.id} override${via(name)}, applied in every mode`;
+    return `Foundation ${mode} value${via(name)}`;
+  }))].join(", ");
+}
+
+/** Why a theme resolves in a mode other than light: the Foundations carry values for it, the theme does, or both. */
+function modeOrigin(foundations: Foundation[], theme: Theme, mode: ThemeMode): string {
+  const fromFoundations = foundations.some((foundation) => foundation.tokens.some((token) => token.modes?.[mode as Exclude<ThemeMode, "light">] !== undefined));
+  const fromTheme = Object.keys(theme.modes?.[mode as Exclude<ThemeMode, "light">] ?? {}).length > 0;
+  if (fromFoundations && fromTheme) return `from Foundation ${mode} values and its own ${mode} overrides`;
+  return fromFoundations ? `from Foundation ${mode} values` : `only from its own ${mode} overrides`;
+}
+
+function describeContrast({ theme, mode, tokens }: ModeResolution, failure: ContrastFailure): string {
+  const byName = new Map(tokens.map((token) => [token.name, token]));
+  const bound = failure.ratio < failure.floor ? `below the ${failure.floor}:1 ${failure.kind} minimum` : `below Monet's ${failure.minimum}:1 margin for a derived role`;
+  const provenance = [failure.foreground, failure.background]
+    .map((name) => `${name}: ${String(byName.get(name)?.resolved_value)}, ${origin(theme, mode, byName.get(name)!)}`).join("; ");
+  return `${theme.id} (${mode}): ${failure.foreground} on ${failure.background} is ${failure.ratio.toFixed(2)}:1, ${bound} (${provenance})`;
+}
+
 export function validateWorkspace(workspace: Workspace): Finding[] {
   const components = joinComponents(workspace);
   const componentIds = new Set(components.map((item) => item.id));
@@ -38,16 +64,19 @@ export function validateWorkspace(workspace: Workspace): Finding[] {
   const tokenNames = new Set(workspace.resolvedTokens.map((token) => token.name));
   // Every theme is resolved in every mode it supports, so a dark value that points at a missing
   // token, or a theme override that only breaks in dark, is caught before an agent reads it.
-  const modeResolutions = workspace.themes.flatMap((theme) => themeModes(workspace.foundations, theme).map((mode) => ({ theme, mode, resolution: resolveThemeTokens(workspace.foundations, theme, mode) })));
+  const modeResolutions: ModeResolution[] = workspace.themes.flatMap((theme) => themeModes(workspace.foundations, theme).map((mode) => ({ theme, mode, ...resolveThemeTokens(workspace.foundations, theme, mode) })));
+  // The colour contracts the Color, Borders, and Interaction foundations document, measured on the
+  // resolved values of every theme in every mode. A user's theme override is the usual way to break them.
+  const contrast = modeResolutions.flatMap((resolution) => contrastFailures(resolution.tokens, resolution.mode).map((failure) => ({ resolution, failure })));
 
   return [
     ...check("error", "tokens resolve", [
       ...workspace.tokenIssues.map((issue) => `${issue.token}: ${issue.message}`),
       ...workspace.resolvedTokens.filter((token) => !token.valid).map((token) => `${token.name} does not resolve`),
     ]),
-    ...check("error", "tokens resolve in every theme and mode", modeResolutions.flatMap(({ theme, mode, resolution }) => [
-      ...resolution.issues.map((issue) => `${theme.id} (${mode}): ${issue.token}: ${issue.message}`),
-      ...resolution.tokens.filter((token) => !token.valid).map((token) => `${theme.id} (${mode}): ${token.name} does not resolve`),
+    ...check("error", "tokens resolve in every theme and mode", modeResolutions.flatMap(({ theme, mode, tokens, issues }) => [
+      ...issues.map((issue) => `${theme.id} (${mode}): ${issue.token}: ${issue.message}`),
+      ...tokens.filter((token) => !token.valid).map((token) => `${theme.id} (${mode}): ${token.name} does not resolve`),
     ])),
     ...check("error", "theme overrides name real tokens", workspace.themes.flatMap((theme) => [
       ...Object.keys(theme.overrides).filter((name) => !tokenNames.has(name)).map((name) => `${theme.id} overrides unknown token "${name}"`),
@@ -59,6 +88,9 @@ export function validateWorkspace(workspace: Workspace): Finding[] {
       const names = workspace.foundations.flatMap((foundation) => foundation.tokens.map((token) => token.name));
       return [...new Set(names.filter((name, index) => names.indexOf(name) !== index))].map((name) => `${name} is defined more than once`);
     })()),
+    ...check("error", "colour pairings meet their contrast minimum", contrast
+      .filter(({ failure }) => failure.ratio < failure.floor)
+      .map(({ resolution, failure }) => describeContrast(resolution, failure))),
     ...check("error", "component records reference real concepts", workspace.components
       .filter((item) => !componentIds.has(item.id))
       .map((item) => `decision "${item.id}" has no entry in the component taxonomy`)),
@@ -81,17 +113,22 @@ export function validateWorkspace(workspace: Workspace): Finding[] {
       ...workspace.components.flatMap((item) => preferenceViolations(item.id, item.preferences, tokenNames)),
       ...workspace.primitives.flatMap((item) => preferenceViolations(item.id, item.preferences, tokenNames)),
     ]),
+    ...check("warning", "derived colour roles keep their contrast margin", contrast
+      .filter(({ failure }) => failure.ratio >= failure.floor)
+      .map(({ resolution, failure }) => describeContrast(resolution, failure))),
     ...check("warning", "selected components explain themselves", workspace.components
       .filter((item) => item.status === "selected" && !(item.rationale.trim() && item.notes.trim() && item.use_when.length && item.avoid_when.length))
       .map((item) => `${item.id} is selected but has no rationale, notes, or usage boundaries`)),
     ...check("warning", "patterns carry the links retrieval depends on", workspace.patterns
       .filter((item) => !item.components?.length || !item.foundations?.length)
       .map((item) => `${item.id} has no component or Foundation links`)),
-    ...check("warning", "dark mode is actually dark", modeResolutions.flatMap(({ theme, mode, resolution }) => {
+    ...check("warning", "dark mode is actually dark", modeResolutions.flatMap(({ theme, mode, tokens }) => {
       if (mode !== "dark") return [];
-      const background = resolution.tokens.find((token) => token.name === "color.background");
-      const value = luminance(String(background?.resolved_value ?? ""));
-      return value !== null && value >= DARK_BACKGROUND_LUMINANCE ? [`${theme.id} defines dark mode but color.background resolves to the light value ${String(background?.resolved_value)}`] : [];
+      const background = tokens.find((token) => token.name === "color.background");
+      if (!background) return [];
+      const value = luminance(String(background.resolved_value ?? ""));
+      if (value === null || value < DARK_BACKGROUND_LUMINANCE) return [];
+      return [`${theme.id} has a dark mode ${modeOrigin(workspace.foundations, theme, mode)}, but color.background resolves to ${String(background.resolved_value)}, which is not dark (${origin(theme, mode, background)})`];
     })),
   ];
 }

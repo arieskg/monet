@@ -3,6 +3,7 @@ import { loadWorkspace } from "../server/fileStore.js";
 import { joinComponents, createMonetService } from "./service.js";
 import { preferenceViolations } from "./preferences.js";
 import { resolveThemeTokens } from "./tokens.js";
+import { contrast, contrastFailures, DERIVED_TEXT_MINIMUM, DERIVED_TEXT_ROLES, luminance, SURFACES, TEXT_ROLES, TINTED_SURFACES } from "./contrast.js";
 import type { ComponentDecision, ResolvedThemeToken, ThemeMode, Workspace } from "./model.js";
 
 const workspace: Workspace = await loadWorkspace();
@@ -16,39 +17,17 @@ const defaultTheme = workspace.themes.find((theme) => theme.id === workspace.def
 /** The starter workspace resolved in each mode it supports, so every colour contract below is held in both. */
 const MODE_TOKENS: [mode: ThemeMode, tokens: ResolvedThemeToken[]][] = workspace.modes.map((mode) => [mode, resolveThemeTokens(workspace.foundations, defaultTheme, mode).tokens]);
 
-/** Backgrounds a role is documented against, so a contrast claim is checked where the role is actually used. */
-const SURFACES = ["color.surface", "color.surface.hover", "color.surface.pressed", "color.surface.selected"];
-
-/**
- * Identity fills carry fixed hues and sit just above the 4.5:1 floor by design. Every role Monet
- * derived instead of inheriting is held clear of it, so a later tint or state cannot cross the floor.
- */
-const DERIVED_TEXT_ROLES: [role: string, backgrounds: string[]][] = [
-  ["color.foreground.muted", SURFACES],
-  ["color.primary.foreground", ["color.surface", "color.surface.selected"]],
-  ["color.link", ["color.surface"]],
-  ["color.info.foreground", ["color.surface"]],
-  ["color.warning.foreground", ["color.surface"]],
-  ["color.danger.foreground", ["color.surface"]],
-  ["color.success.foreground", ["color.surface", "color.success.surface"]],
-  ["color.on.warning", ["color.warning"]],
-];
-const DERIVED_TEXT_MINIMUM = 4.75;
-
 function slug(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-/** Relative luminance and contrast per WCAG 2.1, used to hold the Color foundation to its own stated minimums. */
-function luminance(hex: string): number {
-  const channels = [1, 3, 5].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
-  const [r, g, b] = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4) as [number, number, number];
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+/** The starter workspace's colours are all six-digit hex, so the shared measurement never comes back null here. */
+function contrastRatio(a: string, b: string): number {
+  return contrast(a, b) ?? Number.NaN;
 }
 
-function contrast(a: string, b: string): number {
-  const [high, low] = [luminance(a), luminance(b)].sort((first, second) => second - first) as [number, number];
-  return (high + 0.05) / (low + 0.05);
+function lum(hex: string): number {
+  return luminance(hex) ?? Number.NaN;
 }
 
 function resolvedColorIn(tokens: ResolvedThemeToken[], name: string): string {
@@ -181,14 +160,14 @@ describe("Monet control boundaries", () => {
   it.each(MODE_TOKENS)("keeps that boundary above the 3:1 non-text minimum on every surface a control rests on in %s mode", (_mode, tokens) => {
     const boundary = resolvedColorIn(tokens, "color.border.strong");
     const failures = SURFACES.flatMap((name) => {
-      const ratio = contrast(boundary, resolvedColorIn(tokens, name));
+      const ratio = contrastRatio(boundary, resolvedColorIn(tokens, name));
       return ratio < 3 ? [`color.border.strong on ${name} is ${ratio.toFixed(2)}:1`] : [];
     });
     expect(failures).toEqual([]);
   });
 
   it.each(MODE_TOKENS)("keeps the focus indicator above 3:1 on the surface in %s mode", (_mode, tokens) => {
-    expect(contrast(resolvedColorIn(tokens, "color.focus"), resolvedColorIn(tokens, "color.surface"))).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(resolvedColorIn(tokens, "color.focus"), resolvedColorIn(tokens, "color.surface"))).toBeGreaterThanOrEqual(3);
   });
 
   it("says the same thing in Color, Borders, and Interaction", () => {
@@ -249,7 +228,7 @@ describe("Monet token contracts", () => {
   it.each(MODE_TOKENS)("pairs every fill role with a foreground that meets the Color foundation's 4.5:1 minimum in %s mode", (_mode, tokens) => {
     const pairs = ["primary", "secondary", "accent", "highlight", "info", "success", "warning", "danger"];
     const failures = pairs.flatMap((role) => {
-      const ratio = contrast(resolvedColorIn(tokens, `color.on.${role}`), resolvedColorIn(tokens, `color.${role}`));
+      const ratio = contrastRatio(resolvedColorIn(tokens, `color.on.${role}`), resolvedColorIn(tokens, `color.${role}`));
       return ratio < 4.5 ? [`color.on.${role} on color.${role} is ${ratio.toFixed(2)}:1`] : [];
     });
     expect(failures).toEqual([]);
@@ -257,9 +236,8 @@ describe("Monet token contracts", () => {
 
   it.each(MODE_TOKENS)("keeps text roles readable on the default surface in %s mode", (_mode, tokens) => {
     const surface = resolvedColorIn(tokens, "color.surface");
-    const roles = ["color.foreground", "color.foreground.muted", "color.link", "color.info.foreground", "color.warning.foreground", "color.danger.foreground", "color.success.foreground", "color.primary.foreground"];
-    const failures = roles.flatMap((role) => {
-      const ratio = contrast(resolvedColorIn(tokens, role), surface);
+    const failures = TEXT_ROLES.flatMap((role) => {
+      const ratio = contrastRatio(resolvedColorIn(tokens, role), surface);
       return ratio < 4.5 ? [`${role} on color.surface is ${ratio.toFixed(2)}:1`] : [];
     });
     expect(failures).toEqual([]);
@@ -267,7 +245,7 @@ describe("Monet token contracts", () => {
 
   it.each(MODE_TOKENS)("holds every derived role clear of the floor, not merely above it, in %s mode", (_mode, tokens) => {
     const failures = DERIVED_TEXT_ROLES.flatMap(([role, backgrounds]) => backgrounds.flatMap((background) => {
-      const ratio = contrast(resolvedColorIn(tokens, role), resolvedColorIn(tokens, background));
+      const ratio = contrastRatio(resolvedColorIn(tokens, role), resolvedColorIn(tokens, background));
       return ratio < DERIVED_TEXT_MINIMUM ? [`${role} on ${background} is ${ratio.toFixed(2)}:1`] : [];
     }));
     expect(failures).toEqual([]);
@@ -276,21 +254,21 @@ describe("Monet token contracts", () => {
   it.each(MODE_TOKENS)("keeps the selection treatment the Color foundation prescribes readable on the selected surface in %s mode", (_mode, tokens) => {
     const selected = resolvedColorIn(tokens, "color.surface.selected");
     // Text and icons take the readable amethyst; color.primary is the fill and indicator, held to the 3:1 non-text rule.
-    expect(contrast(resolvedColorIn(tokens, "color.primary.foreground"), selected)).toBeGreaterThanOrEqual(4.5);
-    expect(contrast(resolvedColorIn(tokens, "color.primary"), selected)).toBeGreaterThanOrEqual(3);
+    expect(contrastRatio(resolvedColorIn(tokens, "color.primary.foreground"), selected)).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(resolvedColorIn(tokens, "color.primary"), selected)).toBeGreaterThanOrEqual(3);
   });
 
   it.each(MODE_TOKENS)("keeps the default foreground readable on every tinted status and state surface in %s mode", (_mode, tokens) => {
     const foreground = resolvedColorIn(tokens, "color.foreground");
-    const surfaces = [
-      "color.info.surface", "color.success.surface", "color.warning.surface", "color.danger.surface",
-      "color.surface.hover", "color.surface.pressed", "color.surface.selected", "color.surface.disabled",
-    ];
-    const failures = surfaces.flatMap((name) => {
-      const ratio = contrast(foreground, resolvedColorIn(tokens, name));
+    const failures = TINTED_SURFACES.flatMap((name) => {
+      const ratio = contrastRatio(foreground, resolvedColorIn(tokens, name));
       return ratio < 4.5 ? [`color.foreground on ${name} is ${ratio.toFixed(2)}:1`] : [];
     });
     expect(failures).toEqual([]);
+  });
+
+  it.each(MODE_TOKENS)("holds every colour contract validate enforces in %s mode, so the suite and validate agree", (mode, tokens) => {
+    expect(contrastFailures(tokens, mode).map((failure) => `${failure.foreground} on ${failure.background} is ${failure.ratio.toFixed(2)}:1`)).toEqual([]);
   });
 
   it("keeps the light status text roles identical to their fills, so light mode did not change", () => {
@@ -322,11 +300,11 @@ describe("Monet dark mode", () => {
   it("actually darkens the page and content surfaces", () => {
     const background = String(dark.get("color.background")!.resolved_value);
     const surface = String(dark.get("color.surface")!.resolved_value);
-    expect(luminance(background)).toBeLessThan(0.02);
-    expect(luminance(surface)).toBeLessThan(0.03);
-    expect(luminance(String(dark.get("color.foreground")!.resolved_value))).toBeGreaterThan(0.8);
+    expect(lum(background)).toBeLessThan(0.02);
+    expect(lum(surface)).toBeLessThan(0.03);
+    expect(lum(String(dark.get("color.foreground")!.resolved_value))).toBeGreaterThan(0.8);
     // The dark ramp keeps the light one's ordering: a higher neutral step is always darker.
-    const steps = ["neutral.350", "neutral.400", "neutral.500", "neutral.600", "neutral.800", "neutral.900", "neutral.925", "neutral.950", "neutral.975"].map((name) => luminance(String(light.get(name)!.resolved_value)));
+    const steps = ["neutral.350", "neutral.400", "neutral.500", "neutral.600", "neutral.800", "neutral.900", "neutral.925", "neutral.950", "neutral.975"].map((name) => lum(String(light.get(name)!.resolved_value)));
     expect(steps.every((value, index) => index === 0 || value < steps[index - 1]!)).toBe(true);
   });
 
@@ -360,7 +338,7 @@ describe("Monet dark mode", () => {
     // tints are deep enough that the lightened status text also reads on them, and that is held here
     // so a later tint cannot quietly take it away.
     const failures = ["info", "success", "warning", "danger"].flatMap((role) => {
-      const ratio = contrast(String(dark.get(`color.${role}.foreground`)!.resolved_value), String(dark.get(`color.${role}.surface`)!.resolved_value));
+      const ratio = contrastRatio(String(dark.get(`color.${role}.foreground`)!.resolved_value), String(dark.get(`color.${role}.surface`)!.resolved_value));
       return ratio < DERIVED_TEXT_MINIMUM ? [`color.${role}.foreground on color.${role}.surface is ${ratio.toFixed(2)}:1`] : [];
     });
     expect(failures).toEqual([]);

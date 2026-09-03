@@ -117,8 +117,52 @@ describe("Monet workspace validation", () => {
     };
     const findings = validateWorkspace(lightened);
     expect(findings.filter((finding) => finding.level === "error")).toEqual([]);
-    expect(findings.find((finding) => finding.check === "dark mode is actually dark")?.detail).toContain("default defines dark mode but color.background resolves to the light value #ffffff");
+    expect(findings.find((finding) => finding.check === "dark mode is actually dark")?.detail)
+      .toBe("default has a dark mode from Foundation dark values, but color.background resolves to #ffffff, which is not dark (Foundation dark value)");
     expect(validateWorkspace(workspace).filter((finding) => finding.check === "dark mode is actually dark")).toEqual([]);
+
+    // A theme can be the only reason a dark mode exists, and the warning says so rather than blaming the Foundations.
+    const lightOnly = { ...workspace, foundations: workspace.foundations.map((foundation) => ({ ...foundation, tokens: foundation.tokens.map(({ modes: _modes, ...token }) => token) })) };
+    const themeOnly = validateWorkspace({ ...lightOnly, themes: [{ id: "product", name: "Product", overrides: {}, modes: { dark: { "color.background": "#fafafa" } }, updated_at: "" }] });
+    expect(themeOnly.filter((finding) => finding.level === "error")).toEqual([]);
+    expect(themeOnly.find((finding) => finding.check === "dark mode is actually dark")?.detail)
+      .toBe("product has a dark mode only from its own dark overrides, but color.background resolves to #fafafa, which is not dark (product dark override)");
+    // Without dark values anywhere the workspace is light-only, and light-only says nothing about dark.
+    const stillLight = validateWorkspace({ ...lightOnly, themes: [{ id: "product", name: "Product", overrides: {}, updated_at: "" }] });
+    expect(stillLight.filter((finding) => finding.level === "error" || finding.detail.includes("(dark)") || finding.check === "dark mode is actually dark")).toEqual([]);
+  });
+
+  it("holds every theme to the colour contracts in every mode, and blames the layer that broke one", async () => {
+    const workspace = await loadWorkspace();
+    // A theme written before modes existed pins light values in `overrides`, which applies in every
+    // mode: the light resolution is unchanged, and the dark resolution puts light text on a white surface.
+    const legacy = { id: "legacy", name: "Legacy", overrides: { "color.surface": "#ffffff", "color.background": "#ecf0f1" }, updated_at: "" };
+    const findings = validateWorkspace({ ...workspace, themes: [...workspace.themes, legacy] });
+    const errors = findings.filter((finding) => finding.level === "error").map((finding) => `${finding.check}: ${finding.detail}`);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors.filter((detail) => !detail.startsWith("colour pairings meet their contrast minimum: legacy (dark): "))).toEqual([]);
+    expect(errors).toEqual(expect.arrayContaining([
+      expect.stringMatching(/legacy \(dark\): color\.foreground on color\.surface is 1\.\d\d:1, below the 4\.5:1 text minimum \(color\.foreground: #[0-9a-f]{6}, Foundation dark value; color\.surface: #ffffff, legacy override, applied in every mode\)$/),
+      expect.stringMatching(/legacy \(dark\): color\.border\.strong on color\.surface is [\d.]+:1, below the 3:1 non-text minimum/),
+      expect.stringMatching(/legacy \(dark\): color\.focus on color\.surface is [\d.]+:1, below the 3:1 non-text minimum/),
+    ]));
+    // The theme's light resolution and the default theme are untouched.
+    expect(findings.filter((finding) => finding.detail.includes("(light)") || finding.detail.startsWith("default "))).toEqual([]);
+    expect(findings.find((finding) => finding.check === "dark mode is actually dark")?.detail)
+      .toBe("legacy has a dark mode from Foundation dark values, but color.background resolves to #ecf0f1, which is not dark (legacy override, applied in every mode)");
+
+    // A dark-only override outranks the every-mode override, which is the whole migration for such a theme.
+    const migrated = { ...legacy, modes: { dark: { "color.surface": "{neutral.950}", "color.background": "{neutral.975}" } } };
+    expect(validateWorkspace({ ...workspace, themes: [...workspace.themes, migrated] }).filter((finding) => finding.detail.startsWith("legacy"))).toEqual([]);
+
+    // A margin miss on a derived role is a warning, and a floor miss on a fixed pairing is an error, in light as in dark.
+    const tinted = { id: "tinted", name: "Tinted", overrides: { "color.link": "#2c7aab", "color.on.primary": "#d9c8e2" }, updated_at: "" };
+    const tintedFindings = validateWorkspace({ ...workspace, themes: [tinted] }).filter((finding) => finding.detail.startsWith("tinted (light)"));
+    expect(tintedFindings.map((finding) => `${finding.level}: ${finding.check}`)).toEqual(expect.arrayContaining([
+      "warning: derived colour roles keep their contrast margin",
+      "error: colour pairings meet their contrast minimum",
+    ]));
+    expect(tintedFindings.find((finding) => finding.level === "warning")?.detail).toMatch(/color\.link on color\.surface is 4\.\d\d:1, below Monet's 4\.75:1 margin for a derived role \(color\.link: #2c7aab, tinted override, applied in every mode; color\.surface: #ffffff, Base Monet value\)/);
   });
 
   it("summarises a healthy workspace as OK", async () => {

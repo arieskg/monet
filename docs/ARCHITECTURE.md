@@ -63,8 +63,11 @@ replaced values carried the change, so a Borders token that only aliases
 The bundled starter workspace keeps every fill role and every `color.on.*`
 foreground identical across modes and moves only surfaces, text, borders, tinted
 status surfaces, focus, shadows, and the scrim. That is a decision of the
-workspace, not of the tool; `validate` holds a workspace only to resolving in
-every mode it claims and to a dark background that is actually dark.
+workspace, not of the tool; `validate` holds a workspace to resolving in every
+mode it claims, to a dark background that is actually dark, and to the contrast
+contracts in `shared/contrast.ts` for every theme in every mode, naming the
+layer — Foundation mode value, every-mode theme override, or mode-specific theme
+override — that produced each failing value.
 
 Canonical storage remains unchanged:
 

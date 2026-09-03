@@ -72,6 +72,13 @@ guessing.
 - Every theme resolves in every mode it supports, including its dark values and
   dark-only overrides; a theme override names a real token; a token's `modes`
   names only `dark`.
+- Every documented colour pairing meets its contrast minimum in every theme and
+  mode: text roles on the surfaces they are verified against at 4.5:1, control
+  boundaries, focus, and selection indicators at 3:1, and derived roles clear of
+  the floor at 4.75:1. Pairings whose tokens a workspace does not define are not
+  measured. The list lives in `shared/contrast.ts`, where the test suite reads it
+  too. A miss below the WCAG floor is an error; a miss of Monet's margin alone is
+  a warning.
 - Every component decision has a matching entry in the component taxonomy.
 - Component `foundations` and `primitives` links, taxonomy `relationships`, and
   pattern `components`/`foundations` links all name records that exist.

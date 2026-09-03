@@ -93,9 +93,11 @@ MONET_ROOT=~/design pnpm validate
 ```
 
 `validate` reports broken token references, dangling component and pattern
-links, undecided records that still claim an approved source, and preference
-values that break the compact contract. Errors mean tools reading the workspace
-will misbehave; warnings mean a record is incomplete but usable.
+links, undecided records that still claim an approved source, preference
+values that break the compact contract, and colour pairings that fall below the
+contrast the Color foundation documents, measured for every theme in every mode
+it supports. Errors mean tools reading the workspace will misbehave; warnings
+mean a record is incomplete but usable.
 
 ```bash
 pnpm check    # build, lint, test, and validate
