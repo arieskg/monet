@@ -1,0 +1,193 @@
+{
+  "id": "spacing",
+  "name": "Spacing",
+  "status": "selected",
+  "description": "A compact, predictable spacing system for component internals, grouping, layout rhythm, and page-level separation.",
+  "rationale": "Use a four-pixel foundation with a deliberately limited set of larger steps. This closely matches the spacing approaches used across modern product design systems: Fluent uses a 4px base, Primer uses a scale centered on 4, 8, 16, 24, 32, 40, 48, 64, and 80px, Carbon uses 2, 4, 8, 12, 16, 24, 32, 40, 48, 64, and 80px, and Atlassian similarly provides progressively larger spacing from compact component internals through page layout.  The resulting Monet scale favors compact application interfaces while providing enough range to express clear grouping and hierarchy without arbitrary one-off values.",
+  "guidance": "Use spacing to communicate relationships before adding borders, containers, or other visual separators. Use 4px for very tight relationships such as an icon and nearby supporting content; 8px for tightly related controls and small internal gaps; 12px for compact component padding; 16px as the default spacing between related component regions; 20px and 24px for larger component padding and separation between groups; 32px for sections within a page; and 40px to 80px for major layout regions. Prefer CSS gap and parent container padding over margins that leak spacing outside reusable components, following the same compositional approach used by Primer.  Do not use arbitrary values such as 13px, 18px, or 27px when an established spacing token provides a sufficiently close result. Preserve spacing and content usability when text is enlarged or layouts become responsive.",
+  "notes": "The core scale is 0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64, and 80px. This intentionally avoids an exhaustive mathematical scale and instead keeps the values repeatedly useful in modern product interfaces. Atlassian and Carbon also expose 2px for exceptional micro-spacing, but Monet omits it from the normal scale for now to reinforce the 4px rhythm; add a 2px micro token later only if real component work demonstrates a recurring need. ",
+  "order": 2,
+  "tokens": [
+    {
+      "id": "space-0",
+      "name": "space.0",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "0px",
+      "description": "No spacing. Use only when elements intentionally touch or a default gap must be removed.",
+      "order": 0
+    },
+    {
+      "id": "space-1",
+      "name": "space.1",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "4px",
+      "description": "Tight spacing for closely related content, icon-to-label gaps, and compact internal relationships.",
+      "order": 1
+    },
+    {
+      "id": "space-2",
+      "name": "space.2",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "8px",
+      "description": "Small spacing for related controls, repeated elements, compact stacks, and common component internals.",
+      "order": 2
+    },
+    {
+      "id": "space-3",
+      "name": "space.3",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "12px",
+      "description": "Compact component padding and spacing where 8px is too tight and 16px is unnecessarily loose.",
+      "order": 3
+    },
+    {
+      "id": "space-4",
+      "name": "space.4",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "16px",
+      "description": "Default spacing unit between related component regions and a common padding value for product UI.",
+      "order": 4
+    },
+    {
+      "id": "space-5",
+      "name": "space.5",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "20px",
+      "description": "Intermediate spacing for larger controls, panels, and layouts that need slightly more separation than the default.",
+      "order": 5
+    },
+    {
+      "id": "space-6",
+      "name": "space.6",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "24px",
+      "description": "Comfortable spacing between grouped component regions, card sections, form groups, and larger component internals.",
+      "order": 6
+    },
+    {
+      "id": "space-8",
+      "name": "space.8",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "32px",
+      "description": "Section-level spacing that creates clear separation while maintaining a compact application layout.",
+      "order": 7
+    },
+    {
+      "id": "space-10",
+      "name": "space.10",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "40px",
+      "description": "Large spacing for prominent groups and layout transitions.",
+      "order": 8
+    },
+    {
+      "id": "space-12",
+      "name": "space.12",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "48px",
+      "description": "Large layout spacing between major content regions.",
+      "order": 9
+    },
+    {
+      "id": "space-16",
+      "name": "space.16",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "64px",
+      "description": "Major page-level separation used sparingly between distinct regions.",
+      "order": 10
+    },
+    {
+      "id": "space-20",
+      "name": "space.20",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "80px",
+      "description": "Largest standard spacing value for strong page-level separation and spacious layouts; use sparingly in dense product UI.",
+      "order": 11
+    },
+    {
+      "id": "space-inline-gap",
+      "name": "space.inline-gap",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{space.1}",
+      "description": "Default tight gap between directly related inline elements such as an icon and text.",
+      "order": 12
+    },
+    {
+      "id": "space-control-gap",
+      "name": "space.control-gap",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{space.2}",
+      "description": "Default spacing between closely related controls and repeated interactive elements.",
+      "order": 13
+    },
+    {
+      "id": "space-component-gap",
+      "name": "space.component-gap",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{space.4}",
+      "description": "Default gap between related component regions.",
+      "order": 14
+    },
+    {
+      "id": "space-group-gap",
+      "name": "space.group-gap",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{space.6}",
+      "description": "Default separation between distinct groups of related content or controls.",
+      "order": 15
+    },
+    {
+      "id": "space-section-gap",
+      "name": "space.section-gap",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{space.8}",
+      "description": "Default separation between sections within the same page or major container.",
+      "order": 16
+    },
+    {
+      "id": "space-region-gap",
+      "name": "space.region-gap",
+      "foundation": "spacing",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{space.12}",
+      "description": "Default separation between major page regions where a stronger visual break is required.",
+      "order": 17
+    }
+  ],
+  "updated_at": "2026-09-01T19:50:03.838Z"
+}

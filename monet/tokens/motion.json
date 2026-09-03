@@ -1,0 +1,69 @@
+{
+  "foundation": "motion",
+  "tokens": [
+    {
+      "id": "motion-fast",
+      "name": "motion.fast",
+      "foundation": "motion",
+      "type": "duration",
+      "level": "primitive",
+      "value": "120ms",
+      "description": "Fast duration for hover, focus, opacity, color, pressed states, and other small immediate transitions.",
+      "order": 0,
+      "resolved_value": "120ms",
+      "valid": true,
+      "base_resolved_value": "120ms",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "motion-standard",
+      "name": "motion.standard",
+      "foundation": "motion",
+      "type": "duration",
+      "level": "primitive",
+      "value": "180ms",
+      "description": "Default duration for menus, popovers, disclosure, selection changes, and most visible product-interface transitions.",
+      "order": 1,
+      "resolved_value": "180ms",
+      "valid": true,
+      "base_resolved_value": "180ms",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "motion-slow",
+      "name": "motion.slow",
+      "foundation": "motion",
+      "type": "duration",
+      "level": "primitive",
+      "value": "280ms",
+      "description": "Upper standard duration for dialogs, drawers, expanding regions, and larger spatial transitions that benefit from clearer continuity.",
+      "order": 2,
+      "resolved_value": "280ms",
+      "valid": true,
+      "base_resolved_value": "280ms",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "ease-standard",
+      "name": "ease.standard",
+      "foundation": "motion",
+      "type": "cubic-bezier",
+      "level": "semantic",
+      "value": "cubic-bezier(0.2, 0, 0, 1)",
+      "description": "Default productive easing with a responsive start and smooth deceleration for most interface motion.",
+      "order": 3,
+      "resolved_value": "cubic-bezier(0.2, 0, 0, 1)",
+      "valid": true,
+      "base_resolved_value": "cubic-bezier(0.2, 0, 0, 1)",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    }
+  ]
+}

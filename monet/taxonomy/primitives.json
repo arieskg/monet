@@ -1,0 +1,339 @@
+[
+  {
+    "id": "layout",
+    "name": "Layout",
+    "entries": [
+      {
+        "id": "box",
+        "name": "Box",
+        "category": "layout",
+        "description": "A neutral element that applies layout, spacing, and surface tokens.",
+        "aliases": [
+          "view",
+          "div",
+          "container-base"
+        ],
+        "relationships": [
+          "stack",
+          "surface"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "stack",
+        "name": "Stack",
+        "category": "layout",
+        "description": "Arranges children along one axis with a consistent tokenized gap.",
+        "aliases": [
+          "vstack",
+          "vertical-stack"
+        ],
+        "relationships": [
+          "box",
+          "inline",
+          "flex"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "inline",
+        "name": "Inline",
+        "category": "layout",
+        "description": "Arranges related children horizontally with wrapping and consistent gaps.",
+        "aliases": [
+          "hstack",
+          "inline-stack"
+        ],
+        "relationships": [
+          "stack",
+          "flex"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "flex",
+        "name": "Flex",
+        "category": "layout",
+        "description": "Exposes deliberate one-dimensional alignment and distribution.",
+        "aliases": [
+          "flexbox"
+        ],
+        "relationships": [
+          "stack",
+          "inline",
+          "grid"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "grid",
+        "name": "Grid",
+        "category": "layout",
+        "description": "Creates tokenized two-dimensional tracks and gaps.",
+        "aliases": [
+          "layout-grid"
+        ],
+        "relationships": [
+          "box",
+          "flex"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "container",
+        "name": "Container",
+        "category": "layout",
+        "description": "Constrains content width and applies responsive gutters.",
+        "aliases": [
+          "page-container",
+          "content-width"
+        ],
+        "relationships": [
+          "box",
+          "center"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "center",
+        "name": "Center",
+        "category": "layout",
+        "description": "Centers one child or a constrained content region.",
+        "aliases": [
+          "centered"
+        ],
+        "relationships": [
+          "box",
+          "container"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "spacer",
+        "name": "Spacer",
+        "category": "layout",
+        "description": "Introduces intentional flexible or fixed space when structural gaps are insufficient.",
+        "aliases": [
+          "space"
+        ],
+        "relationships": [
+          "stack",
+          "inline"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "separator",
+        "name": "Separator",
+        "category": "layout",
+        "description": "Creates a semantic visual division between adjacent regions.",
+        "aliases": [
+          "divider",
+          "rule"
+        ],
+        "relationships": [
+          "box"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "aspect-ratio",
+        "name": "Aspect Ratio",
+        "category": "layout",
+        "description": "Maintains a proportional box for media or previews.",
+        "aliases": [
+          "ratio-box"
+        ],
+        "relationships": [
+          "box"
+        ],
+        "deprecated": false
+      }
+    ]
+  },
+  {
+    "id": "typography",
+    "name": "Typography",
+    "entries": [
+      {
+        "id": "text",
+        "name": "Text",
+        "category": "typography",
+        "description": "Renders readable body, label, and metadata roles from typography and color tokens.",
+        "aliases": [
+          "body",
+          "copy"
+        ],
+        "relationships": [
+          "heading",
+          "code"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "heading",
+        "name": "Heading",
+        "category": "typography",
+        "description": "Expresses document hierarchy with semantic levels independent of visual size.",
+        "aliases": [
+          "title"
+        ],
+        "relationships": [
+          "text"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "code",
+        "name": "Code",
+        "category": "typography",
+        "description": "Renders inline or block technical text with a monospaced role.",
+        "aliases": [
+          "mono",
+          "code-text"
+        ],
+        "relationships": [
+          "text"
+        ],
+        "deprecated": false
+      }
+    ]
+  },
+  {
+    "id": "interaction",
+    "name": "Interaction",
+    "entries": [
+      {
+        "id": "pressable",
+        "name": "Pressable",
+        "category": "interaction",
+        "description": "Normalizes pointer, keyboard, disabled, and pressed behavior for interactive surfaces.",
+        "aliases": [
+          "clickable",
+          "interactive"
+        ],
+        "relationships": [
+          "focus-ring",
+          "accessible-label"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "focus-ring",
+        "name": "Focus Ring",
+        "category": "interaction",
+        "description": "Applies a consistent visible keyboard-focus treatment without changing layout.",
+        "aliases": [
+          "focus-visible",
+          "focus-outline"
+        ],
+        "relationships": [
+          "pressable"
+        ],
+        "deprecated": false
+      }
+    ]
+  },
+  {
+    "id": "visual",
+    "name": "Visual",
+    "entries": [
+      {
+        "id": "icon",
+        "name": "Icon",
+        "category": "visual",
+        "description": "Renders a size- and color-controlled symbol with explicit accessibility behavior.",
+        "aliases": [
+          "glyph",
+          "symbol"
+        ],
+        "relationships": [
+          "text",
+          "accessible-label"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "surface",
+        "name": "Surface",
+        "category": "visual",
+        "description": "Applies semantic background, border, radius, and elevation roles to a region.",
+        "aliases": [
+          "panel",
+          "layer"
+        ],
+        "relationships": [
+          "box"
+        ],
+        "deprecated": false
+      }
+    ]
+  },
+  {
+    "id": "accessibility",
+    "name": "Accessibility",
+    "entries": [
+      {
+        "id": "visually-hidden",
+        "name": "Visually Hidden",
+        "category": "accessibility",
+        "description": "Keeps meaningful content available to assistive technology without displaying it visually.",
+        "aliases": [
+          "screen-reader-only",
+          "sr-only"
+        ],
+        "relationships": [
+          "accessible-label"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "accessible-label",
+        "name": "Accessible Label",
+        "category": "accessibility",
+        "description": "Provides a programmatic name when visible text does not already label an element.",
+        "aliases": [
+          "aria-label",
+          "label"
+        ],
+        "relationships": [
+          "visually-hidden"
+        ],
+        "deprecated": false
+      }
+    ]
+  },
+  {
+    "id": "infrastructure",
+    "name": "Infrastructure",
+    "entries": [
+      {
+        "id": "portal",
+        "name": "Portal",
+        "category": "infrastructure",
+        "description": "Renders layered content outside normal DOM ancestry while preserving ownership.",
+        "aliases": [
+          "teleport"
+        ],
+        "relationships": [
+          "slot"
+        ],
+        "deprecated": false
+      },
+      {
+        "id": "slot",
+        "name": "Slot",
+        "category": "infrastructure",
+        "description": "Composes behavior and semantics onto a caller-provided element.",
+        "aliases": [
+          "as-child",
+          "polymorphic-slot"
+        ],
+        "relationships": [
+          "portal"
+        ],
+        "deprecated": false
+      }
+    ]
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "monet": {
+      "command": "pnpm",
+      "args": ["--dir", "/absolute/path/to/monet", "mcp"],
+      "env": {
+        "MONET_ROOT": "/absolute/path/to/your-design-system"
+      }
+    }
+  }
+}

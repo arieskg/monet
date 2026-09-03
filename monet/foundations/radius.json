@@ -1,0 +1,93 @@
+{
+  "id": "radius",
+  "name": "Radius",
+  "status": "selected",
+  "description": "Corner rounding for controls, surfaces, pills, and nested composition.",
+  "rationale": "Moderate rounding feels approachable while preserving a precise, tool-like character. The scale is deliberately short and role-assigned rather than open: controls get one radius, elevated and floating surfaces get the next step up, and pills and circular elements get the full value. Fixing the mapping from role to radius is what keeps a page from accumulating four near-identical curves, which is the most common way a rounded interface starts to look accidental.",
+  "guidance": "Use radius.control for interactive controls — buttons, inputs, selects, checkboxes, segmented items, tags, and menu items. Use radius.lg for elevated and floating surfaces: cards, panels, popovers, menus, dialogs, drawers, and toasts. Use radius.full only for pills, avatars, and circular icon buttons. Use radius.sm for small inline details such as swatches, code chips, and thumbnails, radius.xs for hairline details such as progress tracks and scrollbar thumbs, and radius.none where a surface meets a viewport or container edge.\n\nWhen one rounded element sits inside another, the inner radius should be smaller than the outer one by roughly the padding between them; if that would make them nearly equal, drop the inner radius to zero instead. Full-bleed content inside a rounded surface — a table header, an image, a media strip — inherits the parent's radius on the corners it touches and stays square elsewhere. Keep one radius family per region.",
+  "notes": "Do not mix several nearby radii in one region. radius.md is the only value referenced by radius.control, so changing control rounding across a product is a single-token change rather than a component-by-component edit; prefer overriding radius.control in a theme over introducing a new step. The scale intentionally stops at xl — a rounder or squarer character is a theme decision, not a reason to add values here.",
+  "order": 3,
+  "tokens": [
+    {
+      "id": "radius-none",
+      "name": "radius.none",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "0px",
+      "description": "Square corners for surfaces that meet a viewport, container, or adjacent element edge.",
+      "order": 0
+    },
+    {
+      "id": "radius-xs",
+      "name": "radius.xs",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "2px",
+      "description": "Hairline rounding for progress tracks, scrollbar thumbs, and other small decorative details.",
+      "order": 1
+    },
+    {
+      "id": "radius-sm",
+      "name": "radius.sm",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "4px",
+      "description": "Small rounding for inline details such as swatches, code chips, thumbnails, and nested elements inside a rounded control.",
+      "order": 2
+    },
+    {
+      "id": "radius-md",
+      "name": "radius.md",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "7px",
+      "description": "Standard rounding; controls reference it through radius.control, and inline regions such as an Alert use it directly.",
+      "order": 3
+    },
+    {
+      "id": "radius-lg",
+      "name": "radius.lg",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "12px",
+      "description": "Rounding for elevated and floating surfaces: cards, panels, popovers, menus, dialogs, drawers, and toasts.",
+      "order": 4
+    },
+    {
+      "id": "radius-xl",
+      "name": "radius.xl",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "16px",
+      "description": "Largest standard rounding, reserved for full-screen sheets and large feature surfaces.",
+      "order": 5
+    },
+    {
+      "id": "radius-full",
+      "name": "radius.full",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "9999px",
+      "description": "Fully rounded ends for pills, avatars, circular icon buttons, and status dots.",
+      "order": 6
+    },
+    {
+      "id": "radius-control",
+      "name": "radius.control",
+      "foundation": "radius",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "{radius.md}",
+      "description": "Default radius for interactive controls. Prefer this over radius.md in component code so control rounding stays themeable in one place.",
+      "order": 7
+    }
+  ],
+  "updated_at": "2026-09-02T17:30:00.000Z"
+}

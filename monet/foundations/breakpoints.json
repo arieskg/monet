@@ -1,0 +1,43 @@
+{
+  "id": "breakpoints",
+  "name": "Breakpoints",
+  "status": "selected",
+  "description": "A small responsive breakpoint system for page-level layout adaptation, navigation changes, and workspace expansion.",
+  "rationale": "Use a limited set of viewport breakpoints so responsive behavior stays predictable across products while allowing individual components to respond intrinsically to the space they actually receive. The selected thresholds align with common modern web patterns: a small breakpoint near 480px for wide-phone transitions, a medium breakpoint near 768px for tablet and multi-column changes, and a large breakpoint near 1024px for desktop workspace behavior. This keeps the system familiar, easy for agents to apply, and compatible with common CSS frameworks and design-system conventions without overfitting to specific devices.",
+  "guidance": "Design mobile-first and let content determine when layout changes are necessary. Use intrinsic sizing, wrapping, flex/grid behavior, and container queries for component-level responsiveness; use viewport breakpoints primarily for page shells, navigation, sidebars, major column changes, and other global layout adaptations. Use the small breakpoint for compact-to-expanded mobile treatments, the medium breakpoint for single-column to multi-column transitions and tablet layouts, and the large breakpoint for persistent desktop navigation, wider workspaces, and denser compositions. Avoid creating device-specific breakpoints such as iPhone or iPad sizes. Do not add a new breakpoint unless a recurring layout problem cannot be handled cleanly through intrinsic layout or the existing scale.",
+  "notes": "The scale is standardized to 480px, 768px, and 1024px. The previous 760px and 1050px values were close to common thresholds but offered little practical benefit over the more conventional 768px and 1024px values. Keeping familiar breakpoint values makes implementation easier across CSS, Tailwind-style utilities, component libraries, and agent-generated projects. Add an extra-large breakpoint later only if repeated data-heavy desktop layouts demonstrate a real need beyond the current wide-layout token.",
+  "order": 10,
+  "tokens": [
+    {
+      "id": "breakpoint-sm",
+      "name": "breakpoint.sm",
+      "foundation": "breakpoints",
+      "type": "breakpoint",
+      "level": "primitive",
+      "value": "480px",
+      "description": "Wide-phone and compact-layout threshold for modest increases in spacing, control arrangement, and available horizontal composition.",
+      "order": 0
+    },
+    {
+      "id": "breakpoint-md",
+      "name": "breakpoint.md",
+      "foundation": "breakpoints",
+      "type": "breakpoint",
+      "level": "primitive",
+      "value": "768px",
+      "description": "Primary tablet and responsive-layout threshold for single-column to multi-column changes, expanded navigation, and broader content composition.",
+      "order": 1
+    },
+    {
+      "id": "breakpoint-lg",
+      "name": "breakpoint.lg",
+      "foundation": "breakpoints",
+      "type": "breakpoint",
+      "level": "primitive",
+      "value": "1024px",
+      "description": "Desktop workspace threshold for persistent navigation, wider grids, denser layouts, and more complex application composition.",
+      "order": 2
+    }
+  ],
+  "updated_at": "2026-09-01T20:59:37.665Z"
+}

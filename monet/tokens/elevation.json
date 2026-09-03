@@ -1,0 +1,53 @@
+{
+  "foundation": "elevation",
+  "tokens": [
+    {
+      "id": "shadow-raised",
+      "name": "shadow.raised",
+      "foundation": "elevation",
+      "type": "shadow",
+      "level": "primitive",
+      "value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
+      "description": "Subtle elevation for lightweight floating or raised elements that need gentle separation from the surrounding surface.",
+      "order": 0,
+      "resolved_value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
+      "valid": true,
+      "base_resolved_value": "0 1px 2px rgb(44 62 80 / 0.08), 0 2px 6px rgb(44 62 80 / 0.06)",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "shadow-overlay",
+      "name": "shadow.overlay",
+      "foundation": "elevation",
+      "type": "shadow",
+      "level": "primitive",
+      "value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
+      "description": "Medium elevation for dropdowns, menus, popovers, tooltips, and temporary floating surfaces.",
+      "order": 1,
+      "resolved_value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
+      "valid": true,
+      "base_resolved_value": "0 4px 12px rgb(44 62 80 / 0.10), 0 12px 28px rgb(44 62 80 / 0.12)",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "shadow-dialog",
+      "name": "shadow.dialog",
+      "foundation": "elevation",
+      "type": "shadow",
+      "level": "primitive",
+      "value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
+      "description": "Strongest standard elevation for dialogs, modals, and major temporary surfaces above the main application layer.",
+      "order": 2,
+      "resolved_value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
+      "valid": true,
+      "base_resolved_value": "0 8px 24px rgb(44 62 80 / 0.14), 0 24px 64px rgb(44 62 80 / 0.18)",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    }
+  ]
+}

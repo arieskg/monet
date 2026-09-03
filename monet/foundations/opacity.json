@@ -1,0 +1,43 @@
+{
+  "id": "opacity",
+  "name": "Opacity",
+  "status": "selected",
+  "description": "A restrained transparency system for disabled elements, secondary visual content, and modal backdrops.",
+  "rationale": "Use opacity sparingly and only when transparency itself communicates state or layering. Semantic colors should handle most hierarchy and muted-content needs because they provide more predictable contrast than reducing the opacity of an entire element. A small set of purpose-specific opacity roles prevents arbitrary transparency values and keeps disabled and overlay treatments consistent across the interface.",
+  "guidance": "Prefer semantic foreground, surface, and border colors for normal hierarchy instead of reducing opacity. Use disabled opacity only when a component cannot express its disabled state through dedicated semantic colors; ensure disabled content remains recognizable and do not use opacity as the only indication that an element is disabled. Use muted opacity primarily for decorative, supplementary, or nonessential visual content rather than required text. Use the scrim opacity with a dark backdrop behind dialogs, drawers, and other modal surfaces to separate the active layer without unnecessarily obscuring context. Never reduce opacity on text that must meet accessibility contrast requirements. Avoid stacking partially transparent parent and child elements because the resulting opacity becomes difficult to predict.",
+  "notes": "The system intentionally contains only three semantic opacity roles. Normal content should remain fully opaque and use the Color foundation for visual hierarchy. The disabled value is set to 0.5 as a predictable midpoint, muted decorative content to 0.72 for subtle de-emphasis, and modal scrims to 0.4 for clear layer separation while preserving background context. Add additional opacity roles only when a recurring interaction or visual-layer requirement cannot be represented through semantic colors.",
+  "order": 8,
+  "tokens": [
+    {
+      "id": "opacity-disabled",
+      "name": "opacity.disabled",
+      "foundation": "opacity",
+      "type": "number",
+      "level": "semantic",
+      "value": 0.5,
+      "description": "Fallback opacity for disabled controls and visual elements when dedicated disabled semantic colors are unavailable or insufficient.",
+      "order": 0
+    },
+    {
+      "id": "opacity-muted",
+      "name": "opacity.muted",
+      "foundation": "opacity",
+      "type": "number",
+      "level": "semantic",
+      "value": 0.72,
+      "description": "De-emphasis for decorative, supplementary, or nonessential visual content; avoid using it for required readable text.",
+      "order": 1
+    },
+    {
+      "id": "opacity-scrim",
+      "name": "opacity.scrim",
+      "foundation": "opacity",
+      "type": "number",
+      "level": "semantic",
+      "value": 0.4,
+      "description": "Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces.",
+      "order": 2
+    }
+  ],
+  "updated_at": "2026-09-01T20:58:17.745Z"
+}

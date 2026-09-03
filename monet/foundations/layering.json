@@ -1,0 +1,63 @@
+{
+  "id": "layering",
+  "name": "Z-index / Layering",
+  "status": "selected",
+  "description": "A small semantic stacking system for normal content, sticky interface regions, temporary overlays, modal surfaces, and global feedback.",
+  "rationale": "Use named semantic layers instead of arbitrary z-index values so stacking behavior remains predictable across components and projects. The scale should be intentionally sparse, with enough numerical space between roles to support local stacking contexts without encouraging escalation. Most layout should remain at the base layer; higher layers are reserved for persistent UI, temporary overlays, modal interactions, and global feedback.",
+  "guidance": "Use the lowest semantic layer that correctly expresses the spatial relationship. Keep normal content at the base layer whenever possible. Use the sticky layer for headers, toolbars, and controls that remain above scrolling content. Use the overlay layer for menus, popovers, dropdowns, tooltips, and similar temporary non-modal surfaces. Use the dialog layer for modal dialogs, drawers, and their associated scrims. Use the toast layer only for transient global feedback that must remain visible above other temporary surfaces. Do not invent arbitrary values such as 9999 or increase z-index to work around an incorrect stacking context; fix the stacking context instead. Components may use small local z-index values inside their own isolated stacking context without changing the global layer scale.",
+  "notes": "The existing five-role scale is sufficient for most product interfaces and should remain intentionally small. Large numeric gaps are retained between global roles so components can manage local sublayers without creating new global tiers. Add another global layer only when a recurring interface relationship cannot be represented by base, sticky, overlay, dialog, or toast.",
+  "order": 11,
+  "tokens": [
+    {
+      "id": "z-base",
+      "name": "z.base",
+      "foundation": "layering",
+      "type": "z-index",
+      "level": "primitive",
+      "value": 0,
+      "description": "Normal document content and the default stacking level for application UI.",
+      "order": 0
+    },
+    {
+      "id": "z-sticky",
+      "name": "z.sticky",
+      "foundation": "layering",
+      "type": "z-index",
+      "level": "semantic",
+      "value": 10,
+      "description": "Persistent headers, toolbars, sticky controls, and other interface regions that must remain above normal scrolling content.",
+      "order": 1
+    },
+    {
+      "id": "z-overlay",
+      "name": "z.overlay",
+      "foundation": "layering",
+      "type": "z-index",
+      "level": "semantic",
+      "value": 100,
+      "description": "Temporary non-modal surfaces such as menus, dropdowns, popovers, tooltips, and similar floating UI.",
+      "order": 2
+    },
+    {
+      "id": "z-dialog",
+      "name": "z.dialog",
+      "foundation": "layering",
+      "type": "z-index",
+      "level": "semantic",
+      "value": 200,
+      "description": "Modal dialogs, drawers, blocking overlays, and their associated scrims.",
+      "order": 3
+    },
+    {
+      "id": "z-toast",
+      "name": "z.toast",
+      "foundation": "layering",
+      "type": "z-index",
+      "level": "semantic",
+      "value": 300,
+      "description": "Transient global feedback that should remain visible above overlays and dialogs.",
+      "order": 4
+    }
+  ],
+  "updated_at": "2026-09-01T21:00:10.124Z"
+}

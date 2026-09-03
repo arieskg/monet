@@ -1,0 +1,83 @@
+{
+  "id": "layout",
+  "name": "Layout",
+  "status": "selected",
+  "description": "Responsive layout rules for the application shell, shared page geometry, readable content, dense working areas, navigation regions, gutters, and maximum content widths.",
+  "rationale": "Use a consistent outer page shell so primary application pages share the same horizontal origin, gutters, header geometry, and overall alignment. Content width may vary by task, but those variations should happen inside the shared page shell rather than through independent page wrappers. Narrow content should protect reading measure, default content should accommodate normal product workflows, and wide content should support tables, dashboards, timelines, and other information-dense views. Keeping outer geometry stable prevents visual drift between sections while still allowing individual workflows to use the amount of horizontal space they need.",
+  "guidance": "All primary Monet pages should use the same application shell and shared page container rather than defining their own outer margins, padding, or maximum widths. The page eyebrow, title, description, header actions, divider, and primary content region should share the same horizontal origin. Use layout.page-shell-max as the maximum width of the shared outer page container and layout.gutter-desktop or layout.gutter-mobile for its horizontal gutters. Individual pages should not override these values with arbitrary wrapper widths or padding. Use the narrow content width for prose, settings, forms, and focused workflows, but treat it as an inner content constraint aligned within the shared page shell rather than as a separately centered page container. Use the default content width for most product pages, lists, detail views, and mixed-content workflows. Use the wide content width for dashboards, tables, comparison views, timelines, and other interfaces that materially benefit from horizontal space. Width variants change the usable inner content area without changing the page's outer alignment contract. Master-detail layouts such as Foundations, Components, and Patterns should remain inside the shared page container; their list and detail columns may vary internally but must not redefine the outer page geometry. Keep navigation dimensions stable so the main workspace remains predictable. Use 16px horizontal gutters on narrow/mobile layouts and 24px on normal desktop layouts. Keep the sidebar near 240px when expanded; collapse or replace secondary navigation before squeezing the main workspace below a usable width. Prefer shared layout primitives such as AppShell, PageContainer, PageHeader, and reusable Grid or Flexbox layouts instead of page-specific coordinates. Allow data-heavy regions to use the wide content area when constraining them would reduce usability, but preserve the shared page origin and gutter. Avoid independently centering headers, content panels, or workspace regions with different max-width values.",
+  "notes": "The selected layout direction favors modern productivity software rather than editorial or marketing layouts. The critical distinction is between the shared page shell and the content width used inside it. Page-shell geometry is a product-level contract: primary pages should not independently redefine their horizontal origin, gutter, or outer maximum width. The 720px narrow width protects readable measure, 1200px supports normal product workflows, and 1440px supports information-dense interfaces. Narrow and default content should normally remain left-aligned within the shared shell rather than being independently centered, which prevents pages with different content widths from appearing horizontally misaligned. The sidebar remains normalized to 240px and the desktop gutter to 24px. Repeated internal structures such as list-and-detail workspaces should be documented as patterns rather than encoded as one-off page layout rules.",
+  "order": 6,
+  "tokens": [
+    {
+      "id": "layout-content-narrow",
+      "name": "layout.content-narrow",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "720px",
+      "description": "Maximum width for narrow inner content such as prose, forms, settings, and focused detail views. Apply inside the shared page shell and align to the shell's content origin rather than independently centering the region.",
+      "order": 0
+    },
+    {
+      "id": "layout-content-default",
+      "name": "layout.content-default",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "1200px",
+      "description": "Default maximum inner content width for most product pages, lists, detail views, and mixed application workflows within the shared page shell.",
+      "order": 1
+    },
+    {
+      "id": "layout-content-wide",
+      "name": "layout.content-wide",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "1440px",
+      "description": "Wide maximum inner content width for dashboards, tables, comparison interfaces, timelines, and other information-dense layouts while preserving the shared page origin and gutter.",
+      "order": 2
+    },
+    {
+      "id": "layout-sidebar",
+      "name": "layout.sidebar",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "240px",
+      "description": "Default expanded width for persistent primary or secondary application navigation. The application shell owns this dimension rather than individual pages.",
+      "order": 3
+    },
+    {
+      "id": "layout-gutter-mobile",
+      "name": "layout.gutter-mobile",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "16px",
+      "description": "Shared horizontal page-shell gutter for mobile and narrow viewports.",
+      "order": 4
+    },
+    {
+      "id": "layout-gutter-desktop",
+      "name": "layout.gutter-desktop",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "24px",
+      "description": "Shared horizontal page-shell gutter for desktop application layouts. Primary pages should inherit this value rather than define page-specific horizontal padding.",
+      "order": 5
+    },
+    {
+      "id": "layout-page-shell-max",
+      "name": "layout.page-shell-max",
+      "foundation": "layout",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "1440px",
+      "description": "Maximum width of the shared outer page container that establishes a consistent horizontal origin for page headers and primary content across Monet.",
+      "order": 6
+    }
+  ],
+  "updated_at": "2026-09-02T13:31:02.652Z"
+}

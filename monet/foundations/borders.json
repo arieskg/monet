@@ -1,0 +1,53 @@
+{
+  "id": "borders",
+  "name": "Borders",
+  "status": "selected",
+  "description": "A restrained border system for separating regions, drawing the boundary of an unfilled control, and marking keyboard focus, with every stroke color owned by the Color foundation.",
+  "rationale": "Use borders as a secondary structural tool rather than the primary method of creating hierarchy. Most grouping should come from spacing, typography, and surface contrast. Structure and interaction are different jobs, so the roles split by job rather than by taste: a subtle and a default stroke for structure, a strong stroke for the boundary of an unfilled control, and a focus stroke for keyboard focus. Each role references the matching Color role rather than repeating a hex, so a change to the palette cannot leave the two Foundations disagreeing about what a control's edge looks like.",
+  "guidance": "Use border.subtle for the quietest separators inside a surface — list rows, table rules, and divisions that should stay visually secondary. Use border.default for non-interactive structure: panels, cards, section edges, and container boundaries.\n\nUse border.strong for the resting boundary of an unfilled control — a text input, textarea, select trigger, search field, password field, combobox, checkbox box, or radio circle. That boundary is the only thing identifying the control as interactive, so it must clear the 3:1 non-text minimum, which border.default does not. This is the same decision the Color foundation states for color.border.strong; the two records must not diverge. A control that carries its own fill — a filled button, a checked checkbox, a selected segmented item — is identified by the fill and takes border.default or no border at all.\n\nUse border.focus exclusively for keyboard focus and active interaction states; the Interaction foundation owns the ring's width and offset. Prefer one-pixel borders for normal interface structure and control boundaries; reserve two pixels for focus. Prefer spacing and surface contrast over adding borders around every section, card, or content group. Avoid decorative borders, unnecessary double borders, and arbitrary stroke widths.",
+  "notes": "The system intentionally uses only four border roles. Normal structure and control boundaries remain 1px, while focus uses 2px for stronger visibility. Every role resolves through a Color role — color.border.subtle, color.border, color.border.strong, and color.focus — so border colors cannot drift from the Color foundation. Additional semantic states such as danger or selected borders should be added only when recurring component requirements demonstrate a need; a selected control today uses color.primary against color.surface.selected rather than a dedicated border token.",
+  "order": 4,
+  "tokens": [
+    {
+      "id": "border-subtle",
+      "name": "border.subtle",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "1px solid {color.border.subtle}",
+      "description": "Quietest separator inside a surface, for divisions that should remain visually secondary.",
+      "order": 0
+    },
+    {
+      "id": "border-default",
+      "name": "border.default",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "1px solid {color.border}",
+      "description": "Structural one-pixel border for panels, cards, section edges, and container boundaries.",
+      "order": 1
+    },
+    {
+      "id": "border-strong",
+      "name": "border.strong",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "1px solid {color.border.strong}",
+      "description": "Resting boundary of an unfilled control, meeting the 3:1 non-text minimum that the structural border does not.",
+      "order": 2
+    },
+    {
+      "id": "border-focus",
+      "name": "border.focus",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "2px solid {color.focus}",
+      "description": "High-visibility amethyst border for keyboard focus and interaction states that require an unmistakable boundary.",
+      "order": 3
+    }
+  ],
+  "updated_at": "2026-09-02T17:30:00.000Z"
+}

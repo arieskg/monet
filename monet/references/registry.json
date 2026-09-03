@@ -1,0 +1,124 @@
+[
+  {
+    "id": "linear-doc-pages",
+    "title": "Linear Doc Pages",
+    "type": "image",
+    "source_url": "https://linear.app/docs",
+    "source_domain": "linear.app",
+    "annotation": "I like how the page uses cards, and spacing and sidebar makes it easy to navigate and browse a doc",
+    "notes": "",
+    "asset_path": "assets/linear-doc-pages.png",
+    "asset_media_type": "image/png",
+    "original_filename": "image.png",
+    "preview_url": "",
+    "ai_tags": [
+      "documentation portal",
+      "help center",
+      "knowledge base home",
+      "persistent sidebar",
+      "top navigation bar",
+      "search button",
+      "theme control",
+      "sign-up button",
+      "accordion navigation groups",
+      "icon-led article cards",
+      "section headings",
+      "hierarchical sidebar navigation",
+      "expandable documentation categories",
+      "sectioned card grid",
+      "active navigation state",
+      "icon-title-description card anatomy",
+      "dark monochrome interface",
+      "thin low-contrast borders",
+      "generous content spacing",
+      "subtle rounded corners",
+      "muted secondary text",
+      "minimal iconography",
+      "large card surfaces",
+      "fixed-width left sidebar",
+      "full-width top bar",
+      "wide main content area",
+      "four-column card grid",
+      "consistent grid gutters",
+      "vertically stacked content sections",
+      "near-black page background",
+      "charcoal card surfaces",
+      "soft gray borders"
+    ],
+    "ai": {
+      "ui_types": [
+        "documentation portal",
+        "help center",
+        "knowledge base home"
+      ],
+      "components": [
+        "persistent sidebar",
+        "top navigation bar",
+        "search button",
+        "theme control",
+        "sign-up button",
+        "accordion navigation groups",
+        "icon-led article cards",
+        "section headings"
+      ],
+      "patterns": [
+        "hierarchical sidebar navigation",
+        "expandable documentation categories",
+        "sectioned card grid",
+        "active navigation state",
+        "icon-title-description card anatomy"
+      ],
+      "visual_characteristics": [
+        "dark monochrome interface",
+        "thin low-contrast borders",
+        "generous content spacing",
+        "subtle rounded corners",
+        "muted secondary text",
+        "minimal iconography",
+        "large card surfaces"
+      ],
+      "density": "Dense sidebar navigation paired with a spacious medium-density content grid",
+      "hierarchy": "Large page title and section headings lead; bright card titles follow; muted descriptions and sidebar labels are secondary.",
+      "layout": [
+        "fixed-width left sidebar",
+        "full-width top bar",
+        "wide main content area",
+        "four-column card grid",
+        "consistent grid gutters",
+        "vertically stacked content sections"
+      ],
+      "color": [
+        "near-black page background",
+        "charcoal card surfaces",
+        "soft gray borders",
+        "white primary text",
+        "cool gray secondary text"
+      ],
+      "typography": [
+        "clean sans-serif",
+        "large bold page title",
+        "semibold section and card titles",
+        "regular muted body copy",
+        "compact sidebar labels"
+      ],
+      "mood": [
+        "focused",
+        "polished",
+        "technical",
+        "calm",
+        "restrained"
+      ],
+      "observations": [
+        "The sidebar separates broad categories from expanded child links using chevrons and small icons.",
+        "The Issues category is expanded while neighboring categories remain collapsed.",
+        "Cards reserve a large upper area for a single icon and place text in a bordered lower panel.",
+        "The Docs destination is visibly active in the sidebar’s lower utility navigation.",
+        "A theme control and prominent light sign-up pill sit at the right edge of the top bar."
+      ],
+      "retrieval_text": "Dark, polished documentation home page with a dense hierarchical sidebar, generous spacing, and a wide four-column grid of tall icon-led article cards, useful as a reference for easy-to-browse product docs and knowledge-base navigation.",
+      "analyzed_at": "2026-09-02T13:43:37.088Z"
+    },
+    "created_at": "",
+    "updated_at": "2026-09-02T13:48:56.651Z"
+  }
+]

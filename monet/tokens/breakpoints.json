@@ -1,0 +1,53 @@
+{
+  "foundation": "breakpoints",
+  "tokens": [
+    {
+      "id": "breakpoint-sm",
+      "name": "breakpoint.sm",
+      "foundation": "breakpoints",
+      "type": "breakpoint",
+      "level": "primitive",
+      "value": "480px",
+      "description": "Wide-phone and compact-layout threshold for modest increases in spacing, control arrangement, and available horizontal composition.",
+      "order": 0,
+      "resolved_value": "480px",
+      "valid": true,
+      "base_resolved_value": "480px",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "breakpoint-md",
+      "name": "breakpoint.md",
+      "foundation": "breakpoints",
+      "type": "breakpoint",
+      "level": "primitive",
+      "value": "768px",
+      "description": "Primary tablet and responsive-layout threshold for single-column to multi-column changes, expanded navigation, and broader content composition.",
+      "order": 1,
+      "resolved_value": "768px",
+      "valid": true,
+      "base_resolved_value": "768px",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "breakpoint-lg",
+      "name": "breakpoint.lg",
+      "foundation": "breakpoints",
+      "type": "breakpoint",
+      "level": "primitive",
+      "value": "1024px",
+      "description": "Desktop workspace threshold for persistent navigation, wider grids, denser layouts, and more complex application composition.",
+      "order": 2,
+      "resolved_value": "1024px",
+      "valid": true,
+      "base_resolved_value": "1024px",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    }
+  ]
+}

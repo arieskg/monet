@@ -1,0 +1,23 @@
+# Optional. Monet needs only Node and pnpm; every task below is a plain pnpm script,
+# so `pnpm <task>` works identically without mise installed.
+
+[tools]
+# Vite 7 requires ^20.19.0 || >=22.12.0. Node 21.x and 22.0-22.11 are excluded.
+node = "20.19"
+pnpm = "11"
+
+[tasks.dev]
+description = "Run the Monet workspace UI and its loopback file service"
+run = "pnpm dev"
+
+[tasks.mcp]
+description = "Run Monet's read-only MCP server over stdio"
+run = "pnpm mcp"
+
+[tasks.validate]
+description = "Check the active workspace for integrity problems"
+run = "pnpm validate"
+
+[tasks.check]
+description = "Build, lint, test, and validate"
+run = "pnpm check"

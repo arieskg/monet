@@ -1,0 +1,37 @@
+{
+  "foundation": "interaction",
+  "tokens": [
+    {
+      "id": "focus-ring-width",
+      "name": "focus.ring.width",
+      "foundation": "interaction",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "2px",
+      "description": "Stroke width of the keyboard focus ring, matched to border.focus so outline and border expressions of focus stay identical.",
+      "order": 0,
+      "resolved_value": "2px",
+      "valid": true,
+      "base_resolved_value": "2px",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "focus-ring-offset",
+      "name": "focus.ring.offset",
+      "foundation": "interaction",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "2px",
+      "description": "Gap between an element's edge and its focus ring, keeping the ring clear of the element's own border and corner radius.",
+      "order": 1,
+      "resolved_value": "2px",
+      "valid": true,
+      "base_resolved_value": "2px",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    }
+  ]
+}

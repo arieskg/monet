@@ -1,0 +1,33 @@
+{
+  "id": "interaction",
+  "name": "Interaction states",
+  "status": "selected",
+  "description": "The canonical state model for every interactive element: rest, hover, focus, pressed, selected, disabled, read-only, loading, and invalid.",
+  "rationale": "Components disagree about states more often than they disagree about color or spacing, and an agent given only resting styles will invent hover and selected treatments per component. Monet therefore decides the state model once, centrally: which states exist, which visual channel each one owns, how they combine when several apply at the same time, and which token supplies each value. Keeping the channels separate — surface for hover and pressed, an outline ring for focus, surface plus a persistent indicator for selection, muted foreground for disabled — means states remain distinguishable when they stack, which is the case ordinary component documentation gets wrong.",
+  "guidance": "Every interactive element supports rest, hover, focus-visible, pressed, and disabled. Elements that persist a choice also support selected. Text-entry elements also support read-only and invalid. Elements that trigger asynchronous work also support loading.\n\nHover uses surface, not motion or size. Quiet elements move color.surface to color.surface.hover; filled elements move to their .hover role. Never move, resize, or elevate an element on hover, and never reveal an action's only affordance on hover — hover states do not exist on touch or for keyboard users.\n\nRest for an unfilled control is the boundary the Borders foundation calls border.strong, in color.border.strong; a control that carries its own fill rests on that fill instead. States change the surface, the ring, or the boundary color, never which role supplies the resting border.\n\nFocus uses an outline ring outside the element: focus.ring.width at focus.ring.offset in color.focus. Apply it on focus-visible only, so pointer users do not see rings on click. Never remove the ring without an equally visible replacement, and never rely on a border color change alone. The ring is drawn outside the element's box so it does not shift layout or get clipped by the element's own radius.\n\nPressed uses a step further in the same direction as hover: color.surface.pressed for quiet elements, the .pressed role for filled ones. Keep the transition at motion.fast so the response feels immediate. A menu or popover trigger stays in its pressed treatment for as long as its surface is open.\n\nSelected is persistent state, not a transient one, and must remain distinguishable from hover. Use color.surface.selected plus a second, non-color signal — a persistent indicator bar, a check, color.primary.foreground text, or a color.primary rail. A selected item under the pointer keeps its selected treatment; it does not fall back to the hover surface.\n\nDisabled uses color.surface.disabled and color.foreground.disabled, removes the element from the tab order, and suppresses hover, pressed, and focus treatments. Reserve opacity.disabled for elements that cannot express the state through semantic color. Disabled state must never be the only explanation of why something is unavailable: state the reason nearby, or keep the control enabled and explain the failure on activation. Prefer the latter when a user could plausibly want to know why.\n\nRead-only is not disabled. A read-only field keeps its text selectable, stays focusable and in the tab order, and reads as content rather than as a broken control. Use color.surface.subtle with normal foreground.\n\nInvalid uses color.danger for the field boundary plus a message adjacent to the field. Invalid and focus can apply at once, so the focus ring must remain visible over the danger boundary; this is why focus is a ring rather than a border color change.\n\nLoading preserves the element's dimensions, blocks repeat activation, and keeps the accessible name stable. Do not replace a label with a spinner in a way that changes the control's width.\n\nWhen several states apply, resolve in this order: disabled overrides everything; focus always renders on top of whatever else is showing; selected outranks hover and pressed; invalid outranks the resting boundary. Interaction targets follow size.target regardless of an element's visible size.",
+  "notes": "The state model is deliberately channel-separated. Surface carries hover and pressed, an outside ring carries focus, surface plus a persistent non-color indicator carries selection, and foreground carries disabled. Because no two states compete for the same channel, a control that is simultaneously selected, focused, and hovered still reads correctly without special-case styling.\n\nThe ring width matches border.focus so a component may express focus either as an outline or, where an outline cannot be drawn, as a two-pixel border in color.focus. The offset keeps the ring clear of the element's own border and radius.\n\nHover, pressed, selected, and disabled colors live in the Color foundation so themes override them in one place. This Foundation owns the state model, the combination rules, and focus geometry only. Add a state here only when it is genuinely global; states that belong to a single component belong in that component's decision record.",
+  "order": 7,
+  "tokens": [
+    {
+      "id": "focus-ring-width",
+      "name": "focus.ring.width",
+      "foundation": "interaction",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "2px",
+      "description": "Stroke width of the keyboard focus ring, matched to border.focus so outline and border expressions of focus stay identical.",
+      "order": 0
+    },
+    {
+      "id": "focus-ring-offset",
+      "name": "focus.ring.offset",
+      "foundation": "interaction",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "2px",
+      "description": "Gap between an element's edge and its focus ring, keeping the ring clear of the element's own border and corner radius.",
+      "order": 1
+    }
+  ],
+  "updated_at": "2026-09-02T17:30:00.000Z"
+}

@@ -1,0 +1,353 @@
+{
+  "id": "typography",
+  "name": "Typography",
+  "status": "selected",
+  "description": "A compact, modern typography system for product interfaces, data-heavy views, navigation, forms, and readable long-form content.",
+  "rationale": "Use Mona Sans as the primary interface typeface because it combines excellent readability at small sizes with a modern product-oriented character and enough personality to establish a recognizable visual identity without becoming decorative. Keep the scale intentionally restrained so hierarchy comes from size, weight, spacing, and contrast rather than oversized headings. Use a system monospace stack for code and technical content without requiring an additional font dependency.",
+  "guidance": "Use Mona Sans throughout product UI, navigation, forms, tables, dashboards, and readable prose. Use the monospace family for code, logs, technical identifiers, keyboard input, and content where fixed character widths improve comprehension. Use 14px for compact interface text and controls, 16px for standard body content, and 12px only for supporting metadata, captions, and low-emphasis labels. Use 20px for section headings, 24px for prominent headings and dialogs, and 32px for major page titles; avoid oversized typography in normal application UI. Use regular 400 for body text, entered values, text inputs, textareas, placeholders, helper text, and other editable content. Use medium 500 for field labels, buttons, controls, and navigation. Use semibold 600 for headings and reserve bold 700 for exceptional emphasis. Use sentence case. Use approximately 1.5 line height for body text, 1.4 for compact interface text, and 1.2 to 1.3 for headings. Keep long-form prose near 60 to 70 characters per line. Use tabular numerals for metrics, tables, dashboards, and changing numeric values. Establish hierarchy with the smallest effective change in size, weight, spacing, or color rather than increasing font size unnecessarily.\n\nUse Mona Sans for all interface labels, navigation, section labels, overlines, controls, and user-facing content. Reserve monospace typography for code, logs, technical identifiers, keyboard input, and content where fixed character widths provide functional value. Do not use monospace merely to create visual hierarchy or a technical aesthetic.",
+  "notes": "Primary typeface is Mona Sans. Recommended web stack: \"Mona Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif. Mona Sans provides the intended cross-platform visual identity while the fallback stack uses high-quality native or commonly available fonts when it cannot load. On Apple platforms, the system fallback naturally uses the platform system typeface. The scale is optimized for modern information-dense product interfaces rather than editorial or marketing layouts.",
+  "order": 1,
+  "tokens": [
+    {
+      "id": "font-family-sans",
+      "name": "font.family.sans",
+      "foundation": "typography",
+      "type": "font-family",
+      "level": "primitive",
+      "value": "\"Mona Sans\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+      "description": "Primary interface font stack with Mona Sans as the preferred typeface and high-quality platform fallbacks.",
+      "order": 0
+    },
+    {
+      "id": "font-family-mono",
+      "name": "font.family.mono",
+      "foundation": "typography",
+      "type": "font-family",
+      "level": "primitive",
+      "value": "ui-monospace, SFMono-Regular, \"SF Mono\", Menlo, Monaco, Consolas, \"Liberation Mono\", monospace",
+      "description": "Monospaced family for code, technical identifiers, keyboard input, logs, and fixed-width content.",
+      "order": 1
+    },
+    {
+      "id": "font-size-xs",
+      "name": "font.size.xs",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "primitive",
+      "value": "12px",
+      "description": "Supporting size for captions, metadata, timestamps, compact badges, helper text, and secondary labels.",
+      "order": 2
+    },
+    {
+      "id": "font-size-sm",
+      "name": "font.size.sm",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "primitive",
+      "value": "14px",
+      "description": "Primary compact interface size for controls, navigation, tables, labels, and information-dense UI.",
+      "order": 3
+    },
+    {
+      "id": "font-size-md",
+      "name": "font.size.md",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "primitive",
+      "value": "16px",
+      "description": "Default readable body size for primary content, descriptions, forms, and prose.",
+      "order": 4
+    },
+    {
+      "id": "font-size-lg",
+      "name": "font.size.lg",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "primitive",
+      "value": "20px",
+      "description": "Compact heading size for sections, panels, and prominent interface regions.",
+      "order": 5
+    },
+    {
+      "id": "font-size-xl",
+      "name": "font.size.xl",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "primitive",
+      "value": "24px",
+      "description": "Prominent heading size for dialogs, major sections, and compact page headings.",
+      "order": 6
+    },
+    {
+      "id": "font-size-2xl",
+      "name": "font.size.2xl",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "primitive",
+      "value": "32px",
+      "description": "Major page-title size and the normal upper limit for product-interface typography.",
+      "order": 7
+    },
+    {
+      "id": "font-weight-regular",
+      "name": "font.weight.regular",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "primitive",
+      "value": 400,
+      "description": "Default weight for body copy, editable text, placeholders, helper text, and other readable content.",
+      "order": 8
+    },
+    {
+      "id": "font-weight-medium",
+      "name": "font.weight.medium",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "primitive",
+      "value": 500,
+      "description": "Moderate emphasis for controls, labels, navigation, and important interface text.",
+      "order": 9
+    },
+    {
+      "id": "font-weight-semibold",
+      "name": "font.weight.semibold",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "primitive",
+      "value": 600,
+      "description": "Primary heading and strong-emphasis weight.",
+      "order": 10
+    },
+    {
+      "id": "font-weight-bold",
+      "name": "font.weight.bold",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "primitive",
+      "value": 700,
+      "description": "Strongest standard weight, reserved for exceptional emphasis rather than routine hierarchy.",
+      "order": 11
+    },
+    {
+      "id": "line-height-tight",
+      "name": "line.height.tight",
+      "foundation": "typography",
+      "type": "number",
+      "level": "primitive",
+      "value": 1.2,
+      "description": "Tight line height for large headings and short display text.",
+      "order": 12
+    },
+    {
+      "id": "line-height-heading",
+      "name": "line.height.heading",
+      "foundation": "typography",
+      "type": "number",
+      "level": "primitive",
+      "value": 1.3,
+      "description": "Default line height for headings and titles.",
+      "order": 13
+    },
+    {
+      "id": "line-height-compact",
+      "name": "line.height.compact",
+      "foundation": "typography",
+      "type": "number",
+      "level": "primitive",
+      "value": 1.4,
+      "description": "Compact line height for controls, navigation, tables, labels, and dense interface text.",
+      "order": 14
+    },
+    {
+      "id": "line-height-body",
+      "name": "line.height.body",
+      "foundation": "typography",
+      "type": "number",
+      "level": "primitive",
+      "value": 1.5,
+      "description": "Default line height for body text and general readable content.",
+      "order": 15
+    },
+    {
+      "id": "line-height-relaxed",
+      "name": "line.height.relaxed",
+      "foundation": "typography",
+      "type": "number",
+      "level": "primitive",
+      "value": 1.6,
+      "description": "Relaxed line height for longer prose when additional reading comfort is useful.",
+      "order": 16
+    },
+    {
+      "id": "letter-spacing-tight",
+      "name": "letter.spacing.tight",
+      "foundation": "typography",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "-0.02em",
+      "description": "Subtle negative tracking for larger headings where tighter spacing improves visual cohesion.",
+      "order": 17
+    },
+    {
+      "id": "letter-spacing-normal",
+      "name": "letter.spacing.normal",
+      "foundation": "typography",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "0em",
+      "description": "Default tracking for body text, controls, labels, and most interface typography.",
+      "order": 18
+    },
+    {
+      "id": "letter-spacing-wide",
+      "name": "letter.spacing.wide",
+      "foundation": "typography",
+      "type": "dimension",
+      "level": "primitive",
+      "value": "0.02em",
+      "description": "Subtle positive tracking for very small labels or specialized interface treatments; use sparingly.",
+      "order": 19
+    },
+    {
+      "id": "measure-readable",
+      "name": "measure.readable",
+      "foundation": "typography",
+      "type": "dimension",
+      "level": "semantic",
+      "value": "68ch",
+      "description": "Preferred maximum measure for long-form readable prose.",
+      "order": 20
+    },
+    {
+      "id": "typography-caption-size",
+      "name": "typography.caption.size",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "semantic",
+      "value": "{font.size.xs}",
+      "description": "Semantic size for captions, metadata, timestamps, and supporting information.",
+      "order": 21
+    },
+    {
+      "id": "typography-ui-size",
+      "name": "typography.ui.size",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "semantic",
+      "value": "{font.size.sm}",
+      "description": "Default semantic size for compact product-interface text, controls, navigation, and tables.",
+      "order": 22
+    },
+    {
+      "id": "typography-body-size",
+      "name": "typography.body.size",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "semantic",
+      "value": "{font.size.md}",
+      "description": "Default semantic size for body content and readable prose.",
+      "order": 23
+    },
+    {
+      "id": "typography-heading-small-size",
+      "name": "typography.heading.small.size",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "semantic",
+      "value": "{font.size.lg}",
+      "description": "Semantic size for section and panel headings.",
+      "order": 24
+    },
+    {
+      "id": "typography-heading-medium-size",
+      "name": "typography.heading.medium.size",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "semantic",
+      "value": "{font.size.xl}",
+      "description": "Semantic size for major sections, dialogs, and compact page headings.",
+      "order": 25
+    },
+    {
+      "id": "typography-page-title-size",
+      "name": "typography.page.title.size",
+      "foundation": "typography",
+      "type": "font-size",
+      "level": "semantic",
+      "value": "{font.size.2xl}",
+      "description": "Semantic size for major page titles.",
+      "order": 26
+    },
+    {
+      "id": "typography-body-weight",
+      "name": "typography.body.weight",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "semantic",
+      "value": "{font.weight.regular}",
+      "description": "Default body-text weight.",
+      "order": 27
+    },
+    {
+      "id": "typography-ui-weight",
+      "name": "typography.ui.weight",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "semantic",
+      "value": "{font.weight.medium}",
+      "description": "Default weight for controls, labels, and navigation.",
+      "order": 28
+    },
+    {
+      "id": "typography-heading-weight",
+      "name": "typography.heading.weight",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "semantic",
+      "value": "{font.weight.semibold}",
+      "description": "Default heading and title weight.",
+      "order": 29
+    },
+    {
+      "id": "typography-input-weight",
+      "name": "typography.input.weight",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "semantic",
+      "value": "{font.weight.regular}",
+      "description": "Default weight for user-entered values, text inputs, textareas, search fields, placeholders, and other editable text.",
+      "order": 30
+    },
+    {
+      "id": "typography-label-weight",
+      "name": "typography.label.weight",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "semantic",
+      "value": "{font.weight.medium}",
+      "description": "Default weight for field labels and compact interface labels.",
+      "order": 31
+    },
+    {
+      "id": "typography-navigation-section-family",
+      "name": "typography.navigation.section.family",
+      "foundation": "typography",
+      "type": "font-family",
+      "level": "semantic",
+      "value": "{font.family.sans}",
+      "description": "Primary sans-serif family for navigation group labels and section headings. Do not use monospace typography for navigation categories.",
+      "order": 32
+    },
+    {
+      "id": "typography-navigation-section-weight",
+      "name": "typography.navigation.section.weight",
+      "foundation": "typography",
+      "type": "font-weight",
+      "level": "semantic",
+      "value": "{font.weight.medium}",
+      "description": "Medium emphasis for navigation group labels without competing with navigation items.",
+      "order": 33
+    }
+  ],
+  "updated_at": "2026-09-02T01:11:24.765Z"
+}

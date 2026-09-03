@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.DS_Store
+*.tsbuildinfo
+
+# Generated navigation snapshot of the whole workspace. It is rebuilt on every save,
+# embeds the source and reference registries, and would otherwise churn on each edit.
+# DESIGN_SYSTEM.md and tokens/ stay committed: they are small, readable, and consumable.
+monet/design-system.json

@@ -1,0 +1,120 @@
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { analyzeReferences, analyzeSavedReference, deleteMarkdown, deleteReference, deleteSource, deleteTheme, duplicateTheme, initializeStore, loadWorkspace, mergePrimitive, readReferenceAsset, refreshSourceMappings, saveComponents, saveFoundation, saveMarkdown, savePrinciple, savePrimitive, savePrimitiveTaxonomy, saveReference, saveReferenceAnalysis, saveSource, saveTheme, setDefaultTheme, type ReferenceSaveInput } from "./fileStore.js";
+import type { ComponentDecision, Foundation, MarkdownDocument, Principle, PrimitiveDecision, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme } from "./model.js";
+import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
+import { createMonetService } from "../shared/service.js";
+
+// Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
+const workspaceDirectory = resolveWorkspaceRoot();
+setWorkspaceRoot(workspaceDirectory);
+
+const PORT = Number(process.env.MONET_PORT ?? 43141);
+const MAX_BODY = 512 * 1024;
+const monet = createMonetService({ loadWorkspace });
+
+function respond(response: ServerResponse, status: number, value: unknown): void {
+  const body = JSON.stringify(value);
+  response.writeHead(status, { "content-type": "application/json; charset=utf-8", "content-length": Buffer.byteLength(body), "cache-control": "no-store" });
+  response.end(body);
+}
+
+function allowedOrigin(request: IncomingMessage): boolean {
+  const origin = request.headers.origin;
+  if (!origin) return true;
+  try {
+    const url = new URL(origin);
+    return (url.hostname === "127.0.0.1" || url.hostname === "localhost") && (url.protocol === "http:" || url.protocol === "https:");
+  } catch { return false; }
+}
+
+async function body(request: IncomingMessage, maxSize = MAX_BODY): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of request) {
+    const next = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+    size += next.length;
+    if (size > maxSize) throw new Error("Request body is too large.");
+    chunks.push(next);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+}
+
+function match(pathname: string, prefix: string): string | null {
+  return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length)) : null;
+}
+
+const server = createServer(async (request, response) => {
+  try {
+    if (!allowedOrigin(request)) return respond(response, 403, { error: "Monet only accepts requests from a local browser origin." });
+    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    const referenceAsset = match(url.pathname, "/api/reference-assets/");
+    if (request.method === "GET" && referenceAsset) {
+      const asset = await readReferenceAsset(referenceAsset);
+      response.writeHead(200, {
+        "content-type": asset.mediaType,
+        "content-length": asset.contents.byteLength,
+        "content-disposition": `inline; filename*=UTF-8''${encodeURIComponent(asset.filename)}`,
+        "cache-control": "private, max-age=300",
+        "x-content-type-options": "nosniff",
+        "content-security-policy": "sandbox; default-src 'none'; img-src data: https: http:; style-src 'unsafe-inline'",
+      });
+      response.end(asset.contents);
+      return;
+    }
+    if (request.method === "GET" && url.pathname === "/api/workspace") return respond(response, 200, await monet.getWorkspace(url.searchParams.get("theme") ?? undefined));
+    if (request.method === "POST" && url.pathname === "/api/default-theme") {
+      const value = await body(request) as { id?: string };
+      await setDefaultTheme(value.id ?? "");
+      return respond(response, 200, { ok: true });
+    }
+    const themeDuplicate = match(url.pathname, "/api/theme-duplicates/");
+    if (request.method === "POST" && themeDuplicate) {
+      const value = await body(request) as { name?: string };
+      return respond(response, 200, await duplicateTheme(themeDuplicate, value.name));
+    }
+    if (request.method === "PUT" && url.pathname === "/api/primitive-taxonomy") { await savePrimitiveTaxonomy(await body(request) as TaxonomyCategory[]); return respond(response, 200, { ok: true }); }
+    const primitiveMerge = match(url.pathname, "/api/primitive-merges/");
+    if (request.method === "POST" && primitiveMerge) {
+      const value = await body(request) as { target?: string };
+      await mergePrimitive(primitiveMerge, value.target ?? "");
+      return respond(response, 200, { ok: true });
+    }
+    const sourceRefresh = match(url.pathname, "/api/source-refreshes/");
+    if (request.method === "POST" && sourceRefresh) return respond(response, 200, await refreshSourceMappings(sourceRefresh));
+    const referenceAnalysis = match(url.pathname, "/api/reference-analyses/");
+    if (request.method === "POST" && referenceAnalysis) return respond(response, 200, await analyzeSavedReference(referenceAnalysis));
+    if (url.pathname === "/api/reference-collection-analysis" && request.method === "POST") return respond(response, 200, await analyzeReferences());
+    if (url.pathname === "/api/reference-collection-analysis" && request.method === "PUT") return respond(response, 200, await saveReferenceAnalysis(await body(request) as ReferenceCollectionAnalysis));
+    const reference = match(url.pathname, "/api/references/");
+    if (reference) {
+      if (request.method === "PUT") return respond(response, 200, await saveReference(reference, await body(request, 14 * 1024 * 1024) as ReferenceSaveInput));
+      if (request.method === "DELETE") { await deleteReference(reference); return respond(response, 200, { ok: true }); }
+    }
+
+    const routes = [
+      { prefix: "/api/principles/", save: (id: string, value: unknown) => savePrinciple(id, value as Principle), remove: (id: string) => deleteMarkdown("principles", id) },
+      { prefix: "/api/patterns/", save: (id: string, value: unknown) => saveMarkdown("patterns", id, value as MarkdownDocument), remove: (id: string) => deleteMarkdown("patterns", id) },
+      { prefix: "/api/foundations/", save: (id: string, value: unknown) => saveFoundation(id, value as Foundation) },
+      { prefix: "/api/primitives/", save: (id: string, value: unknown) => savePrimitive(id, value as PrimitiveDecision) },
+      { prefix: "/api/components/", save: (id: string, value: unknown) => saveComponents(id, value as ComponentDecision) },
+      { prefix: "/api/themes/", save: (id: string, value: unknown) => saveTheme(id, value as Theme), remove: (id: string) => deleteTheme(id) },
+      { prefix: "/api/sources/", save: (id: string, value: unknown) => saveSource(id, value as Source), remove: (id: string) => deleteSource(id) },
+    ];
+    for (const route of routes) {
+      const id = match(url.pathname, route.prefix);
+      if (!id) continue;
+      if (request.method === "PUT") { await route.save(id, await body(request)); return respond(response, 200, { ok: true }); }
+      if (request.method === "DELETE" && route.remove) { await route.remove(id); return respond(response, 200, { ok: true }); }
+    }
+    return respond(response, 404, { error: "Not found." });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unexpected error.";
+    respond(response, message === "Invalid record id." ? 400 : 500, { error: message });
+  }
+});
+
+await initializeStore();
+server.listen(PORT, "127.0.0.1", () => {
+  console.log(`Monet file service: http://127.0.0.1:${PORT}`);
+  console.log(`Workspace: ${workspaceDirectory}${isBundledWorkspace(workspaceDirectory) ? " (bundled starter workspace — set MONET_ROOT to use your own)" : ""}`);
+});

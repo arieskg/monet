@@ -1,0 +1,53 @@
+{
+  "foundation": "opacity",
+  "tokens": [
+    {
+      "id": "opacity-disabled",
+      "name": "opacity.disabled",
+      "foundation": "opacity",
+      "type": "number",
+      "level": "semantic",
+      "value": 0.5,
+      "description": "Fallback opacity for disabled controls and visual elements when dedicated disabled semantic colors are unavailable or insufficient.",
+      "order": 0,
+      "resolved_value": 0.5,
+      "valid": true,
+      "base_resolved_value": 0.5,
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "opacity-muted",
+      "name": "opacity.muted",
+      "foundation": "opacity",
+      "type": "number",
+      "level": "semantic",
+      "value": 0.72,
+      "description": "De-emphasis for decorative, supplementary, or nonessential visual content; avoid using it for required readable text.",
+      "order": 1,
+      "resolved_value": 0.72,
+      "valid": true,
+      "base_resolved_value": 0.72,
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "opacity-scrim",
+      "name": "opacity.scrim",
+      "foundation": "opacity",
+      "type": "number",
+      "level": "semantic",
+      "value": 0.4,
+      "description": "Default opacity for dark modal backdrops behind dialogs, drawers, and other blocking overlay surfaces.",
+      "order": 2,
+      "resolved_value": 0.4,
+      "valid": true,
+      "base_resolved_value": 0.4,
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    }
+  ]
+}

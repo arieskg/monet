@@ -1,0 +1,129 @@
+[
+  {
+    "id": "actions", "name": "Actions", "entries": [
+      { "id": "button", "name": "Button", "category": "actions", "description": "Triggers an immediate action or submits a form.", "aliases": ["action", "cta"], "relationships": ["icon-button", "button-group", "link"] },
+      { "id": "icon-button", "name": "Icon Button", "category": "actions", "description": "A compact action represented by a familiar icon and accessible label.", "aliases": ["icon-only-button"], "relationships": ["button", "tooltip"] },
+      { "id": "button-group", "name": "Button Group", "category": "actions", "description": "A visually related set of actions.", "aliases": ["action-group"], "relationships": ["button", "segmented-control"] },
+      { "id": "split-button", "name": "Split Button", "category": "actions", "description": "Pairs a primary action with a menu of related actions.", "aliases": ["menu-button"], "relationships": ["button", "dropdown-menu"] },
+      { "id": "floating-action-button", "name": "Floating Action Button", "category": "actions", "description": "A prominent floating action for a primary mobile task.", "aliases": ["fab"], "relationships": ["button"] },
+      { "id": "link", "name": "Link", "category": "actions", "description": "Navigates to another resource or location.", "aliases": ["anchor", "text-link"], "relationships": ["button"] }
+    ]
+  },
+  {
+    "id": "text-inputs", "name": "Text inputs", "entries": [
+      { "id": "text-input", "name": "Text Input", "category": "text-inputs", "description": "Collects a short line of text.", "aliases": ["input", "text-field", "textfield"], "relationships": ["field", "textarea"] },
+      { "id": "textarea", "name": "Textarea", "category": "text-inputs", "description": "Collects multi-line freeform text.", "aliases": ["multiline-input", "text-area"], "relationships": ["text-input"] },
+      { "id": "search-input", "name": "Search Input", "category": "text-inputs", "description": "Collects a query and communicates search behavior.", "aliases": ["search-field", "search-box"], "relationships": ["text-input", "command-palette"] },
+      { "id": "password-input", "name": "Password Input", "category": "text-inputs", "description": "Collects secret text with reveal and security affordances.", "aliases": ["password-field"], "relationships": ["text-input"] },
+      { "id": "number-input", "name": "Number Input", "category": "text-inputs", "description": "Collects a numeric value with appropriate constraints.", "aliases": ["number-field", "stepper-input"], "relationships": ["text-input"] },
+      { "id": "otp-input", "name": "OTP / PIN Input", "category": "text-inputs", "description": "Collects a short verification or identification code.", "aliases": ["pin-input", "verification-code"], "relationships": ["text-input"] }
+    ]
+  },
+  {
+    "id": "selection", "name": "Selection", "entries": [
+      { "id": "checkbox", "name": "Checkbox", "category": "selection", "description": "Selects zero or more independent options.", "aliases": ["check-box"], "relationships": ["radio", "switch"] },
+      { "id": "radio", "name": "Radio", "category": "selection", "description": "Selects exactly one option from a visible set.", "aliases": ["radio-button", "radio-group"], "relationships": ["checkbox", "select"] },
+      { "id": "switch", "name": "Switch", "category": "selection", "description": "Immediately toggles a binary setting.", "aliases": ["toggle"], "relationships": ["checkbox"] },
+      { "id": "segmented-control", "name": "Segmented Control", "category": "selection", "description": "Switches between a small set of mutually exclusive views or values.", "aliases": ["segmented-button", "toggle-group"], "relationships": ["tabs", "radio"] },
+      { "id": "select", "name": "Select", "category": "selection", "description": "Chooses one option from a compact list.", "aliases": ["dropdown", "select-menu"], "relationships": ["combobox", "radio"] },
+      { "id": "combobox", "name": "Combobox", "category": "selection", "description": "Combines text input with a filterable option list.", "aliases": ["combo-box", "autocomplete"], "relationships": ["select", "autocomplete"] },
+      { "id": "autocomplete", "name": "Autocomplete", "category": "selection", "description": "Suggests completions while the user types.", "aliases": ["typeahead"], "relationships": ["combobox", "search-input"] },
+      { "id": "multi-select", "name": "Multi-select", "category": "selection", "description": "Chooses multiple values from a compact option list.", "aliases": ["multiselect", "tag-picker"], "relationships": ["select", "combobox"] }
+    ]
+  },
+  {
+    "id": "date-time", "name": "Date & time", "entries": [
+      { "id": "date-input", "name": "Date Input", "category": "date-time", "description": "Collects a date through a formatted text or native field.", "aliases": ["date-field"], "relationships": ["date-picker"] },
+      { "id": "date-picker", "name": "Date Picker", "category": "date-time", "description": "Chooses a date using a calendar overlay or panel.", "aliases": ["datepicker"], "relationships": ["calendar", "date-input"] },
+      { "id": "date-range-picker", "name": "Date Range Picker", "category": "date-time", "description": "Chooses a start and end date as one interval.", "aliases": ["range-calendar"], "relationships": ["date-picker"] },
+      { "id": "calendar", "name": "Calendar", "category": "date-time", "description": "Displays dates and related events in a calendar grid.", "aliases": ["month-view"], "relationships": ["date-picker"] },
+      { "id": "time-picker", "name": "Time Picker", "category": "date-time", "description": "Chooses a time of day.", "aliases": ["time-input"], "relationships": ["date-time-picker"] },
+      { "id": "date-time-picker", "name": "Date-Time Picker", "category": "date-time", "description": "Chooses a date and time together.", "aliases": ["datetime-picker"], "relationships": ["date-picker", "time-picker"] }
+    ]
+  },
+  {
+    "id": "navigation", "name": "Navigation", "entries": [
+      { "id": "breadcrumb", "name": "Breadcrumb", "category": "navigation", "description": "Shows location in a hierarchy and enables upward navigation.", "aliases": ["breadcrumbs"], "relationships": ["navigation-menu"] },
+      { "id": "tabs", "name": "Tabs", "category": "navigation", "description": "Switches among peer views while preserving context.", "aliases": ["tab-list"], "relationships": ["segmented-control"] },
+      { "id": "sidebar", "name": "Sidebar", "category": "navigation", "description": "Persistent vertical navigation or contextual tools.", "aliases": ["side-nav", "sidenav"], "relationships": ["navigation-menu", "drawer"] },
+      { "id": "navigation-menu", "name": "Navigation Menu", "category": "navigation", "description": "Organizes destinations in a site or application.", "aliases": ["nav-menu"], "relationships": ["menubar", "sidebar"] },
+      { "id": "menubar", "name": "Menubar", "category": "navigation", "description": "Desktop-style hierarchy of commands and submenus.", "aliases": ["menu-bar"], "relationships": ["dropdown-menu"] },
+      { "id": "pagination", "name": "Pagination", "category": "navigation", "description": "Moves between pages of a large collection.", "aliases": ["pager"], "relationships": ["table"] },
+      { "id": "stepper", "name": "Stepper", "category": "navigation", "description": "Communicates progress through an ordered multi-step flow.", "aliases": ["steps", "progress-steps"], "relationships": ["progress"] },
+      { "id": "command-palette", "name": "Command Palette", "category": "navigation", "description": "Searches and invokes application commands from one overlay.", "aliases": ["command-menu", "cmd-k"], "relationships": ["dialog", "search-input", "keyboard-shortcut"] }
+    ]
+  },
+  {
+    "id": "overlays", "name": "Overlays", "entries": [
+      { "id": "dialog", "name": "Dialog", "category": "overlays", "description": "Temporarily focuses attention on a task above the current page.", "aliases": ["modal"], "relationships": ["alert-dialog", "drawer"] },
+      { "id": "alert-dialog", "name": "Alert Dialog", "category": "overlays", "description": "Interrupts for an important confirmation or acknowledgement.", "aliases": ["confirmation-dialog"], "relationships": ["dialog", "button"] },
+      { "id": "drawer", "name": "Drawer", "category": "overlays", "description": "A panel that enters from an edge without replacing the page.", "aliases": ["side-panel"], "relationships": ["sheet", "sidebar"] },
+      { "id": "sheet", "name": "Sheet", "category": "overlays", "description": "A supplementary surface anchored to an edge, often on mobile.", "aliases": ["bottom-sheet"], "relationships": ["drawer"] },
+      { "id": "popover", "name": "Popover", "category": "overlays", "description": "A contextual non-modal surface anchored to a trigger.", "aliases": ["anchored-overlay"], "relationships": ["tooltip", "dropdown-menu"] },
+      { "id": "tooltip", "name": "Tooltip", "category": "overlays", "description": "A brief label or hint revealed on hover or focus.", "aliases": ["tip"], "relationships": ["hover-card", "icon-button"] },
+      { "id": "hover-card", "name": "Hover Card", "category": "overlays", "description": "A richer preview revealed from a linked subject.", "aliases": ["preview-card"], "relationships": ["popover", "tooltip"] },
+      { "id": "dropdown-menu", "name": "Dropdown Menu", "category": "overlays", "description": "A contextual list of actions opened from a trigger.", "aliases": ["menu", "action-menu", "overflow-menu"], "relationships": ["context-menu", "popover"] },
+      { "id": "context-menu", "name": "Context Menu", "category": "overlays", "description": "Actions relevant to a target, opened through a contextual gesture.", "aliases": ["right-click-menu"], "relationships": ["dropdown-menu"] }
+    ]
+  },
+  {
+    "id": "feedback", "name": "Feedback", "entries": [
+      { "id": "alert", "name": "Alert", "category": "feedback", "description": "Communicates a persistent important message in context.", "aliases": ["inline-alert"], "relationships": ["banner", "toast"] },
+      { "id": "toast", "name": "Toast", "category": "feedback", "description": "Briefly confirms an outcome without blocking work.", "aliases": ["snackbar", "notification-toast"], "relationships": ["alert"] },
+      { "id": "banner", "name": "Banner", "category": "feedback", "description": "Communicates page- or system-level information prominently.", "aliases": ["announcement"], "relationships": ["alert"] },
+      { "id": "progress", "name": "Progress", "category": "feedback", "description": "Shows completion of a determinate or indeterminate process.", "aliases": ["progress-bar"], "relationships": ["spinner", "stepper"] },
+      { "id": "spinner", "name": "Spinner", "category": "feedback", "description": "Indicates indeterminate short activity.", "aliases": ["activity-indicator", "loader"], "relationships": ["progress", "skeleton"] },
+      { "id": "skeleton", "name": "Skeleton", "category": "feedback", "description": "Preserves layout while content is loading.", "aliases": ["skeleton-loader"], "relationships": ["spinner"] },
+      { "id": "empty-state", "name": "Empty State", "category": "feedback", "description": "Explains an empty collection and an appropriate next step.", "aliases": ["blank-state", "zero-state"], "relationships": ["button"] },
+      { "id": "status-indicator", "name": "Status Indicator", "category": "feedback", "description": "Shows a compact state through text, icon, or color.", "aliases": ["status-dot", "presence"], "relationships": ["badge"] }
+    ]
+  },
+  {
+    "id": "data-display", "name": "Data display", "entries": [
+      { "id": "table", "name": "Table", "category": "data-display", "description": "Displays structured values in rows and columns.", "aliases": ["basic-table"], "relationships": ["data-table"] },
+      { "id": "data-table", "name": "Data Table", "category": "data-display", "description": "Adds sorting, selection, filtering, or actions to tabular data.", "aliases": ["grid", "datagrid"], "relationships": ["table", "pagination"] },
+      { "id": "list", "name": "List", "category": "data-display", "description": "Displays a sequence of related items.", "aliases": ["item-list"], "relationships": ["tree"] },
+      { "id": "tree", "name": "Tree", "category": "data-display", "description": "Displays nested hierarchical items with expansion.", "aliases": ["tree-view"], "relationships": ["list"] },
+      { "id": "card", "name": "Card", "category": "data-display", "description": "Groups a compact subject and its related information or actions.", "aliases": ["tile", "panel"], "relationships": ["list"] },
+      { "id": "badge", "name": "Badge", "category": "data-display", "description": "Shows compact status, count, or classification metadata.", "aliases": ["lozenge"], "relationships": ["tag", "status-indicator"] },
+      { "id": "tag", "name": "Tag", "category": "data-display", "description": "Labels or represents a value that may be removable.", "aliases": ["chip", "token"], "relationships": ["badge"] },
+      { "id": "avatar", "name": "Avatar", "category": "data-display", "description": "Represents a person, team, or entity with an image or initials.", "aliases": ["profile-image"], "relationships": ["badge"] },
+      { "id": "timeline", "name": "Timeline", "category": "data-display", "description": "Shows events in chronological order.", "aliases": ["activity-feed"], "relationships": ["list"] },
+      { "id": "accordion", "name": "Accordion", "category": "data-display", "description": "Reveals and hides stacked sections of content.", "aliases": ["disclosure-group"], "relationships": ["list", "card"] },
+      { "id": "carousel", "name": "Carousel", "category": "data-display", "description": "Moves through a bounded sequence in one viewport.", "aliases": ["slider", "gallery"], "relationships": [] },
+      { "id": "statistic", "name": "Statistic / KPI", "category": "data-display", "description": "Highlights an important value with context.", "aliases": ["stat", "metric", "kpi"], "relationships": ["chart"] }
+    ]
+  },
+  {
+    "id": "data-visualization", "name": "Data visualization", "entries": [
+      { "id": "chart", "name": "Chart", "category": "data-visualization", "description": "Visualizes quantitative relationships or change.", "aliases": ["graph"], "relationships": ["sparkline", "statistic"] },
+      { "id": "sparkline", "name": "Sparkline", "category": "data-visualization", "description": "Shows a compact trend without a full chart frame.", "aliases": ["mini-chart"], "relationships": ["chart"] },
+      { "id": "gauge", "name": "Gauge", "category": "data-visualization", "description": "Shows a value against a bounded range.", "aliases": ["meter"], "relationships": ["progress-visualization"] },
+      { "id": "progress-visualization", "name": "Progress Visualization", "category": "data-visualization", "description": "Summarizes progress across stages or categories.", "aliases": ["completion-chart"], "relationships": ["progress", "chart"] }
+    ]
+  },
+  {
+    "id": "layout", "name": "Layout", "entries": [
+      { "id": "container", "name": "Container", "category": "layout", "description": "Constrains and aligns a content region.", "aliases": ["page-container"], "relationships": ["grid"] },
+      { "id": "stack", "name": "Stack", "category": "layout", "description": "Arranges children along one axis with consistent spacing.", "aliases": ["vstack", "hstack"], "relationships": ["flex"] },
+      { "id": "flex", "name": "Flex", "category": "layout", "description": "Arranges flexible items along one dimension.", "aliases": ["flexbox"], "relationships": ["stack", "grid"] },
+      { "id": "grid", "name": "Grid", "category": "layout", "description": "Arranges content across two-dimensional tracks.", "aliases": ["layout-grid"], "relationships": ["container", "flex"] },
+      { "id": "divider", "name": "Divider", "category": "layout", "description": "Separates adjacent content groups.", "aliases": ["separator", "rule"], "relationships": [] },
+      { "id": "scroll-area", "name": "Scroll Area", "category": "layout", "description": "Constrains scrolling to a named region.", "aliases": ["scroll-container"], "relationships": [] },
+      { "id": "resizable-panels", "name": "Resizable Panels", "category": "layout", "description": "Lets users adjust the space allocated to adjacent regions.", "aliases": ["split-pane"], "relationships": ["divider"] },
+      { "id": "aspect-ratio", "name": "Aspect Ratio", "category": "layout", "description": "Maintains a proportional media or content box.", "aliases": ["ratio-box"], "relationships": [] }
+    ]
+  },
+  {
+    "id": "form-utility", "name": "Form & utility", "entries": [
+      { "id": "field", "name": "Field", "category": "form-utility", "description": "Composes a label, control, description, and validation message.", "aliases": ["form-field", "form-control"], "relationships": ["label", "fieldset"] },
+      { "id": "fieldset", "name": "Fieldset", "category": "form-utility", "description": "Groups related form controls under one legend.", "aliases": ["field-group"], "relationships": ["field"] },
+      { "id": "label", "name": "Label", "category": "form-utility", "description": "Names an input or control accessibly.", "aliases": ["field-label"], "relationships": ["field"] },
+      { "id": "file-upload", "name": "File Upload", "category": "form-utility", "description": "Selects or drops one or more files for upload.", "aliases": ["dropzone", "file-input"], "relationships": ["button"] },
+      { "id": "slider", "name": "Slider", "category": "form-utility", "description": "Chooses a value or range along a continuum.", "aliases": ["range-input"], "relationships": ["number-input"] },
+      { "id": "rating", "name": "Rating", "category": "form-utility", "description": "Collects or displays an ordinal assessment.", "aliases": ["star-rating"], "relationships": [] },
+      { "id": "clipboard", "name": "Clipboard", "category": "form-utility", "description": "Copies a value with explicit feedback.", "aliases": ["copy-button", "copy-to-clipboard"], "relationships": ["button", "tooltip"] },
+      { "id": "keyboard-shortcut", "name": "Keyboard Shortcut", "category": "form-utility", "description": "Displays a key combination for an action.", "aliases": ["kbd", "keycap"], "relationships": ["command-palette"] }
+    ]
+  }
+]

@@ -1,0 +1,69 @@
+{
+  "foundation": "borders",
+  "tokens": [
+    {
+      "id": "border-subtle",
+      "name": "border.subtle",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "1px solid {color.border.subtle}",
+      "description": "Quietest separator inside a surface, for divisions that should remain visually secondary.",
+      "order": 0,
+      "resolved_value": "1px solid #ecf0f1",
+      "valid": true,
+      "base_resolved_value": "1px solid #ecf0f1",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "border-default",
+      "name": "border.default",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "1px solid {color.border}",
+      "description": "Structural one-pixel border for panels, cards, section edges, and container boundaries.",
+      "order": 1,
+      "resolved_value": "1px solid #d8d7d0",
+      "valid": true,
+      "base_resolved_value": "1px solid #d8d7d0",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "border-strong",
+      "name": "border.strong",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "1px solid {color.border.strong}",
+      "description": "Resting boundary of an unfilled control, meeting the 3:1 non-text minimum that the structural border does not.",
+      "order": 2,
+      "resolved_value": "1px solid #5f605a",
+      "valid": true,
+      "base_resolved_value": "1px solid #5f605a",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    },
+    {
+      "id": "border-focus",
+      "name": "border.focus",
+      "foundation": "borders",
+      "type": "border",
+      "level": "primitive",
+      "value": "2px solid {color.focus}",
+      "description": "High-visibility amethyst border for keyboard focus and interaction states that require an unmistakable boundary.",
+      "order": 3,
+      "resolved_value": "2px solid #9b59b6",
+      "valid": true,
+      "base_resolved_value": "2px solid #9b59b6",
+      "source": "base",
+      "theme_id": null,
+      "override_dependencies": []
+    }
+  ]
+}

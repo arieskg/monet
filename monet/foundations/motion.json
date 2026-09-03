@@ -1,0 +1,53 @@
+{
+  "id": "motion",
+  "name": "Motion",
+  "status": "selected",
+  "description": "A restrained motion system for state changes, feedback, overlays, and spatial transitions in product interfaces.",
+  "rationale": "Motion should explain change, preserve continuity, and provide feedback without making the interface feel slow or decorative. Use a small set of predictable durations so frequent interactions feel immediate while larger spatial changes remain understandable. Most productive UI transitions should complete well under 300ms, with longer motion reserved for elements that travel farther or substantially change layout.",
+  "guidance": "Use the fast duration for hover, focus, color, opacity, and other small state transitions. Use the standard duration for menus, popovers, disclosure, selection changes, and most visible interface transitions. Use the slow duration only for dialogs, drawers, expanding regions, or larger spatial changes where additional time helps users understand movement. Use the standard easing for most productive UI motion so transitions begin responsively and settle smoothly. Prefer animating transform and opacity over layout-triggering properties when practical. Do not animate routine changes merely for decoration, do not delay user input while animation completes, and never make motion the only indicator of state. Respect prefers-reduced-motion by removing nonessential movement and replacing spatial motion with immediate or minimal fades where necessary.",
+  "notes": "The selected scale intentionally remains compact: 120ms for immediate micro-interactions, 180ms for the majority of interface transitions, and 280ms as the normal upper bound for larger spatial movement. The existing productive easing is retained because it provides a fast response with a smooth deceleration. Add specialized entrance, exit, or expressive easing only when repeated component behavior demonstrates a real need rather than assigning unique motion to individual components.",
+  "order": 9,
+  "tokens": [
+    {
+      "id": "motion-fast",
+      "name": "motion.fast",
+      "foundation": "motion",
+      "type": "duration",
+      "level": "primitive",
+      "value": "120ms",
+      "description": "Fast duration for hover, focus, opacity, color, pressed states, and other small immediate transitions.",
+      "order": 0
+    },
+    {
+      "id": "motion-standard",
+      "name": "motion.standard",
+      "foundation": "motion",
+      "type": "duration",
+      "level": "primitive",
+      "value": "180ms",
+      "description": "Default duration for menus, popovers, disclosure, selection changes, and most visible product-interface transitions.",
+      "order": 1
+    },
+    {
+      "id": "motion-slow",
+      "name": "motion.slow",
+      "foundation": "motion",
+      "type": "duration",
+      "level": "primitive",
+      "value": "280ms",
+      "description": "Upper standard duration for dialogs, drawers, expanding regions, and larger spatial transitions that benefit from clearer continuity.",
+      "order": 2
+    },
+    {
+      "id": "ease-standard",
+      "name": "ease.standard",
+      "foundation": "motion",
+      "type": "cubic-bezier",
+      "level": "semantic",
+      "value": "cubic-bezier(0.2, 0, 0, 1)",
+      "description": "Default productive easing with a responsive start and smooth deceleration for most interface motion.",
+      "order": 3
+    }
+  ],
+  "updated_at": "2026-09-01T20:59:04.034Z"
+}
