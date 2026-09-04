@@ -43,7 +43,12 @@ No database, no hosted service, no model API. Files on disk, and MCP over stdio.
   provider configured. Anything reaching an external CLI goes through
   `server/aiProvider.ts` and stays optional.
 - **MCP stays read-only and thin.** No write tools, no remote transport, no auth,
-  and no client-specific instructions.
+  and no client-specific instructions. Conformance review is a read: `review_design_usage`
+  validates protocol input and calls `shared/review.ts`, which never touches the workspace.
+- **Conformance measures evidence, never source.** `shared/review.ts` parses no code and knows no
+  framework. A check either measures what the caller submitted or reports it unverifiable; it never
+  infers a violation from missing information, and a concept Monet has no scale or decision for is
+  not applicable rather than a failure.
 - **Derived files stay derived.** `DESIGN_SYSTEM.md` and `tokens/` are generated
   from the canonical records and carry no timestamps. Edit the records, regenerate.
 - **Modes are values, not copies.** Light is a token's `value`; dark is its

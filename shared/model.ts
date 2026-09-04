@@ -64,3 +64,72 @@ export interface RankedReference { reference: Reference; match: RetrievalProvena
 /** Resolved values of one token in every mode the theme supports, listed only where the modes differ. */
 export type ModeVariants = Record<string, Partial<Record<ThemeMode, string | number | null>>>;
 export interface DesignContext { query: string; theme: Theme | null; /** The mode `resolvedTokens` were resolved in. */ mode: ThemeMode; /** Modes the theme supports. */ modes: ThemeMode[]; /** Tokens in this context whose resolved value differs between modes. */ modeVariants: ModeVariants; coverage: RetrievalCoverage; notices: ContextNotice[]; principles: Principle[]; foundations: Foundation[]; patterns: MarkdownDocument[]; components: Component[]; references: Reference[]; resolvedTokens: ResolvedThemeToken[]; tokenIssues: TokenIssue[]; retrieval: RetrievalProvenance[]; warnings: string[] }
+
+/**
+ * Design conformance review. The calling agent describes what it built as a list of observations;
+ * Monet checks those observations against the canonical records and reports what contradicts them.
+ *
+ * Monet never sees the implementation, so a review is bounded by the evidence supplied: an empty
+ * `findings` array means nothing in the submitted observations contradicted the design system, not
+ * that the implementation conforms. `coverage` says how much of the evidence was actually checkable.
+ */
+export type DesignUsageKind = "style" | "token" | "component" | "contrast";
+export interface DesignUsage {
+  /** The caller's handle for this observation, echoed on every finding it produces. Opaque to Monet. */
+  id?: string;
+  /** Where the caller saw it — a path, a selector, a component name. Opaque to Monet. */
+  location?: string;
+  kind: DesignUsageKind;
+  /** `style`: the CSS-shaped property the value was authored against, such as `background-color` or `padding`. */
+  property?: string;
+  /** `style`: the literal value as authored, such as `#3498db` or `13px`. */
+  value?: string;
+  /** `token`: the Monet token name the implementation referenced. */
+  token?: string;
+  /** `component`: the Monet component id, name, or alias the implementation used. */
+  component?: string;
+  /** `contrast`: the colours actually rendered against each other, as literals or Monet token names. */
+  foreground?: string;
+  background?: string;
+  /** `contrast`: whether the pair carries text or a non-text boundary or indicator. Defaults to text. */
+  usage?: "text" | "non-text";
+}
+export type ReviewLevel = "error" | "warning" | "info";
+export interface ReviewFinding {
+  level: ReviewLevel;
+  /** Stable machine-readable check id, so a caller can filter or suppress by rule. */
+  check: string;
+  /** The submitted usage this came from, echoed verbatim. */
+  usage_id?: string;
+  location?: string;
+  /** What Monet read in the submitted evidence. */
+  observed: string;
+  /** The Monet token, decision, or contract it is measured against. */
+  expected: string;
+  /** Why it matters, in one sentence. */
+  why: string;
+  /** The value Monet would use instead, when it can name one unambiguously. */
+  replacement?: string;
+  /** `monet://` resources that carry the decision behind this finding. */
+  related: string[];
+}
+export interface DesignReviewCoverage {
+  submitted: number;
+  /** Observations Monet could measure against a canonical record. */
+  checked: number;
+  /** Observations Monet understood but could not measure, each reported as an `info` finding. */
+  unverifiable: number;
+  /** Observations naming something Monet documents no scale or decision for. Not a violation. */
+  not_applicable: number;
+  /** The check ids that ran against this evidence. */
+  checks: string[];
+}
+export interface DesignReview {
+  theme: { id: string; name: string; mode: ThemeMode; modes: ThemeMode[] } | null;
+  coverage: DesignReviewCoverage;
+  /** States what this result does and does not establish, so absence of findings is not read as conformance. */
+  scope: string;
+  findings: ReviewFinding[];
+  warnings: string[];
+}
+export interface DesignReviewRequest { usages: DesignUsage[]; themeId?: string; /** Mode the evidence was observed in. Defaults to light. */ mode?: ThemeMode }

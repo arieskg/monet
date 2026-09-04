@@ -228,6 +228,74 @@ describe("Monet MCP adapter", () => {
     expect(firstText(unknownMode.content)).toContain("Input validation error");
   });
 
+  it("reviews implementation evidence and returns structured findings", async () => {
+    const result = await client.callTool({
+      name: "review_design_usage",
+      arguments: {
+        usages: [
+          { id: "a", kind: "style", property: "background-color", value: "#ffffff", location: "Panel.tsx:4" },
+          { id: "b", kind: "style", property: "padding", value: "13px" },
+          { id: "c", kind: "token", token: "color.surface.pressd" },
+          { id: "d", kind: "component", component: "date-input" },
+          { id: "e", kind: "contrast", foreground: "color.foreground", background: "color.surface", usage: "text" },
+          { id: "f", kind: "style", property: "width", value: "317px" },
+        ],
+      },
+    });
+    expect(result.isError).not.toBe(true);
+    const review = result.structuredContent as {
+      theme: { id: string; mode: string; modes: string[] };
+      coverage: { submitted: number; checked: number; not_applicable: number; checks: string[] };
+      scope: string;
+      findings: Array<{ level: string; check: string; usage_id?: string; location?: string; observed: string; expected: string; why: string; replacement?: string; related: string[] }>;
+    };
+    expect(review.theme).toMatchObject({ id: "default", mode: "light", modes: ["light", "dark"] });
+    expect(review.coverage.submitted).toBe(6);
+    // Errors lead so an agent fixing code sees the blocking problem first.
+    expect(review.findings.map((item) => item.check)).toEqual(["unknown_token", "literal_colour_has_token", "off_scale_dimension", "component_undecided"]);
+    expect(review.findings[0]).toMatchObject({ level: "error", usage_id: "c" });
+    expect(review.findings[1]).toMatchObject({ level: "warning", usage_id: "a", location: "Panel.tsx:4", replacement: "color.surface" });
+    expect(review.findings.every((item) => item.why.length > 0)).toBe(true);
+    expect(review.findings[3].related).toContain("monet://components/date-input");
+    // A verified pairing and a property Monet documents no scale for both produce nothing.
+    expect(review.coverage.not_applicable).toBe(1);
+    expect(review.scope).toMatch(/not that the implementation conforms/);
+  });
+
+  it("resolves review evidence in the mode the caller names", async () => {
+    const result = await client.callTool({
+      name: "review_design_usage",
+      arguments: { mode: "dark", usages: [{ kind: "style", property: "background-color", value: "#ecf0f1" }] },
+    });
+    const review = result.structuredContent as { theme: { mode: string }; findings: Array<{ check: string; replacement?: string }> };
+    expect(review.theme.mode).toBe("dark");
+    expect(review.findings.map((item) => item.check)).toContain("light_value_in_other_mode");
+  });
+
+  it("reports unverifiable evidence as info rather than inventing a violation", async () => {
+    const result = await client.callTool({
+      name: "review_design_usage",
+      arguments: { usages: [{ kind: "style", property: "color", value: "var(--app-text)" }, { kind: "component", component: "confetti-cannon" }] },
+    });
+    const review = result.structuredContent as { coverage: { checked: number }; findings: Array<{ level: string; check: string }> };
+    expect(review.findings.every((item) => item.level === "info")).toBe(true);
+    expect(review.findings.map((item) => item.check).sort()).toEqual(["component_unknown", "unverifiable"]);
+    expect(review.coverage.checked).toBe(0);
+  });
+
+  it("validates review arguments and rejects unknown themes", async () => {
+    const empty = await client.callTool({ name: "review_design_usage", arguments: { usages: [] } });
+    expect(empty.isError).toBe(true);
+    expect(firstText(empty.content)).toContain("Input validation error");
+
+    const unknownKind = await client.callTool({ name: "review_design_usage", arguments: { usages: [{ kind: "screenshot" }] } });
+    expect(unknownKind.isError).toBe(true);
+
+    const unknownTheme = await client.callTool({ name: "review_design_usage", arguments: { themeId: "not-a-theme", usages: [{ kind: "token", token: "color.surface" }] } });
+    expect(unknownTheme.isError).toBe(true);
+    expect(firstText(unknownTheme.content)).toContain("Unknown Monet theme ID");
+  });
+
   it("searches references through the shared search service", async () => {
     const result = await client.callTool({ name: "search_references", arguments: { query: "documentation" } });
     expect(result.structuredContent).toMatchObject({ query: "documentation", count: 1 });

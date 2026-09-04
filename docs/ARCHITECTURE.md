@@ -22,6 +22,17 @@ workspace reaches it through the existing aggregate HTTP route. The MCP transpor
 in `mcp/` instantiates that same service over `loadWorkspace`; neither
 transport reads canonical files or generated exports directly.
 
+Conformance review is the read path's second half and lives entirely below the transport.
+`shared/review.ts` takes evidence a caller reports about an implementation — a literal and the
+property it was written against, a token name, a component, a rendered foreground over a background —
+and measures it against the same resolved tokens, contrast contracts, and component decisions the
+rest of Monet reads. It parses no source and holds no framework knowledge: the caller extracts what
+it wrote, which is cheap and framework-specific, and Monet answers the closed-set and arithmetic
+questions, which need the whole design system. Every check either measures the evidence or declines
+to, so an observation Monet cannot verify is reported as such rather than as a violation, and a
+concept it has no scale or decision for is not applicable rather than a failure. The result never
+asserts conformance, because Monet cannot see what was not submitted.
+
 `shared/model.ts` is the canonical TypeScript domain contract for browser, server,
 and future transports. A Component read is intentionally a joined view: taxonomy
 owns its stable identity, name, aliases, category, and relationships, while the

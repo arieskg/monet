@@ -25,6 +25,25 @@ export const referenceSearchInputSchema = z.object({
   query: z.string().trim().min(1).max(500).describe("Text to match against reference titles, annotations, notes, domains, tags, and retrieval text."),
 }).strict();
 
+const usageSchema = z.object({
+  id: z.string().trim().max(120).optional().describe("Your handle for this observation, echoed on every finding it produces."),
+  location: z.string().trim().max(300).optional().describe("Where you saw it — a path, a selector, a component name. Opaque to Monet."),
+  kind: z.enum(["style", "token", "component", "contrast"]).describe("What kind of observation this is."),
+  property: z.string().trim().max(80).optional().describe("style: the CSS-shaped property the value was authored against, such as background-color or padding."),
+  value: z.string().trim().max(300).optional().describe("style: the literal value as authored, such as #3498db or 13px."),
+  token: z.string().trim().max(120).optional().describe("token: the Monet token name the implementation referenced."),
+  component: z.string().trim().max(120).optional().describe("component: the Monet component id, name, or alias the implementation used."),
+  foreground: z.string().trim().max(120).optional().describe("contrast: the foreground actually rendered, as a literal colour or a Monet token name."),
+  background: z.string().trim().max(120).optional().describe("contrast: the background it was rendered on, as a literal colour or a Monet token name."),
+  usage: z.enum(["text", "non-text"]).optional().describe("contrast: whether the pair carries text or a non-text boundary or indicator. Defaults to text."),
+}).strict();
+
+export const designReviewInputSchema = z.object({
+  usages: z.array(usageSchema).min(1).max(200).describe("What you observed in the implementation. Monet checks these and nothing else."),
+  themeId: idSchema.optional().describe("Theme ID used to resolve tokens."),
+  mode: z.enum(THEME_MODES as [ThemeMode, ...ThemeMode[]]).optional().describe("Mode the evidence was observed in: light (default) or dark."),
+}).strict();
+
 function publicReference(reference: Reference) {
   return {
     id: reference.id,
@@ -152,7 +171,7 @@ function templateMode(uri: URL, value: string | string[] | undefined): ThemeMode
 
 export function createMonetMcpServer(service: MonetService): McpServer {
   const server = new McpServer(SERVER_INFO, {
-    instructions: "Monet is a read-only design-context provider. Call get_design_context with a natural design task to get a compact design brief, then read the monet:// resource it cites for any record you need in full. Check `coverage` and `notices` before relying on the result: Monet reports when it has no task-specific opinion, when a concept is catalogued but undecided, and when a request needs a capability it does not have.",
+    instructions: "Monet is a read-only design-context provider. Call get_design_context with a natural design task to get a compact design brief, then read the monet:// resource it cites for any record you need in full. Check `coverage` and `notices` before relying on the result: Monet reports when it has no task-specific opinion, when a concept is catalogued but undecided, and when a request needs a capability it does not have. After building the UI, call review_design_usage with the colours, dimensions, tokens, components, and rendered foreground/background pairs you actually used, to have them checked against the same records.",
   });
 
   server.registerResource(
@@ -280,6 +299,22 @@ export function createMonetMcpServer(service: MonetService): McpServer {
       }
       const context = await service.getDesignContext(input);
       return jsonToolResult(detail === "full" ? publicDesignContext(context) : toCompactContext(context));
+    },
+  );
+
+  server.registerTool(
+    "review_design_usage",
+    {
+      title: "Review an implementation against Monet",
+      description: "Check evidence about an implementation against Monet's canonical records after building it. You describe what you built as a list of observations — a literal colour or dimension you wrote and the property you wrote it against, a Monet token you referenced, a component you used, a foreground rendered on a background — and Monet reports what contradicts the design system. Monet never reads source, so findings are bounded by the evidence you supply: an empty result means nothing in these observations contradicted the design system, not that the implementation conforms. Findings are `error`, `warning`, or `info`; `info` includes observations Monet understood but could not measure, each with the reason.",
+      inputSchema: designReviewInputSchema,
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
+    },
+    async (input) => {
+      if (input.themeId && !(await service.getTheme(input.themeId))) {
+        throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Unknown Monet theme ID: ${input.themeId}`);
+      }
+      return jsonToolResult(await service.reviewDesignUsage(input));
     },
   );
 

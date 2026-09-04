@@ -1,7 +1,8 @@
-import type { Component, ContextNotice, DesignContext, DesignContextRequest, Foundation, MarkdownDocument, ModeVariants, Principle, RankedReference, Reference, ResolvedThemeToken, RetrievalCoverage, RetrievalEntityType, RetrievalProvenance, RetrievalReason, Theme, ThemeMode, Workspace } from "./model.js";
+import type { Component, ContextNotice, DesignContext, DesignContextRequest, DesignReview, DesignReviewRequest, Foundation, MarkdownDocument, ModeVariants, Principle, RankedReference, Reference, ResolvedThemeToken, RetrievalCoverage, RetrievalEntityType, RetrievalProvenance, RetrievalReason, Theme, ThemeMode, Workspace } from "./model.js";
 import { retrievalAliases, scoreRetrieval, type RetrievalFields } from "./retrieval.js";
 import { resolveThemeTokens } from "./tokens.js";
 import { DARK_BACKGROUND_LUMINANCE, luminance } from "./contrast.js";
+import { reviewUsages } from "./review.js";
 
 export interface WorkspaceReader {
   loadWorkspace(themeId?: string, mode?: ThemeMode): Promise<Workspace>;
@@ -23,6 +24,8 @@ export interface MonetService {
   getReference(id: string): Promise<Reference | null>;
   searchReferences(query: string): Promise<RankedReference[]>;
   getDesignContext(request?: DesignContextRequest): Promise<DesignContext>;
+  /** Checks evidence a caller reports about an implementation against the canonical records. Reads only. */
+  reviewDesignUsage(request: DesignReviewRequest): Promise<DesignReview>;
 }
 
 function textIncludes(query: string, ...values: unknown[]): boolean {
@@ -254,6 +257,20 @@ export function createMonetService(reader: WorkspaceReader): MonetService {
     async listReferences() { return (await read()).references; },
     async getReference(id) { return (await read()).references.find((item) => item.id === id) ?? null; },
     async searchReferences(query) { return rankReferenceRecords((await read()).references, query); },
+    async reviewDesignUsage(request) {
+      const mode = request.mode ?? "light";
+      const workspace = await read(request.themeId, mode);
+      // A literal that pins a light value only reads as a mistake against another mode, so the
+      // light resolution is loaded solely to name that case and is the same list when mode is light.
+      const lightTokens = workspace.activeMode === "light" ? workspace.resolvedTokens : (await read(request.themeId, "light")).resolvedTokens;
+      const theme = workspace.themes.find((item) => item.id === workspace.activeThemeId) ?? null;
+      return reviewUsages(request, {
+        theme: theme ? { id: theme.id, name: theme.name } : null,
+        tokens: workspace.resolvedTokens, lightTokens,
+        components: joinComponents(workspace),
+        mode: workspace.activeMode, modes: workspace.modes,
+      });
+    },
     async getDesignContext(request = {}) {
       const query = request.query?.trim() ?? "";
       // A task that asks for dark mode is answered in dark mode when the theme has one. The caller
