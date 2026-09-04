@@ -376,9 +376,14 @@ export function createMonetService(reader: WorkspaceReader): MonetService {
       // Explicit pattern selectors retain aggregate behavior. Query- and
       // reverse-matched patterns provide their own guidance and Foundation links
       // without importing every generic component they mention.
+      //
+      // A weak pattern match does not, on the same rule that already governs components: an
+      // incidental word overlap with a workflow document is not a reason to answer with the
+      // Foundations that workflow depends on, and doing so dressed a shortlist up as an answer.
+      const weakPatterns = new Set(patternMatches.filter((match) => match.strength === "weak").map((match) => match.record.id));
       for (const pattern of workspace.patterns) {
         if (!patternIds.has(pattern.id)) continue;
-        for (const id of pattern.foundations ?? []) {
+        for (const id of (weakPatterns.has(pattern.id) ? [] : pattern.foundations ?? [])) {
           foundationIds.add(id);
           addProvenance(provenance, relatedMatch("foundation", id, "relationship_expansion", `pattern:${pattern.id}`));
         }

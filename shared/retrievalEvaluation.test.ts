@@ -62,11 +62,13 @@ const CASES: Case[] = [
     forbid: { components: ["statistic", "avatar"] },
   },
   {
-    // Nothing here names the concept, so Drawer leads a shortlist rather than answering outright.
+    // Nothing here names Drawer, but its own record does: an edge-anchored panel, for inspecting or
+    // editing a record beside its collection. Several fields answering different parts of the
+    // request is decisive evidence, so this is an answer rather than a shortlist.
     query: "slide a panel in from the right to edit a record",
     expect: { components: ["drawer"] },
     leads: { components: "drawer" },
-    coverage: "partial",
+    coverage: "task_specific",
   },
   // Tables and CRUD
   {
@@ -259,6 +261,164 @@ const CASES: Case[] = [
     coverage: "partial",
     notices: ["no_opinion"],
     forbid: { foundations: ["typography", "spacing", "borders", "color", "interaction", "layout"] },
+  },
+  // Opinion Wave 2. These are the decisions the second pass added, asked for the way a task asks
+  // for them rather than in Monet's vocabulary: the request names the value, the affordance, or
+  // the job, and never the record. Nothing here shares an alias or a synonym entry with the case
+  // above it, so passing them together is a claim about the mechanism and not about the phrasing.
+  {
+    query: "quantity field with plus and minus",
+    expect: { components: ["number-input"] },
+    forbid: { components: ["otp-input", "date-picker", "statistic"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "page size selector with a numeric stepper",
+    expect: { components: ["number-input"] },
+    forbid: { components: ["otp-input", "date-picker"] },
+  },
+  {
+    query: "copy the API key",
+    expect: { components: ["clipboard"] },
+    forbid: { components: ["password-input", "keyboard-shortcut", "text-input"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "copy a share link to the clipboard",
+    expect: { components: ["clipboard"] },
+    forbid: { components: ["file-upload", "search-input"] },
+  },
+  {
+    query: "suggest email addresses while typing",
+    expect: { components: ["autocomplete"] },
+    forbid: { components: ["password-input", "number-input", "text-input"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "autocomplete the city name as they type",
+    expect: { components: ["autocomplete", "combobox"] },
+    forbid: { components: ["date-picker", "number-input"] },
+  },
+  {
+    query: "profile photo with initials fallback",
+    expect: { components: ["avatar"] },
+    forbid: { components: ["file-upload", "card", "skeleton"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "show the author next to each comment",
+    expect: { components: ["avatar"] },
+    forbid: { components: ["file-upload", "card"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "pick several tags for a post",
+    expect: { components: ["multi-select", "tag"] },
+    forbid: { components: ["radio", "date-picker"] },
+    coverage: "task_specific",
+  },
+  {
+    // "Several" is the only word here that reaches Multi-select, and reaching it weakly would
+    // report a shortlist for a concept Monet has actually decided.
+    query: "assign several owners to an issue",
+    expect: { components: ["multi-select"] },
+    forbid: { components: ["radio", "avatar"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "space out a column of cards",
+    expect: { components: ["stack", "card"] },
+    forbid: { components: ["data-table", "table", "divider"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "one consistent gap between the fields in a form",
+    expect: { components: ["stack"] },
+    forbid: { components: ["data-table", "divider"] },
+  },
+  {
+    query: "scrollable panel inside a dialog",
+    expect: { components: ["scroll-area", "dialog"] },
+    forbid: { components: ["carousel", "sheet"] },
+    coverage: "task_specific",
+  },
+  {
+    query: "long option list that scrolls inside a popover",
+    expect: { components: ["scroll-area", "popover"] },
+    forbid: { components: ["carousel", "data-table"] },
+  },
+  // The rest of Wave 2, asked for the same way.
+  {
+    query: "collapsible FAQ sections",
+    expect: { components: ["accordion"] },
+    leads: { components: "accordion" },
+    forbid: { components: ["stepper", "carousel"] },
+  },
+  {
+    query: "separate groups of commands inside a menu",
+    expect: { components: ["divider"] },
+    forbid: { components: ["tabs", "breadcrumb"] },
+  },
+  {
+    query: "one item should grow while the others keep their size",
+    expect: { components: ["flex"] },
+    leads: { components: "flex" },
+    forbid: { components: ["data-table", "table"] },
+  },
+  {
+    query: "responsive tiles that reflow on narrow screens",
+    expect: { components: ["grid"] },
+    leads: { components: "grid" },
+    forbid: { components: ["data-table", "carousel"] },
+  },
+  {
+    query: "toggle between list view and grid view",
+    expect: { components: ["segmented-control"] },
+    forbid: { components: ["carousel", "data-table"] },
+  },
+  {
+    query: "site-wide maintenance notice across the top of every page",
+    expect: { components: ["banner"] },
+    forbid: { components: ["toast", "tooltip"] },
+  },
+  {
+    query: "let people drag to set a rough value between two ends",
+    expect: { components: ["slider"] },
+    leads: { components: "slider" },
+    forbid: { components: ["carousel", "file-upload"] },
+  },
+  {
+    query: "schedule a post for a specific date and time",
+    expect: { components: ["date-time-picker", "date-input"] },
+    forbid: { components: ["slider", "number-input"] },
+  },
+  {
+    query: "choose a meeting time",
+    expect: { components: ["time-picker"] },
+    leads: { components: "time-picker" },
+    forbid: { components: ["calendar", "date-range-picker"] },
+  },
+  {
+    query: "let people type a date straight into the field",
+    expect: { components: ["date-input"] },
+    forbid: { components: ["calendar", "time-picker"] },
+  },
+  {
+    query: "right click a row for more actions",
+    expect: { components: ["context-menu"] },
+    forbid: { components: ["file-upload", "data-table"] },
+  },
+  // Vocabulary and folding that Wave 2 relies on, checked where the answer was already decided:
+  // "sortable" must reach Sort, "removable" must reach Remove, without either word being an alias.
+  {
+    query: "sortable columns in a table",
+    expect: { components: ["data-table"] },
+    forbid: { components: ["scroll-area", "slider"] },
+  },
+  {
+    query: "removable chips on a filter bar",
+    expect: { components: ["tag"] },
+    forbid: { components: ["clipboard", "file-upload"] },
   },
   // A review workflow, which is about Foundations rather than components
   {
