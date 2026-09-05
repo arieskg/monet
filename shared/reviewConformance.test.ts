@@ -217,10 +217,10 @@ describe("design conformance review against the bundled workspace", () => {
   });
 
   it("warns that a component Monet has not decided carries no approved styling", async () => {
-    const result = await review([{ id: "picker", kind: "component", component: "date-input" }]);
+    const result = await review([{ id: "picker", kind: "component", component: "calendar" }]);
     expect(checks(result)).toEqual(["component_undecided"]);
     expect(result.findings[0]!.level).toBe("warning");
-    expect(result.findings[0]!.related).toContain("monet://components/date-input");
+    expect(result.findings[0]!.related).toContain("monet://components/calendar");
     expect(result.findings[0]!.why).toMatch(/surface the choice/i);
   });
 

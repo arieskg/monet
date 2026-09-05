@@ -236,7 +236,7 @@ describe("Monet MCP adapter", () => {
           { id: "a", kind: "style", property: "background-color", value: "#ffffff", location: "Panel.tsx:4" },
           { id: "b", kind: "style", property: "padding", value: "13px" },
           { id: "c", kind: "token", token: "color.surface.pressd" },
-          { id: "d", kind: "component", component: "date-input" },
+          { id: "d", kind: "component", component: "calendar" },
           { id: "e", kind: "contrast", foreground: "color.foreground", background: "color.surface", usage: "text" },
           { id: "f", kind: "style", property: "width", value: "317px" },
         ],
@@ -256,7 +256,7 @@ describe("Monet MCP adapter", () => {
     expect(review.findings[0]).toMatchObject({ level: "error", usage_id: "c" });
     expect(review.findings[1]).toMatchObject({ level: "warning", usage_id: "a", location: "Panel.tsx:4", replacement: "color.surface" });
     expect(review.findings.every((item) => item.why.length > 0)).toBe(true);
-    expect(review.findings[3].related).toContain("monet://components/date-input");
+    expect(review.findings[3].related).toContain("monet://components/calendar");
     // A verified pairing and a property Monet documents no scale for both produce nothing.
     expect(review.coverage.not_applicable).toBe(1);
     expect(review.scope).toMatch(/not that the implementation conforms/);
