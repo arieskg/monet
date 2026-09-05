@@ -179,21 +179,27 @@ describe("design conformance review against the bundled workspace", () => {
     expect(mismatch.why).toMatch(/keeps this element's light appearance/);
   });
 
-  it("suggests the semantic role rather than the primitive it points at", async () => {
-    // #ecf0f1 is neutral.100 as well as color.background in light. Primitives never move between
-    // modes, so suggesting one would bury the role the Color foundation tells product code to name.
+  it("suggests semantic roles rather than the primitive they point at", async () => {
+    // #ecf0f1 is neutral.100 as well as three semantic roles in light. Primitives never move between
+    // modes, so naming one would bury the roles the Color foundation tells product code to use.
     const result = await review([{ kind: "style", property: "background-color", value: "#ecf0f1" }]);
     expect(checks(result)).toEqual(["literal_colour_has_token"]);
-    expect(result.findings[0]!.replacement).toBe("color.background");
     expect(result.findings[0]!.expected).not.toMatch(/neutral\./);
+    expect(result.findings[0]!.expected).toMatch(/color\.background/);
+    // Three surface roles carry this value and none fits `background-color` better than the others,
+    // so there is nothing to put in `replacement` that a caller could apply without deciding first.
+    expect(result.findings[0]!.replacement).toBeUndefined();
+    expect(result.findings[0]!.expected).toBe("one of color.background, color.surface.disabled, color.surface.subtle");
   });
 
   it("reads the same literal as a different role in dark, and still flags the pinned light role", async () => {
-    // In dark, #ecf0f1 is color.foreground; it is also the light value of color.background.
+    // In dark, #ecf0f1 is color.foreground; it is also the light value of three surface roles.
     const result = await review([{ kind: "style", property: "background-color", value: "#ecf0f1" }], "dark");
     expect(checks(result)).toEqual(["literal_colour_has_token", "light_value_in_other_mode"]);
-    expect(result.findings[0]!.replacement).toBe("color.foreground");
-    expect(result.findings[1]!.replacement).toBe("color.background");
+    expect(result.findings[0]!.expected).toBe("color.foreground");
+    expect(result.findings[1]!.expected).toMatch(/color\.background \(#[0-9a-f]{6} in dark\)/);
+    // A text role is not a replacement for a background, and the light roles are three-way tied.
+    expect(result.findings.map((finding) => finding.replacement)).toEqual([undefined, undefined]);
   });
 
   it("separates a colour that keeps its value across modes from one that moves", async () => {
@@ -377,5 +383,242 @@ describe("component statuses the bundled workspace does not contain", () => {
     const result = reviewUsages({ usages: [{ kind: "style", property: "border-radius", value: "5px" }] }, syntheticContext([]));
     expect(result.findings).toEqual([]);
     expect(result.coverage.not_applicable).toBe(1);
+  });
+});
+
+/**
+ * The contrast rules, which are the part of conformance most able to do damage. Monet applies a
+ * minimum when the caller declares one or when the Color foundation documents the pairing, and in no
+ * other case: an invented minimum turns every icon and disabled label into an error the tool cannot
+ * substantiate, and a caller that learns to ignore Monet's errors has lost the useful ones too.
+ */
+describe("which contrast minimum applies, and when none does", () => {
+  let service: MonetService;
+  const review = (usages: DesignUsage[], mode?: "light" | "dark") => service.reviewDesignUsage({ usages, ...(mode ? { mode } : {}) });
+
+  beforeAll(() => { service = createMonetService({ loadWorkspace }); });
+
+  it("does not present an undocumented pairing of its own tokens as a Monet violation", async () => {
+    // Muted body text on the primary fill measures 1.36:1, which would be dire if it were text.
+    // Monet documents no contract for the pairing, so it reports the measurement and says so.
+    const result = await review([{ id: "pair", kind: "contrast", foreground: "color.foreground.muted", background: "color.primary" }]);
+    expect(checks(result)).toEqual(["contrast_pairing_undocumented"]);
+    expect(result.findings[0]!.level).toBe("info");
+    expect(result.findings[0]!.why).toMatch(/documents no contrast contract for this pairing/);
+    expect(result.findings[0]!.observed).toMatch(/1\.36:1/);
+    expect(result.coverage.not_applicable).toBe(1);
+    expect(result.coverage.checked).toBe(0);
+  });
+
+  it("will not assume an undeclared pair carries text", async () => {
+    // 3.45:1 fails the text floor and clears the non-text one. Without a declared usage Monet has
+    // no basis to pick, and picking `text` by default would invent the error.
+    const undeclared = await review([{ kind: "contrast", foreground: "#8a8a8a", background: "#ffffff" }]);
+    expect(checks(undeclared)).toEqual(["contrast_usage_unspecified"]);
+    expect(undeclared.findings[0]!.level).toBe("info");
+    expect(undeclared.findings[0]!.expected).toMatch(/`text`, `non-text`, or `decorative`/);
+    expect(undeclared.coverage.unverifiable).toBe(1);
+
+    const declared = await review([{ kind: "contrast", foreground: "#8a8a8a", background: "#ffffff", usage: "text" }]);
+    expect(checks(declared)).toEqual(["contrast_below_minimum"]);
+    expect(declared.findings[0]!.level).toBe("error");
+  });
+
+  it("infers no minimum at all for a pair the caller calls decorative", async () => {
+    const result = await review([
+      { id: "deco", kind: "contrast", foreground: "#8a8a8a", background: "#ffffff", usage: "decorative" },
+      { id: "faint", kind: "contrast", foreground: "color.border.subtle", background: "color.surface", usage: "decorative" },
+    ]);
+    expect(new Set(checks(result))).toEqual(new Set(["contrast_not_required"]));
+    expect(result.findings.every((finding) => finding.level === "info")).toBe(true);
+    expect(result.coverage.not_applicable).toBe(2);
+    // The ratio is still reported, so a caller that declared `decorative` in error can see it.
+    expect(result.findings[0]!.observed).toMatch(/:1 in light mode$/);
+    expect(result.findings[0]!.why).toMatch(/resubmit it as `text` or `non-text`/);
+  });
+
+  it("holds a real WCAG failure to WCAG, without dressing it as a Monet rule", async () => {
+    // Disabled foreground on the default surface is not a pairing the Color foundation documents,
+    // and the caller declared it as text, so the floor applies and the finding says whose it is.
+    const result = await review([{ kind: "contrast", foreground: "color.foreground.disabled", background: "color.surface", usage: "text" }]);
+    expect(checks(result)).toEqual(["contrast_below_minimum"]);
+    expect(result.findings[0]!.level).toBe("error");
+    expect(result.findings[0]!.why).toMatch(/WCAG 4\.5:1 minimum/);
+    expect(result.findings[0]!.why).toMatch(/not a Monet rule/);
+  });
+
+  it("names Monet's own contract when the pairing has one", async () => {
+    // The same declaration on a documented pairing attributes the minimum to Monet, not to WCAG alone.
+    const result = await review([{ kind: "contrast", foreground: "color.foreground", background: "color.surface", usage: "text" }]);
+    expect(result.findings).toEqual([]);
+    expect(result.coverage.checked).toBe(1);
+  });
+
+  it("applies the documented contract when the caller names two roles and no usage", () => {
+    // A contract is what Monet actually knows about a pairing, so it decides the minimum on its own.
+    // Here the workspace's own body text has been dimmed to 2.70:1 against the surface it is
+    // documented on — a contract failure, reported without the caller declaring anything.
+    const context = syntheticContext([]);
+    const dimmed = { ...context.tokens[1]!, value: "#9d9e98", resolved_value: "#9d9e98" };
+    const tokens = [context.tokens[0]!, dimmed];
+    const result = reviewUsages(
+      { usages: [{ kind: "contrast", foreground: "color.foreground", background: "color.surface" }] },
+      { ...context, tokens, lightTokens: tokens },
+    );
+    expect(checks(result)).toEqual(["contrast_below_minimum"]);
+    expect(result.findings[0]!.level).toBe("error");
+    expect(result.findings[0]!.why).toMatch(/Monet documents this pairing/);
+  });
+});
+
+describe("replacements Monet declines to name", () => {
+  let service: MonetService;
+  const review = (usages: DesignUsage[], mode?: "light" | "dark") => service.reviewDesignUsage({ usages, ...(mode ? { mode } : {}) });
+
+  beforeAll(() => { service = createMonetService({ loadWorkspace }); });
+
+  it("omits a replacement for white written as a foreground, where six roles carry it", async () => {
+    // White is the foreground of five fills and the inverse foreground besides. All of them fit
+    // `color` equally, so there is no token to name — but the finding is still worth reporting.
+    const result = await review([{ id: "white", kind: "style", property: "color", value: "#ffffff" }]);
+    expect(checks(result)).toEqual(["literal_colour_has_token"]);
+    expect(result.findings[0]!.level).toBe("warning");
+    expect(result.findings[0]!.replacement).toBeUndefined();
+    expect(result.findings[0]!.expected).toMatch(/^one of color\.[a-z.]+, color\./);
+    expect(result.findings[0]!.why).toMatch(/none of them fits `color` better than the others/);
+  });
+
+  it("names white unambiguously where the property does distinguish the roles", async () => {
+    // The same literal against a background property has exactly one surface role, so Monet names it.
+    const result = await review([{ kind: "style", property: "background-color", value: "#ffffff" }]);
+    expect(result.findings[0]!.replacement).toBe("color.surface");
+  });
+
+  it("omits a replacement for a colour two roles share for different jobs", async () => {
+    // #1abc9c is both color.secondary and color.success; a fill is a fill either way.
+    const result = await review([{ kind: "style", property: "background-color", value: "#1abc9c" }]);
+    expect(checks(result)).toEqual(["literal_colour_has_token"]);
+    expect(result.findings[0]!.replacement).toBeUndefined();
+    expect(result.findings[0]!.expected).toBe("one of color.secondary, color.success");
+  });
+
+  it("does not offer a role whose job contradicts the property it was written against", async () => {
+    // color.border is the only role carrying #d8d7d0, but a border colour is not a background, so
+    // Monet reports the match and stops short of recommending it.
+    const result = await review([{ kind: "style", property: "background-color", value: "#d8d7d0" }]);
+    expect(checks(result)).toEqual(["literal_colour_has_token"]);
+    expect(result.findings[0]!.expected).toBe("color.border");
+    expect(result.findings[0]!.replacement).toBeUndefined();
+    expect(result.findings[0]!.why).toMatch(/not one Monet would write against `background-color`/);
+  });
+});
+
+describe("component references as they are written in code", () => {
+  let service: MonetService;
+  const review = (usages: DesignUsage[]) => service.reviewDesignUsage({ usages });
+
+  beforeAll(() => { service = createMonetService({ loadWorkspace }); });
+
+  it("resolves CamelCase component names to the ids they mean", async () => {
+    const camel = await review([
+      { id: "text-input", kind: "component", component: "TextInput" },
+      { id: "icon-button", kind: "component", component: "IconButton" },
+      { id: "date-picker", kind: "component", component: "DatePicker" },
+    ]);
+    expect(checks(camel)).not.toContain("component_unknown");
+    expect(camel.coverage.not_applicable).toBe(0);
+    expect(camel.coverage.checked).toBe(3);
+
+    // The CamelCase spelling reaches the same records as the ids, finding for finding.
+    const ids = await review([
+      { id: "text-input", kind: "component", component: "text-input" },
+      { id: "icon-button", kind: "component", component: "icon-button" },
+      { id: "date-picker", kind: "component", component: "date-picker" },
+    ]);
+    expect(camel.findings).toEqual(ids.findings);
+  });
+
+  it("resolves a CamelCase alias, and still has no opinion about a name it does not know", async () => {
+    const alias = await review([{ kind: "component", component: "TextField" }]);
+    expect(checks(alias)).not.toContain("component_unknown");
+    const unknown = await review([{ kind: "component", component: "ConfettiCannon" }]);
+    expect(checks(unknown)).toEqual(["component_unknown"]);
+    expect(unknown.findings[0]!.level).toBe("info");
+  });
+});
+
+describe("values a property cannot carry, and lengths that run backwards", () => {
+  let service: MonetService;
+  const review = (usages: DesignUsage[]) => service.reviewDesignUsage({ usages });
+
+  beforeAll(() => { service = createMonetService({ loadWorkspace }); });
+
+  it("rejects a token whose type the property cannot use", async () => {
+    const result = await review([
+      { id: "spacing-as-colour", kind: "style", property: "color", value: "token:space.4" },
+      { id: "colour-as-padding", kind: "style", property: "padding", value: "{color.surface}" },
+      { id: "fine", kind: "style", property: "background-color", value: "token:color.surface" },
+    ]);
+    expect(checks(result)).toEqual(["token_type_mismatch", "token_type_mismatch"]);
+    expect(result.findings.every((finding) => finding.level === "error")).toBe(true);
+    expect(result.findings.map((finding) => finding.usage_id).sort()).toEqual(["colour-as-padding", "spacing-as-colour"]);
+    expect(result.findings.find((finding) => finding.usage_id === "colour-as-padding")!.why).toMatch(/`padding` takes a length/);
+  });
+
+  it("measures a negative length by its magnitude and never suggests space.0", async () => {
+    const result = await review([
+      { id: "on-scale", kind: "style", property: "margin-top", value: "-8px" },
+      { id: "off-scale", kind: "style", property: "margin-left", value: "-13px" },
+    ]);
+    expect(result.findings.map((finding) => finding.usage_id)).toEqual(["off-scale"]);
+    const [pull] = result.findings;
+    expect(pull!.expected).toMatch(/the negation of a spacing step such as space\.3 \(12px\)/);
+    expect(pull!.expected).not.toMatch(/space\.0/);
+    // The token name is not substitutable for a negative value, so Monet names the step instead.
+    expect(pull!.replacement).toBeUndefined();
+  });
+
+  it("has nothing to measure a negative length against on a scale that cannot run backwards", async () => {
+    const result = await review([{ kind: "style", property: "font-size", value: "-4px" }]);
+    expect(checks(result)).toEqual(["unverifiable"]);
+    expect(result.findings[0]!.why).toMatch(/non-negative/);
+  });
+
+  it("calls a shorthand unverifiable and asks for the properties it bundles", async () => {
+    const result = await review([
+      { id: "border", kind: "style", property: "border", value: "1px solid #d8d7d0" },
+      { id: "padding", kind: "style", property: "padding", value: "8px 16px" },
+    ]);
+    expect(new Set(checks(result))).toEqual(new Set(["unverifiable"]));
+    expect(result.coverage.unverifiable).toBe(2);
+    expect(result.coverage.not_applicable).toBe(0);
+    expect(result.findings.find((finding) => finding.usage_id === "border")!.why).toMatch(/Submit the parts as separate observations/);
+    expect(result.findings.find((finding) => finding.usage_id === "padding")!.why).toMatch(/against the spacing scale/);
+  });
+
+  it("still reads a single-value colour shorthand as a colour", async () => {
+    const result = await review([{ kind: "style", property: "background", value: "#ffffff" }]);
+    expect(checks(result)).toEqual(["literal_colour_has_token"]);
+  });
+});
+
+describe("a mode the workspace cannot resolve", () => {
+  it("warns rather than silently answering in light, as get_design_context does", () => {
+    const context = syntheticContext([]);
+    const result = reviewUsages(
+      { mode: "dark", usages: [{ kind: "style", property: "background-color", value: "#ffffff" }] },
+      context,
+    );
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toMatch(/has no dark mode/);
+    expect(result.warnings[0]).toMatch(/must not be treated as dark-mode guidance/);
+    expect(result.theme?.mode).toBe("light");
+  });
+
+  it("says nothing when the mode was resolved as asked", async () => {
+    const service = createMonetService({ loadWorkspace });
+    const result = await service.reviewDesignUsage({ mode: "dark", usages: [{ kind: "token", token: "color.surface" }] });
+    expect(result.warnings).toEqual([]);
+    expect(result.theme?.mode).toBe("dark");
   });
 });

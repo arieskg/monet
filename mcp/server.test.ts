@@ -272,6 +272,29 @@ describe("Monet MCP adapter", () => {
     expect(review.findings.map((item) => item.check)).toContain("light_value_in_other_mode");
   });
 
+  it("accepts a decorative contrast pair over the protocol and refuses an invented usage", async () => {
+    const result = await client.callTool({
+      name: "review_design_usage",
+      arguments: {
+        usages: [
+          { id: "deco", kind: "contrast", foreground: "#8a8a8a", background: "#ffffff", usage: "decorative" },
+          { id: "camel", kind: "component", component: "IconButton" },
+        ],
+      },
+    });
+    const review = result.structuredContent as { coverage: { not_applicable: number }; findings: Array<{ level: string; check: string; usage_id?: string }> };
+    expect(review.findings.map((item) => item.check)).toEqual(["contrast_not_required"]);
+    expect(review.findings[0]).toMatchObject({ level: "info", usage_id: "deco" });
+    // The CamelCase component resolved to a decided record, so it produced no finding at all.
+    expect(review.coverage.not_applicable).toBe(1);
+
+    const invented = await client.callTool({
+      name: "review_design_usage",
+      arguments: { usages: [{ kind: "contrast", foreground: "#000000", background: "#ffffff", usage: "vibes" }] },
+    });
+    expect(invented.isError).toBe(true);
+  });
+
   it("reports unverifiable evidence as info rather than inventing a violation", async () => {
     const result = await client.callTool({
       name: "review_design_usage",

@@ -296,7 +296,7 @@ One array of observations, plus the theme and mode they were observed in.
     { "id": "1", "location": "Panel.tsx:12", "kind": "style", "property": "background-color", "value": "#ffffff" },
     { "id": "2", "kind": "style", "property": "padding", "value": "13px" },
     { "id": "3", "kind": "token", "token": "color.surface.pressd" },
-    { "id": "4", "kind": "component", "component": "date-input" },
+    { "id": "4", "kind": "component", "component": "DatePicker" },
     { "id": "5", "kind": "contrast", "foreground": "color.foreground.muted", "background": "color.surface", "usage": "text" }
   ]
 }
@@ -310,8 +310,32 @@ One array of observations, plus the theme and mode they were observed in.
 | `contrast` | `foreground`, `background`, `usage` | Two colours actually rendered against each other, as literals or token names |
 
 `id` and `location` are opaque to Monet and echoed on every finding, so a caller can map a finding
-straight back to the line that produced it. `usage` is `text` (default) or `non-text`; it decides
-which WCAG minimum applies, and Monet will not choose it for you.
+straight back to the line that produced it.
+
+A `component` may be written as an id, a name, or an alias, in any of the spellings a codebase
+actually uses: `text-input`, `Text Input`, `text-field`, and `TextInput` all reach the same record.
+
+`usage` says what a contrast pair carries, and it has no default — see below.
+
+#### Contrast: which minimum applies
+
+Monet applies a contrast minimum in exactly two cases, because those are the only two where it knows
+one applies.
+
+- **You declared it.** `usage` is `text` (4.5:1), `non-text` (3:1) for a meaningful boundary or
+  indicator, or `decorative` for decorative, disabled, and presentational pairs, which have no
+  minimum. A declared `text` or `non-text` pair below its floor is an `error`.
+- **Monet documents the pairing.** When both sides are Monet roles and the Color foundation
+  documents a contract for them, that contract decides the minimum and the kind, whether or not you
+  declared one. These are the same contracts `pnpm validate` holds the workspace to.
+
+Everything else is reported without a minimum. An undeclared pair of two Monet tokens that Monet
+documents no contract for is `contrast_pairing_undocumented` (`info`): the ratio is measured and
+reported, but an arbitrary combination of Monet's own tokens is not a Monet policy question, and
+presenting it as one would be inventing a rule. An undeclared pair involving a literal is
+`contrast_usage_unspecified` (`info`), naming the declaration Monet needs. Monet will not assume a
+pair carries text: that assumption turns every icon, divider, and disabled label into an error it
+cannot substantiate.
 
 #### What to extract before calling
 
@@ -328,20 +352,37 @@ Values Monet cannot measure are worth submitting anyway — it will say so rathe
 ```json
 {
   "level": "warning",
-  "check": "literal_colour_has_token",
-  "usage_id": "1",
-  "location": "Panel.tsx:12",
-  "observed": "background-color: #ffffff",
-  "expected": "color.surface (also color.on.primary, color.on.info)",
-  "why": "This literal is the light value of color.surface. Naming the role instead keeps the value following the theme and the mode rather than pinning it.",
-  "replacement": "color.surface",
-  "related": ["monet://foundations/color"]
+  "check": "off_scale_dimension",
+  "usage_id": "2",
+  "observed": "padding: 13px",
+  "expected": "a spacing step such as space.3 (12px) or space.4 (16px)",
+  "why": "No spacing token carries this value, so it is off the scale the rest of the system spaces against.",
+  "replacement": "space.3",
+  "related": ["monet://foundations/spacing"]
 }
 ```
 
 Every finding names what was observed, what Monet measures it against, why it matters, and the
-`monet://` resources carrying the decision. `replacement` appears when Monet can name one value
-unambiguously.
+`monet://` resources carrying the decision.
+
+`replacement` appears only when Monet can name one token unambiguously. Several roles routinely
+carry the same value — white is a surface, an inverse foreground, and the foreground of five fills —
+so a literal that matches more than one of them equally well, or matches only a role whose job
+contradicts the property it was written against, is reported *without* a `replacement`. The finding
+still names every candidate in `expected`; what Monet declines to do is break the tie for you.
+
+```json
+{
+  "level": "warning",
+  "check": "literal_colour_has_token",
+  "usage_id": "1",
+  "location": "Panel.tsx:12",
+  "observed": "background-color: #ffffff",
+  "expected": "one of color.on.accent, color.on.danger, color.on.info",
+  "why": "This literal is the dark value of 3 Monet roles (color.on.accent, color.on.danger, color.on.info), and none of them fits `background-color` better than the others, so Monet will not choose between them. Name the role you mean and the value follows the theme and the mode.",
+  "related": ["monet://foundations/color"]
+}
+```
 
 | Level | Meaning |
 | --- | --- |
@@ -353,7 +394,8 @@ unambiguously.
 | --- | --- | --- |
 | `unknown_token` | error | No Foundation defines the token |
 | `token_does_not_resolve` | error | The token exists but its reference chain does not resolve |
-| `contrast_below_minimum` | error | A measured pair is below the WCAG floor for its `usage` |
+| `token_type_mismatch` | error | The token's type is not one the property can carry — a spacing token as a colour, a colour token as padding |
+| `contrast_below_minimum` | error | A measured pair is below the minimum that applies to it — a declared `usage`, or a documented Monet contract |
 | `component_do_not_use` | error | Monet has decided against the concept |
 | `literal_colour_has_token` | warning | A literal equals a resolved colour token; name the role instead |
 | `colour_outside_palette` | warning | No colour token resolves to this value in this theme and mode |
@@ -364,10 +406,17 @@ unambiguously.
 | `component_deprecated` | warning | The taxonomy marks the concept deprecated |
 | `component_needs_review`, `component_experimental` | info | The decision is provisional |
 | `component_unknown` | info | The concept is outside the taxonomy — Monet has no opinion |
+| `contrast_pairing_undocumented` | info | Both sides are Monet roles, but Monet documents no contract for the pairing and none was declared |
+| `contrast_usage_unspecified` | info | No `usage` was declared and no contract covers the pair, so no minimum applies |
+| `contrast_not_required` | info | The caller declared the pair `decorative`, which has no minimum |
 | `unverifiable` | info | Monet understood the observation but could not measure it |
 
 `coverage` reports `submitted`, `checked`, `unverifiable`, and `not_applicable` counts plus the
 checks that ran, so a caller can see how much of its evidence Monet could actually act on.
+
+`warnings` carries anything that changed how the request was answered. A `mode` the theme cannot
+resolve falls back to light rather than failing, and says so there — the same behaviour, and the
+same wording, as `get_design_context`.
 
 #### Limitations
 
@@ -382,6 +431,15 @@ checks that ran, so a caller can see how much of its evidence Monet could actual
 - **Only properties with a documented Monet scale are checked** — spacing on `padding`/`margin`/`gap`,
   radius on `border-radius`, size on `font-size`, and the colour properties. `width`, `height`,
   `z-index`, `line-height` and the rest are counted as `not_applicable`, not passed.
+- **Shorthands are `unverifiable`, not passed.** `border: 1px solid #ccc` and `padding: 8px 16px`
+  bundle several properties into one value, and Monet measures one property against one scale.
+  Submit the parts separately — `border-color`, `padding-top` — and each one is checked.
+- **Monet does not decide which contrast minimum applies.** A pair it was told nothing about, and
+  documents no contract for, is reported with its ratio and no verdict. Declare `usage`.
+- **A negative length is measured by its magnitude, and only where that means something.** A
+  negative margin is a spacing step applied in reverse, so Monet compares `-13px` against the scale
+  as `13px` and names the step rather than offering a `replacement`. On scales that cannot run
+  backwards, a negative value is `unverifiable`.
 - **Colours must be opaque hex or `rgb()`.** Named colours, `color-mix()`, gradients, and anything
   partially transparent are `unverifiable`.
 - **Lengths are compared unit-exactly.** Monet will not convert `rem` to `px`, because that needs a
@@ -401,8 +459,8 @@ checks that ran, so a caller can see how much of its evidence Monet could actual
 4. Go deeper on one record the brief cited: read the `uri` it carries, for example
    `monet://patterns/forms` for the full pattern document.
 5. Check the result after building it: call `review_design_usage` with the colours, lengths, tokens,
-   components, and rendered foreground/background pairs the implementation actually uses, then act
-   on the `error` findings and confirm the `warning` ones.
+   components, and rendered foreground/background pairs the implementation actually uses — declaring
+   the `usage` of each pair — then act on the `error` findings and confirm the `warning` ones.
 
 ## Verification
 

@@ -91,8 +91,13 @@ export interface DesignUsage {
   /** `contrast`: the colours actually rendered against each other, as literals or Monet token names. */
   foreground?: string;
   background?: string;
-  /** `contrast`: whether the pair carries text or a non-text boundary or indicator. Defaults to text. */
-  usage?: "text" | "non-text";
+  /**
+   * `contrast`: what the pair carries, which decides the minimum. `text` and `non-text` name a WCAG
+   * minimum; `decorative` covers decorative, disabled, and presentational pairs that have none. Never
+   * inferred: an undeclared pair is measured against a documented Monet contract if one exists, and
+   * otherwise reported without a minimum.
+   */
+  usage?: "text" | "non-text" | "decorative";
 }
 export type ReviewLevel = "error" | "warning" | "info";
 export interface ReviewFinding {

@@ -35,7 +35,7 @@ const usageSchema = z.object({
   component: z.string().trim().max(120).optional().describe("component: the Monet component id, name, or alias the implementation used."),
   foreground: z.string().trim().max(120).optional().describe("contrast: the foreground actually rendered, as a literal colour or a Monet token name."),
   background: z.string().trim().max(120).optional().describe("contrast: the background it was rendered on, as a literal colour or a Monet token name."),
-  usage: z.enum(["text", "non-text"]).optional().describe("contrast: whether the pair carries text or a non-text boundary or indicator. Defaults to text."),
+  usage: z.enum(["text", "non-text", "decorative"]).optional().describe("contrast: what the pair carries — text, a non-text boundary or indicator, or decorative (decorative, disabled, or presentational, which has no minimum). Not inferred: leave it out and Monet applies a documented contract if one exists, and otherwise reports the ratio without a minimum."),
 }).strict();
 
 export const designReviewInputSchema = z.object({
@@ -171,7 +171,7 @@ function templateMode(uri: URL, value: string | string[] | undefined): ThemeMode
 
 export function createMonetMcpServer(service: MonetService): McpServer {
   const server = new McpServer(SERVER_INFO, {
-    instructions: "Monet is a read-only design-context provider. Call get_design_context with a natural design task to get a compact design brief, then read the monet:// resource it cites for any record you need in full. Check `coverage` and `notices` before relying on the result: Monet reports when it has no task-specific opinion, when a concept is catalogued but undecided, and when a request needs a capability it does not have. After building the UI, call review_design_usage with the colours, dimensions, tokens, components, and rendered foreground/background pairs you actually used, to have them checked against the same records.",
+    instructions: "Monet is a read-only design-context provider. Call get_design_context with a natural design task to get a compact design brief, then read the monet:// resource it cites for any record you need in full. Check `coverage` and `notices` before relying on the result: Monet reports when it has no task-specific opinion, when a concept is catalogued but undecided, and when a request needs a capability it does not have. After building the UI, call review_design_usage with the colours, dimensions, tokens, components, and rendered foreground/background pairs you actually used, to have them checked against the same records; say what each pair carries with `usage`, because Monet applies a contrast minimum only where you declare one or it documents the pairing.",
   });
 
   server.registerResource(
