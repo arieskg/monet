@@ -10,7 +10,7 @@ const sections = [
   { label: "Validate", icon: "validate", links: [["/preview", "Preview"]] },
 ] as const;
 
-const monetLogo = "/monet-mark-2c.svg";
+const monetLogo = "/monet-logo.png";
 
 function navClass({ isActive }: { isActive: boolean }): string { return isActive ? "nav-link active" : "nav-link"; }
 
