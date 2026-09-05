@@ -126,6 +126,19 @@ describe("Monet deterministic retrieval workflows", () => {
     expect(context.retrieval.filter((match) => match.entity_type === "foundation")).toEqual([]);
   });
 
+  it("does not let a weak pattern match pull in the Foundations it depends on either", async () => {
+    // The rule that already governs components governs workflow documents: an incidental overlap
+    // with a pattern is a candidate, and answering it with that pattern's Foundations would dress
+    // the shortlist up as guidance.
+    const context = await service.getDesignContext({ query: "let users pick which columns to show" });
+    const patterns = context.retrieval.filter((match) => match.entity_type === "pattern");
+    expect(patterns.every((match) => match.strength === "weak")).toBe(true);
+    expect(context.foundations).toEqual([]);
+    // A pattern the query actually recognised still brings them.
+    const decisive = await service.getDesignContext({ query: "build a settings page" });
+    expect(decisive.foundations.length).toBeGreaterThan(0);
+  });
+
   it("does not report task coverage for an unscoped request that matched nothing", async () => {
     const everything = await service.getDesignContext({});
     expect(everything.coverage).toBe("none");

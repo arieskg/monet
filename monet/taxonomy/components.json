@@ -15,7 +15,7 @@
       { "id": "textarea", "name": "Textarea", "category": "text-inputs", "description": "Collects multi-line freeform text.", "aliases": ["multiline-input", "text-area"], "relationships": ["text-input"] },
       { "id": "search-input", "name": "Search Input", "category": "text-inputs", "description": "Collects a query and communicates search behavior.", "aliases": ["search-field", "search-box"], "relationships": ["text-input", "command-palette"] },
       { "id": "password-input", "name": "Password Input", "category": "text-inputs", "description": "Collects secret text with reveal and security affordances.", "aliases": ["password-field"], "relationships": ["text-input"] },
-      { "id": "number-input", "name": "Number Input", "category": "text-inputs", "description": "Collects a numeric value with appropriate constraints.", "aliases": ["number-field", "stepper-input"], "relationships": ["text-input"] },
+      { "id": "number-input", "name": "Number Input", "category": "text-inputs", "description": "Collects a numeric value with appropriate constraints.", "aliases": ["number-field", "stepper-input"], "relationships": ["text-input", "slider"] },
       { "id": "otp-input", "name": "OTP / PIN Input", "category": "text-inputs", "description": "Collects a short verification or identification code.", "aliases": ["pin-input", "verification-code"], "relationships": ["text-input"] }
     ]
   },
@@ -28,7 +28,7 @@
       { "id": "select", "name": "Select", "category": "selection", "description": "Chooses one option from a compact list.", "aliases": ["dropdown", "select-menu"], "relationships": ["combobox", "radio"] },
       { "id": "combobox", "name": "Combobox", "category": "selection", "description": "Combines text input with a filterable option list.", "aliases": ["combo-box", "autocomplete"], "relationships": ["select", "autocomplete"] },
       { "id": "autocomplete", "name": "Autocomplete", "category": "selection", "description": "Suggests completions while the user types.", "aliases": ["typeahead"], "relationships": ["combobox", "search-input"] },
-      { "id": "multi-select", "name": "Multi-select", "category": "selection", "description": "Chooses multiple values from a compact option list.", "aliases": ["multiselect", "tag-picker"], "relationships": ["select", "combobox"] }
+      { "id": "multi-select", "name": "Multi-select", "category": "selection", "description": "Chooses multiple values from a compact option list.", "aliases": ["multiselect", "tag-picker"], "relationships": ["select", "combobox", "tag"] }
     ]
   },
   {
@@ -38,7 +38,7 @@
       { "id": "date-range-picker", "name": "Date Range Picker", "category": "date-time", "description": "Chooses a start and end date as one interval.", "aliases": ["range-calendar"], "relationships": ["date-picker"] },
       { "id": "calendar", "name": "Calendar", "category": "date-time", "description": "Displays dates and related events in a calendar grid.", "aliases": ["month-view"], "relationships": ["date-picker"] },
       { "id": "time-picker", "name": "Time Picker", "category": "date-time", "description": "Chooses a time of day.", "aliases": ["time-input"], "relationships": ["date-time-picker"] },
-      { "id": "date-time-picker", "name": "Date-Time Picker", "category": "date-time", "description": "Chooses a date and time together.", "aliases": ["datetime-picker"], "relationships": ["date-picker", "time-picker"] }
+      { "id": "date-time-picker", "name": "Date-Time Picker", "category": "date-time", "description": "Chooses a date and time together.", "aliases": ["datetime-picker"], "relationships": ["date-picker", "time-picker", "date-input"] }
     ]
   },
   {
@@ -70,7 +70,7 @@
     "id": "feedback", "name": "Feedback", "entries": [
       { "id": "alert", "name": "Alert", "category": "feedback", "description": "Communicates a persistent important message in context.", "aliases": ["inline-alert"], "relationships": ["banner", "toast"] },
       { "id": "toast", "name": "Toast", "category": "feedback", "description": "Briefly confirms an outcome without blocking work.", "aliases": ["snackbar", "notification-toast"], "relationships": ["alert"] },
-      { "id": "banner", "name": "Banner", "category": "feedback", "description": "Communicates page- or system-level information prominently.", "aliases": ["announcement"], "relationships": ["alert"] },
+      { "id": "banner", "name": "Banner", "category": "feedback", "description": "Communicates page- or system-level information prominently.", "aliases": ["announcement"], "relationships": ["alert", "toast"] },
       { "id": "progress", "name": "Progress", "category": "feedback", "description": "Shows completion of a determinate or indeterminate process.", "aliases": ["progress-bar"], "relationships": ["spinner", "stepper"] },
       { "id": "spinner", "name": "Spinner", "category": "feedback", "description": "Indicates indeterminate short activity.", "aliases": ["activity-indicator", "loader"], "relationships": ["progress", "skeleton"] },
       { "id": "skeleton", "name": "Skeleton", "category": "feedback", "description": "Preserves layout while content is loading.", "aliases": ["skeleton-loader"], "relationships": ["spinner"] },
@@ -87,9 +87,9 @@
       { "id": "card", "name": "Card", "category": "data-display", "description": "Groups a compact subject and its related information or actions.", "aliases": ["tile", "panel"], "relationships": ["list"] },
       { "id": "badge", "name": "Badge", "category": "data-display", "description": "Shows compact status, count, or classification metadata.", "aliases": ["lozenge"], "relationships": ["tag", "status-indicator"] },
       { "id": "tag", "name": "Tag", "category": "data-display", "description": "Labels or represents a value that may be removable.", "aliases": ["chip", "token"], "relationships": ["badge"] },
-      { "id": "avatar", "name": "Avatar", "category": "data-display", "description": "Represents a person, team, or entity with an image or initials.", "aliases": ["profile-image"], "relationships": ["badge"] },
+      { "id": "avatar", "name": "Avatar", "category": "data-display", "description": "Represents a person, team, or entity with an image or initials.", "aliases": ["profile-image"], "relationships": ["badge", "status-indicator"] },
       { "id": "timeline", "name": "Timeline", "category": "data-display", "description": "Shows events in chronological order.", "aliases": ["activity-feed"], "relationships": ["list"] },
-      { "id": "accordion", "name": "Accordion", "category": "data-display", "description": "Reveals and hides stacked sections of content.", "aliases": ["disclosure-group"], "relationships": ["list", "card"] },
+      { "id": "accordion", "name": "Accordion", "category": "data-display", "description": "Reveals and hides stacked sections of content.", "aliases": ["disclosure-group"], "relationships": ["list", "card", "tabs"] },
       { "id": "carousel", "name": "Carousel", "category": "data-display", "description": "Moves through a bounded sequence in one viewport.", "aliases": ["slider", "gallery"], "relationships": [] },
       { "id": "statistic", "name": "Statistic / KPI", "category": "data-display", "description": "Highlights an important value with context.", "aliases": ["stat", "metric", "kpi"], "relationships": ["chart"] }
     ]
@@ -105,11 +105,11 @@
   {
     "id": "layout", "name": "Layout", "entries": [
       { "id": "container", "name": "Container", "category": "layout", "description": "Constrains and aligns a content region.", "aliases": ["page-container"], "relationships": ["grid"] },
-      { "id": "stack", "name": "Stack", "category": "layout", "description": "Arranges children along one axis with consistent spacing.", "aliases": ["vstack", "hstack"], "relationships": ["flex"] },
+      { "id": "stack", "name": "Stack", "category": "layout", "description": "Arranges children along one axis with consistent spacing.", "aliases": ["vstack", "hstack"], "relationships": ["flex", "grid"] },
       { "id": "flex", "name": "Flex", "category": "layout", "description": "Arranges flexible items along one dimension.", "aliases": ["flexbox"], "relationships": ["stack", "grid"] },
       { "id": "grid", "name": "Grid", "category": "layout", "description": "Arranges content across two-dimensional tracks.", "aliases": ["layout-grid"], "relationships": ["container", "flex"] },
-      { "id": "divider", "name": "Divider", "category": "layout", "description": "Separates adjacent content groups.", "aliases": ["separator", "rule"], "relationships": [] },
-      { "id": "scroll-area", "name": "Scroll Area", "category": "layout", "description": "Constrains scrolling to a named region.", "aliases": ["scroll-container"], "relationships": [] },
+      { "id": "divider", "name": "Divider", "category": "layout", "description": "Separates adjacent content groups.", "aliases": ["separator", "rule"], "relationships": ["stack"] },
+      { "id": "scroll-area", "name": "Scroll Area", "category": "layout", "description": "Constrains scrolling to a named region.", "aliases": ["scroll-container"], "relationships": ["container"] },
       { "id": "resizable-panels", "name": "Resizable Panels", "category": "layout", "description": "Lets users adjust the space allocated to adjacent regions.", "aliases": ["split-pane"], "relationships": ["divider"] },
       { "id": "aspect-ratio", "name": "Aspect Ratio", "category": "layout", "description": "Maintains a proportional media or content box.", "aliases": ["ratio-box"], "relationships": [] }
     ]
@@ -119,7 +119,7 @@
       { "id": "field", "name": "Field", "category": "form-utility", "description": "Composes a label, control, description, and validation message.", "aliases": ["form-field", "form-control"], "relationships": ["label", "fieldset"] },
       { "id": "fieldset", "name": "Fieldset", "category": "form-utility", "description": "Groups related form controls under one legend.", "aliases": ["field-group"], "relationships": ["field"] },
       { "id": "label", "name": "Label", "category": "form-utility", "description": "Names an input or control accessibly.", "aliases": ["field-label"], "relationships": ["field"] },
-      { "id": "file-upload", "name": "File Upload", "category": "form-utility", "description": "Selects or drops one or more files for upload.", "aliases": ["dropzone", "file-input"], "relationships": ["button"] },
+      { "id": "file-upload", "name": "File Upload", "category": "form-utility", "description": "Selects or drops one or more files for upload.", "aliases": ["dropzone", "file-input"], "relationships": ["button", "progress"] },
       { "id": "slider", "name": "Slider", "category": "form-utility", "description": "Chooses a value or range along a continuum.", "aliases": ["range-input"], "relationships": ["number-input"] },
       { "id": "rating", "name": "Rating", "category": "form-utility", "description": "Collects or displays an ordinal assessment.", "aliases": ["star-rating"], "relationships": [] },
       { "id": "clipboard", "name": "Clipboard", "category": "form-utility", "description": "Copies a value with explicit feedback.", "aliases": ["copy-button", "copy-to-clipboard"], "relationships": ["button", "tooltip"] },

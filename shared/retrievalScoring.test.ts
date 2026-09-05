@@ -7,7 +7,17 @@ function score(query: string, fields: Parameters<typeof scoreRetrieval>[1]): num
 
 describe("Monet retrieval normalization", () => {
   it("folds the forms of one word onto a single stem", () => {
-    const pairs: [string, string][] = [["delete", "deleting"], ["delete", "deleted"], ["edit", "editing"], ["doc", "docs"], ["action", "actions"], ["table", "tables"], ["filter", "filtering"]];
+    const pairs: [string, string][] = [
+      ["delete", "deleting"], ["delete", "deleted"], ["edit", "editing"], ["doc", "docs"],
+      ["action", "actions"], ["table", "tables"], ["filter", "filtering"],
+      // A short verb and its participle used to split on the trailing `e`, which hid every record
+      // that describes what a control does rather than what it is called.
+      ["type", "typing"], ["type", "typed"], ["code", "coding"], ["save", "saving"],
+      ["size", "sizing"], ["name", "naming"], ["copy", "copied"], ["copy", "copies"],
+      // A capability is described with `-able`; the record is named for the thing itself.
+      ["scroll", "scrollable"], ["sort", "sortable"], ["click", "clickable"],
+      ["select", "selectable"], ["remove", "removable"], ["collapse", "collapsible"],
+    ];
     for (const [a, b] of pairs) {
       expect(stem(a), `${a} vs ${b}`).toBe(stem(b));
     }
@@ -17,9 +27,18 @@ describe("Monet retrieval normalization", () => {
     for (const word of ["status", "access", "css", "this", "focus"]) expect(stem(word)).not.toBe(word.slice(0, -1));
   });
 
+  it("leaves words that only look like capabilities alone", () => {
+    // The `-able` rule is length-guarded so it strips a suffix, never most of a short word.
+    expect(stem("table")).toBe(stem("tables"));
+    expect(stem("disable")).toBe(stem("disabled"));
+    for (const word of ["table", "disable", "enable", "usable"]) expect(stem(word).length).toBeGreaterThan(3);
+  });
+
   it("drops task framing so only design words remain", () => {
     expect(retrievalTokens("please build me a new login form")).toEqual(["login", "form"]);
-    expect(retrievalTokens("what should I use to show that a save failed")).toEqual(["show", "save", "fail"]);
+    // Stems are matching keys, never display strings, so folding "save" and "saving" together is
+    // the point rather than a defect.
+    expect(retrievalTokens("what should I use to show that a save failed")).toEqual(["show", "sav", "fail"]);
   });
 
   it("expands task vocabulary into the words Monet's records use", () => {
@@ -92,6 +111,21 @@ describe("Monet retrieval scoring", () => {
     expect(score("sortable table users can select from", earned)).toBeGreaterThanOrEqual(85);
   });
 
+  it("credits a record for answering more of the request, not for repeating itself", () => {
+    // Same leading signal in both. One record says the same word again in its prose; the other
+    // answers a second term the leading signal never touched, which is more of the task met.
+    const repeats = { name: "Clipboard", aliases: ["copy-button"], summaryText: ["Copies a value", "Copying is the only way to obtain it"] };
+    const answers = { name: "Clipboard", aliases: ["copy-button"], summaryText: ["Copies a value", "An identifier, key, or token the user needs somewhere else"] };
+    expect(score("copy the api key", answers)).toBeGreaterThan(score("copy the api key", repeats));
+  });
+
+  it("does not let breadth rescue a record whose evidence is one word over and over", () => {
+    // The demoted-alias guard has to survive the wider allowance: every line here says "grid", so
+    // there is no second part of the request being answered and the tight allowance still applies.
+    const demoted = { name: "Data Table", aliases: ["grid", "datagrid"], detailText: ["A grid of rows", "Grid density stays uniform", "Grid columns align by type", "Grid gutters come from spacing"] };
+    expect(score("card grid of documents", demoted)).toBeLessThan(58);
+  });
+
   it("scores every authored value on its own rather than as one blob", () => {
     const separate = { name: "Reference", summaryText: ["Quiet submit action", "A long unrelated sentence about something else entirely that shares no words"] };
     expect(score("quiet submit action", separate)).toBeGreaterThanOrEqual(58);
@@ -112,6 +146,31 @@ describe("Monet retrieval scoring", () => {
     // A fully matched alias, or one contained in the query as a phrase, still identifies outright.
     expect(score("a pin input for the code", { name: "Unrelated Record", aliases: ["pin-input"] })).toBeGreaterThanOrEqual(85);
     expect(score("confirmation dialog", { name: "Unrelated Record", aliases: ["confirmation dialog"] })).toBeGreaterThanOrEqual(85);
+  });
+
+  it("treats one distinctive word out of a name's several as evidence, not identity", () => {
+    // "Password Input" is identified by "password" because "input" is shape. "File Upload" is two
+    // distinctive words, so "file" alone names part of the concept and has to be corroborated —
+    // otherwise right-clicking a file resolves to the control for uploading one.
+    expect(score("context menu on right click of a file", { name: "File Upload" })).toBeLessThan(62);
+    // The whole name, however it is reached, still identifies outright.
+    expect(score("drag and drop a file to attach it", { name: "File Upload" })).toBeGreaterThanOrEqual(62);
+    expect(score("date range picker", { name: "Date Range Picker" })).toBeGreaterThanOrEqual(85);
+  });
+
+  it("keeps the canonical-name rule intact once a record has prose to corroborate it", () => {
+    // The Wave 2 records state their opinion across a dozen fields, which is what the reach
+    // allowance rewards. It must not become a back door for the case the name rule exists to
+    // stop: "file" is one distinctive word of "File Upload", and prose about files is the same
+    // word again rather than a second part of the request.
+    const fileUpload = {
+      name: "File Upload", aliases: ["dropzone", "file-input"],
+      summaryText: ["Selects or drops one or more files for upload", "Attaching a file to a record"],
+      detailText: ["Files are validated before upload", "A file list shows each file and its progress"],
+    };
+    expect(score("context menu on right click of a file", fileUpload)).toBeLessThan(62);
+    // The same record, asked for by name, still answers outright.
+    expect(score("attach a file to upload", fileUpload)).toBeGreaterThanOrEqual(85);
   });
 
   it("still recognises a canonical name from its distinctive half", () => {

@@ -297,7 +297,9 @@
           "label"
         ],
         "relationships": [
-          "visually-hidden"
+          "visually-hidden",
+          "icon",
+          "pressable"
         ],
         "deprecated": false
       }

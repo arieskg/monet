@@ -138,7 +138,8 @@ describe("Monet decision substance", () => {
 });
 
 describe("Monet control boundaries", () => {
-  const controls = ["text-input", "textarea", "select", "search-input", "password-input", "combobox", "checkbox", "radio"];
+  const controls = ["text-input", "textarea", "select", "search-input", "password-input", "combobox", "checkbox", "radio",
+    "number-input", "autocomplete", "multi-select", "date-input", "time-picker"];
 
   it("resolves every Borders role through the matching Color role", () => {
     const pairs: [border: string, color: string][] = [

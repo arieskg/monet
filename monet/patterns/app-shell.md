@@ -4,8 +4,8 @@ summary: "One persistent frame — navigation, page header, and content region �
 status: "selected"
 tags: ["layout","navigation","structure"]
 order: 7
-updated_at: "2026-09-02T00:00:00.000Z"
-components: ["sidebar","navigation-menu","breadcrumb","container","button","search-input","avatar"]
+updated_at: "2026-09-03T00:00:00.000Z"
+components: ["sidebar","navigation-menu","breadcrumb","container","button","search-input","avatar","banner"]
 foundations: ["layout","spacing","breakpoints","layering","interaction","elevation"]
 ---
 
@@ -26,6 +26,8 @@ Content width varies inside the shell; page geometry does not. Use the narrow co
 Primary navigation is persistent and identifies where the user is in the product. Keep its width stable — a navigation region that resizes as the user moves between sections makes the whole workspace feel unstable.
 
 The page header carries the page's identity and its page-level primary action. Section- and item-level actions belong to the region or panel they affect, not to the page header.
+
+A product-wide Banner belongs to the shell rather than to a page: it renders once, beneath the global bar and above the content region, and every route inherits it. Reserve its space so content does not jump when it appears, and show at most one — a stack of banners is a noticeboard nobody reads.
 
 The content region owns its own scrolling. When the shell has a sticky header or toolbar, it uses the sticky layer, and only genuinely persistent controls go there. Sticky regions must not consume so much height that the content area stops being usable.
 

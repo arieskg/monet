@@ -110,6 +110,34 @@ export const QUERY_SYNONYMS: Record<string, string[]> = {
   // Phrase-triggered: a bare "palette" is as likely to be a command palette as a colour one.
   "color palette": ["token", "swatch"],
   "colour palette": ["color", "token", "swatch"],
+  // A task names a numeric value by what it counts, or by the affordance it expects; Monet names
+  // the control for the type of the value it collects.
+  quantity: ["number", "numeric", "count"],
+  count: ["number", "numeric"],
+  numeric: ["number"],
+  increment: ["stepper", "step", "number"],
+  decrement: ["stepper", "step", "number"],
+  "plus and minus": ["increment", "decrement", "stepper", "number"],
+  // Every task names the verb; the record is named for the destination.
+  copy: ["clipboard"],
+  paste: ["clipboard"],
+  // A person's picture. "Avatar" is the system's word for it, rarely the task's.
+  photo: ["image", "picture"],
+  picture: ["image"],
+  headshot: ["avatar", "profile", "image"],
+  author: ["person", "identity", "attribution"],
+  // Picking and a picker are the same act, and the corpus names its controls with the agent noun.
+  pick: ["picker"],
+  // Several-of-many. Monet spells the concept "multi", which no task ever types.
+  several: ["multiple", "multi"],
+  multiple: ["multi"],
+  many: ["multiple", "multi"],
+  // Progressive disclosure, which much of the industry names Collapse rather than Accordion.
+  collapse: ["accordion", "disclosure", "expand"],
+  expand: ["disclosure", "expansion"],
+  // Space between things: a task says "space" or "gap" where the records say "spacing".
+  gap: ["space"],
+  space: ["gap"],
 };
 
 /**
@@ -187,15 +215,23 @@ export interface RetrievalScore {
  * Conservative morphological folding. It only needs to make the forms of one word collide
  * ("delete"/"deleting", "doc"/"docs", "action"/"actions"), not to be linguistically correct,
  * so every rule is length-guarded and the result is never used for display.
+ *
+ * The `-able` rule is what lets a capability people describe reach the record named for the thing
+ * itself: "scrollable" is Scroll Area, "removable" is Tag, "sortable" is Data Table. The trailing
+ * `e` is stripped down to a three-letter stem so that a short verb and its participle land
+ * together — "typing"/"types", "coding"/"code", "saving"/"saved" — which the longer guard kept apart.
  */
 export function stem(token: string): string {
   let value = token;
   if (value.length > 4 && value.endsWith("ies")) value = `${value.slice(0, -3)}y`;
   else if (value.length > 4 && /(?:ss|sh|ch|x|z)es$/.test(value)) value = value.slice(0, -2);
   else if (value.length > 3 && value.endsWith("s") && !/(?:ss|us|is)$/.test(value)) value = value.slice(0, -1);
+  // Long enough that the suffix is doing adjectival work: "scrollable", not "table" or "disable".
+  if (value.length > 7 && /(?:able|ible)$/.test(value)) value = value.slice(0, -4);
   if (value.length > 5 && value.endsWith("ing")) value = value.slice(0, -3);
+  else if (value.length > 4 && value.endsWith("ied")) value = `${value.slice(0, -3)}y`;
   else if (value.length > 4 && value.endsWith("ed")) value = value.slice(0, -2);
-  if (value.length > 4 && value.endsWith("e")) value = value.slice(0, -1);
+  if (value.length > 3 && value.endsWith("e")) value = value.slice(0, -1);
   if (value.length > 4 && value.endsWith("ly")) value = value.slice(0, -2);
   return value;
 }
@@ -204,6 +240,11 @@ export function stem(token: string): string {
  * A tier is a list of separate authored fields, not one document. Concatenating them and measuring
  * coverage over the whole blob is what made a fully matched annotation look like a weak hit inside
  * a long record, so every value is kept apart and scored on its own.
+ *
+ * Splitting a long value further — a rationale or a pattern body into its sentences — was tried and
+ * measured worse: the fragments a page yields are headings and half-clauses, and a three-word
+ * fragment fully matched by one common word outscores the paragraph it came from. Length is
+ * handled by the reach allowance in `scoreRetrieval` instead, which reads the whole record.
  */
 function textValues(values: readonly unknown[]): string[] {
   return values.flatMap((value) => Array.isArray(value) ? value : [value]).filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
@@ -256,6 +297,9 @@ interface Hit {
    * be recognised from the word that actually names it, without letting shape words alone do it.
    */
   distinctiveCoverage: number;
+  /** How many distinctive tokens the field has, and how many of them the query accounted for. */
+  distinctiveTokens: number;
+  distinctiveMatches: number;
 }
 
 const EXPANDED_TERM_WEIGHT = 0.65;
@@ -270,6 +314,8 @@ function hit(terms: Set<string>, expanded: Set<string>, value: string): Hit {
     weight, matched,
     fieldCoverage: tokens.length ? matched.length / tokens.length : 0,
     distinctiveCoverage: distinctive.length ? distinctiveMatched.length / distinctive.length : 0,
+    distinctiveTokens: distinctive.length,
+    distinctiveMatches: distinctiveMatched.length,
   };
 }
 
@@ -285,6 +331,13 @@ function evidence(current: Hit, ceiling: number, saturation: number, distinctive
   return ceiling * density;
 }
 
+/** What corroboration may add to a record whose supporting evidence only restates its leading signal. */
+const CORROBORATION_CEILING = 14;
+const CORROBORATION_SHARE = 0.18;
+/** ...and to one whose supporting evidence answers parts of the request the leading signal did not. */
+const REACH_CEILING = 26;
+const REACH_SHARE = 0.5;
+
 /**
  * Two matched terms is full marks, but a record can only be credited against the terms it could
  * plausibly answer. Counting every word in the sentence instead made the same evidence worth less
@@ -294,9 +347,9 @@ function evidence(current: Hit, ceiling: number, saturation: number, distinctive
  */
 const ALIAS_SATURATION = 2;
 
-function recordSaturation(terms: Set<string>, expanded: Set<string>, values: readonly string[]): number {
-  const matched = new Set(values.flatMap((value) => hit(terms, expanded, value).matched));
-  return Math.min(2, Math.max(1, matched.size));
+/** Every query term this record answers somewhere, which is both its saturation and its reach. */
+function recordMatches(terms: Set<string>, expanded: Set<string>, values: readonly string[]): Set<string> {
+  return new Set(values.flatMap((value) => hit(terms, expanded, value).matched));
 }
 
 function specific(matched: string[]): boolean {
@@ -309,7 +362,7 @@ function strength(score: number): RetrievalStrength {
   return "weak";
 }
 
-interface Signal { score: number; reason: RetrievalScore["reason"] }
+interface Signal { score: number; reason: RetrievalScore["reason"]; matched: string[] }
 
 /**
  * A canonical name is a record's identity, so matching it on a common word still means the caller
@@ -318,6 +371,8 @@ interface Signal { score: number; reason: RetrievalScore["reason"] }
  */
 const BROAD_NAME_FACTOR = 0.8;
 const BROAD_ALIAS_FACTOR = 0.5;
+/** One distinctive word out of a name's several names part of the concept, rather than the whole of it. */
+const PARTIAL_NAME_FACTOR = 0.8;
 
 /**
  * Identity is claimed differently by a canonical name and by an alias.
@@ -342,9 +397,14 @@ function nameSignals(terms: Set<string>, expanded: Set<string>, queryPhrase: str
       || current.fieldCoverage === 1
       || (distinctiveIdentity && current.distinctiveCoverage === 1);
     const factor = specific(current.matched) ? 1 : broadFactor;
-    if (whole) return [{ score: exactScore * factor * (current.weight / Math.max(1, current.matched.length)), reason }];
-    const partial = evidence(current, ceiling, saturation, distinctiveIdentity);
-    return partial ? [{ score: partial * factor, reason }] : [];
+    if (whole) return [{ score: exactScore * factor * (current.weight / Math.max(1, current.matched.length)), reason, matched: current.matched }];
+    // A name built from several distinctive words is identified by more than one of them. "File
+    // Upload" met by "file" alone is the trap the alias rule already covers — "right click of a
+    // file" is not a request to upload one — so one distinctive word out of several is graded as
+    // evidence rather than identity, and has to be corroborated to survive the retrieval floor.
+    const partOfTheName = distinctiveIdentity && current.distinctiveTokens > 1 && current.distinctiveMatches === 1;
+    const partial = evidence(current, ceiling, saturation, distinctiveIdentity) * (partOfTheName ? PARTIAL_NAME_FACTOR : 1);
+    return partial ? [{ score: partial * factor, reason, matched: current.matched }] : [];
   });
 }
 
@@ -359,7 +419,7 @@ function tierSignals(terms: Set<string>, expanded: Set<string>, values: readonly
   return values
     .map((value) => hit(terms, expanded, value))
     .filter((current) => current.weight > 0)
-    .map((current) => ({ score: evidence(current, ceiling, saturation, false) * (specific(current.matched) ? 1 : BROAD_TEXT_FACTOR), reason }))
+    .map((current) => ({ score: evidence(current, ceiling, saturation, false) * (specific(current.matched) ? 1 : BROAD_TEXT_FACTOR), reason, matched: current.matched }))
     .sort((a, b) => b.score - a.score)
     .slice(0, 2);
 }
@@ -378,7 +438,8 @@ export function scoreRetrieval(query: string, fields: RetrievalFields): Retrieva
   const summary = textValues(fields.summaryText ?? []);
   const detail = textValues(fields.detailText ?? []);
   const weak = textValues(fields.weakText ?? []);
-  const saturation = recordSaturation(terms, expanded, [fields.name, ...aliases, ...tags, ...categories, ...summary, ...detail, ...weak]);
+  const answered = recordMatches(terms, expanded, [fields.name, ...aliases, ...tags, ...categories, ...summary, ...detail, ...weak]);
+  const saturation = Math.min(2, Math.max(1, answered.size));
 
   const signals: Signal[] = [
     ...nameSignals(terms, expanded, normalizedPhrase(query), [fields.name], "direct_name_match", 100, 74, BROAD_NAME_FACTOR, true, saturation),
@@ -400,8 +461,24 @@ export function scoreRetrieval(query: string, fields: RetrievalFields): Retrieva
   if (!best) return null;
   // Corroboration is a bonus on evidence, so it scales with the evidence. Without that, a handful
   // of incidental prose hits can lift a record the primary signal deliberately demoted.
+  //
+  // How far it can scale depends on what the rest of the record adds. Evidence that only repeats
+  // the leading signal is the same evidence twice — three lines about grids do not make "grid" a
+  // better answer to "card grid of documents" — so it stays on the tight allowance. Evidence that
+  // answers terms the leading signal did not is a different part of the request being met, which
+  // is what a record whose opinion is stated across a dozen fields actually looks like, so its
+  // allowance widens with that reach. Reach is measured over the whole record rather than the
+  // signals that survived tier trimming, and is still bounded by the supporting scores themselves,
+  // so a term mentioned once in passing widens the allowance without being able to fill it.
   const supporting = ranked.slice(1).reduce((total, signal) => total + signal.score, 0);
-  const corroboration = Math.min(14, 0.22 * supporting, 0.18 * best.score);
+  const led = new Set(best.matched);
+  const beyond = [...answered].filter((term) => !led.has(term)).length;
+  const reach = answered.size ? beyond / answered.size : 0;
+  const corroboration = Math.min(
+    CORROBORATION_CEILING + (REACH_CEILING - CORROBORATION_CEILING) * reach,
+    0.22 * supporting,
+    (CORROBORATION_SHARE + REACH_SHARE * reach) * best.score,
+  );
   const score = Math.round(Math.min(100, best.score + corroboration));
   return { score, reason: best.reason, strength: strength(score) };
 }
