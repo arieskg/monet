@@ -4,6 +4,9 @@ export interface ReferenceSaveInput extends Reference { asset_data_url?: string;
 
 export interface SourceRefreshResult { source: Source; discovered: number; mapped: number; needs_review: number; unmapped: number }
 
+/** Facts about the running installation that the workspace records themselves do not carry. */
+export interface Environment { root: string; appRoot: string; bundled: boolean; aiConfigured: boolean; aiVariable: string }
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, headers: { "content-type": "application/json", ...init?.headers } });
   const value = await response.json() as { error?: string };
@@ -12,6 +15,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  environment: () => request<Environment>("/api/environment"),
   workspace: (themeId?: string, mode?: ThemeMode) => {
     const params = new URLSearchParams();
     if (themeId) params.set("theme", themeId);

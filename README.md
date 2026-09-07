@@ -70,6 +70,12 @@ MONET_ROOT=~/design pnpm dev   # your own workspace
 Open `http://127.0.0.1:43140/`. The Vite application talks only to a loopback
 file service on `127.0.0.1:43141`; nothing leaves your machine.
 
+The home page states what Monet is and the loop it belongs to, and says plainly
+when the workspace you are looking at is the bundled example. **Agent context**
+carries the MCP setup for the workspace that window has open, and **Settings**
+shows where that workspace lives, whether the optional AI provider is
+configured, and whether Monet renders in light or dark.
+
 ## Run the MCP server
 
 ```bash
@@ -78,12 +84,15 @@ MONET_ROOT=~/design pnpm mcp
 ```
 
 The process speaks MCP on stdin/stdout and waits for a client. It exposes
-resources and two read-only tools; it has no write operations and opens no
-network listener. See [`docs/MCP.md`](docs/MCP.md) for client configuration and
+resources and three read-only tools — design context, reference search, and
+conformance review; it has no write operations and opens no network listener. See [`docs/MCP.md`](docs/MCP.md) for client configuration and
 [`mcp.example.json`](mcp.example.json) for a config you can copy.
 
 Monet is client-neutral. Any MCP client that can launch a local stdio server
 works, and nothing in the server is written for a particular one.
+
+The UI's **Agent context** page explains the same thing in place, with the
+command and client configuration already filled in for the open workspace.
 
 ## Check a workspace
 

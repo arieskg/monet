@@ -36,11 +36,11 @@ export function ExportPage() {
 ├── design-system.json        generated snapshot (not committed)
 ├── AGENTS.md                 coding-agent instructions
 ├── principles/               title + Markdown body
-	├── foundations/              canonical intent + token records
-	├── themes/                   override-only product themes, with optional dark overrides
-	├── tokens/                   generated resolved token exports
-	│   ├── tokens.json            default-theme resolved set (light)
-	│   └── themes/                one resolved set per theme and mode, with origins
+├── foundations/              canonical intent + token records
+├── themes/                   override-only product themes, with optional dark overrides
+├── tokens/                   generated resolved token exports
+│   ├── tokens.json           default-theme resolved set (light)
+│   └── themes/               one resolved set per theme and mode, with origins
 ├── primitives/decisions.json low-level composition conventions
 ├── taxonomy/primitives.json  canonical primitive concepts
 ├── taxonomy/components.json  canonical concepts and aliases

@@ -1,8 +1,10 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import path from "node:path";
 import { analyzeReferences, analyzeSavedReference, deleteMarkdown, deleteReference, deleteSource, deleteTheme, duplicateTheme, initializeStore, loadWorkspace, mergePrimitive, readReferenceAsset, refreshSourceMappings, saveComponents, saveFoundation, saveMarkdown, savePrinciple, savePrimitive, savePrimitiveTaxonomy, saveReference, saveReferenceAnalysis, saveSource, saveTheme, setDefaultTheme, type ReferenceSaveInput } from "./fileStore.js";
 import type { ComponentDecision, Foundation, MarkdownDocument, Principle, PrimitiveDecision, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode } from "./model.js";
 import { THEME_MODES } from "../shared/model.js";
 import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
+import { AI_COMMAND_VARIABLE, providerConfigured } from "./aiProvider.js";
 import { createMonetService } from "../shared/service.js";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
@@ -61,6 +63,18 @@ const server = createServer(async (request, response) => {
       });
       response.end(asset.contents);
       return;
+    }
+    if (request.method === "GET" && url.pathname === "/api/environment") {
+      // Editor-only. The workspace records themselves say nothing about where they came from or
+      // whether the optional provider is configured, and the onboarding surfaces need both.
+      return respond(response, 200, {
+        root: workspaceDirectory,
+        // Where `pnpm mcp` has to be run from, which is not the workspace when MONET_ROOT is set.
+        appRoot: path.resolve(import.meta.dirname, ".."),
+        bundled: isBundledWorkspace(workspaceDirectory),
+        aiConfigured: providerConfigured(),
+        aiVariable: AI_COMMAND_VARIABLE,
+      });
     }
     if (request.method === "GET" && url.pathname === "/api/workspace") {
       const mode = url.searchParams.get("mode");

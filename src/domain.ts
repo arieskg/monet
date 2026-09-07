@@ -42,6 +42,23 @@ export function primitiveEntries(workspace: Workspace): TaxonomyEntry[] {
   return workspace.primitiveTaxonomy.flatMap((category) => category.entries);
 }
 
+/**
+ * A workspace with nothing decided in it. `MONET_ROOT` may point at an empty directory, and
+ * `server/fileStore.ts` reads that as an empty workspace rather than an error, so every surface
+ * that offers "here is what to do next" needs to know the difference between empty and idle.
+ */
+export function workspaceIsEmpty(workspace: Workspace): boolean {
+  return !workspace.principles.length && !workspace.foundations.length && !workspace.patterns.length
+    && !taxonomyEntries(workspace).length && !workspace.components.length && !workspace.references.length && !workspace.sources.length;
+}
+
+/** How much of the component taxonomy carries a decision, for progress and next-step copy. */
+export function componentDecisionCoverage(workspace: Workspace): { decided: number; total: number } {
+  const decided = new Map(workspace.components.map((item) => [item.id, item.status]));
+  const entries = taxonomyEntries(workspace);
+  return { decided: entries.filter((entry) => { const status = decided.get(entry.id); return status === "selected" || status === "do_not_use"; }).length, total: entries.length };
+}
+
 export interface SourceMappingReview { source: Source; mapping: SourceMapping; mappingIndex: number }
 
 export function mappingsNeedingReview(workspace: Workspace): SourceMappingReview[] {

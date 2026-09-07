@@ -122,7 +122,11 @@ or parallel configuration.
 
 The file service exposes one aggregate read model and bounded write routes for
 principles, foundations, override-only themes, primitive taxonomy and decisions,
-component decisions, patterns, sources, and references. Record IDs must be lowercase slugs; callers cannot supply
+component decisions, patterns, sources, and references. A second read route
+reports the running installation rather than the design system — which workspace
+is open, whether it is the bundled starter, and whether the optional AI provider
+is configured — because none of that is a workspace record and the UI's
+onboarding, workspace, and agent-setup surfaces need it. Record IDs must be lowercase slugs; callers cannot supply
 filesystem paths. Writes replace a temporary file atomically. Requests from
 non-loopback browser origins are rejected and request bodies are bounded.
 
