@@ -25,10 +25,10 @@ const tools = [
 ] as const;
 
 const honesty = [
-  ["Monet answers, or says it cannot.", "Every result reports coverage. A task nothing matched comes back as `none` with a `no_opinion` notice rather than a confident guess assembled from loose word matches."],
-  ["Undecided is a real answer.", "A concept in the taxonomy that carries no decision is reported as undecided, not silently omitted and not invented."],
-  ["Reviews measure evidence, never source.", "A check either measures what the caller submitted or reports it unverifiable. Missing information is never a violation."],
-  ["Nothing writes.", "The MCP server has no write tools, opens no network listener, and needs neither this UI nor the file service running."],
+  ["Monet answers, or says it has nothing to say.", "Every result tells the agent how well it actually matched the task. When nothing in your design system covers what is being built, Monet says so and suggests falling back to a familiar accessible solution, instead of assembling a confident-looking answer out of loose word matches."],
+  ["Undecided is a real answer.", "A concept your system names but has not decided on is reported as undecided. It is not quietly dropped, and it is not filled in with a guess."],
+  ["Reviews measure evidence, never source.", "Monet checks what the agent reported. Where the evidence does not settle a question, the review says the check could not be made — it never treats missing information as a violation."],
+  ["Nothing writes.", "The server is read-only. It has no write tools, opens no network listener, and needs neither this window nor the file service running."],
 ] as const;
 
 export function AgentContextPage() {
@@ -52,11 +52,8 @@ export function AgentContextPage() {
     <section className="agent-loop" aria-label="The build loop">
       <ol>
         <li><b>get_design_context</b><small>Ask Monet</small></li>
-        <li aria-hidden="true" className="agent-loop-arrow">→</li>
         <li><b>Build the UI</b><small>In your project</small></li>
-        <li aria-hidden="true" className="agent-loop-arrow">→</li>
         <li><b>review_design_usage</b><small>Check the result</small></li>
-        <li aria-hidden="true" className="agent-loop-arrow">→</li>
         <li><b>Fix, review again</b><small>Until it conforms</small></li>
       </ol>
       <p>Monet is deliberately one side of this. The agent knows what it wrote; Monet knows what the design system permits. Neither has to do the other's job.</p>
@@ -65,10 +62,12 @@ export function AgentContextPage() {
     <section className="agent-connect">
       <div className="section-heading"><span className="eyebrow">Setup</span><h2>Connect a client</h2><p>Monet speaks MCP on stdin and stdout and is client-neutral: any client that can launch a local stdio server works. Start it from a terminal, or let your client launch it.</p></div>
       <div className="agent-connect-grid">
-        <CopyBlock label="Run it yourself" language="bash" value={`MONET_ROOT=${workspaceRoot} pnpm mcp`} />
+        <div>
+          <CopyBlock label="Run it yourself" language="bash" value={`MONET_ROOT=${workspaceRoot} pnpm mcp`} />
+          <p className="agent-note">Both are filled in from the workspace this window has open{environment?.bundled ? " — the bundled example. Point Monet at your own workspace first if you have one." : "."} The same snippet lives in <code>mcp.example.json</code>, and <code>docs/MCP.md</code> documents every resource and argument.</p>
+        </div>
         <CopyBlock label="Client configuration" language="json" value={clientConfig} />
       </div>
-      <p className="agent-note">These are filled in from the workspace this window has open{environment?.bundled ? " — the bundled starter. Point Monet at your own workspace first if you have one." : "."} The same snippet lives in <code>mcp.example.json</code>, and <code>docs/MCP.md</code> documents every resource and argument.</p>
     </section>
 
     <section className="agent-tools">
@@ -82,20 +81,23 @@ export function AgentContextPage() {
       <div className="agent-review-grid">
         <div>
           <h3>What the agent sends</h3>
-          <p>A list of observations it can extract cheaply and locally from what it just wrote, plus the theme and mode it built in.</p>
-          <CopyBlock label="Example evidence" language="json" value={JSON.stringify({ mode: "dark", usages: [{ id: "1", location: "Panel.tsx:12", kind: "style", property: "background-color", value: "#ffffff" }, { id: "2", kind: "token", token: "color.surface.pressd" }, { id: "3", kind: "contrast", foreground: "color.foreground.muted", background: "color.surface", usage: "text" }] }, null, 2)} />
+          <p>A short list of what it just wrote — the colours and sizes it typed as literals, the token names and components it referenced, and any colour pairing it put on screen — plus which theme and mode it built in. All of that is cheap for the agent to collect from its own output.</p>
         </div>
         <div>
           <h3>What Monet checks it against</h3>
           <ul className="agent-check-list">
             <li><b>Literal values</b> against the resolved token scales, in the mode they were used in.</li>
-            <li><b>Token names</b> against the names the workspace actually defines.</li>
-            <li><b>Components</b> against their decision — a concept marked do-not-use, or one with no decision at all.</li>
-            <li><b>Contrast pairings</b> against the ratios the Color foundation documents.</li>
+            <li><b>Token names</b> against the names your workspace actually defines.</li>
+            <li><b>Components</b> against their decision — one you marked do-not-use, or one you have not decided yet.</li>
+            <li><b>Contrast pairings</b> against the ratios your Color foundation documents.</li>
           </ul>
-          <p>Anything Monet has no scale or decision for comes back as not applicable, not as a failure. An empty finding list means nothing submitted contradicted the design system — not that the implementation conforms.</p>
+          <p>Anything your system has no rule for comes back as not applicable rather than as a failure. And an empty result means nothing the agent reported contradicted the design system — not that the whole implementation is correct.</p>
         </div>
       </div>
+      <details className="agent-evidence-disclosure">
+        <summary>See the shape of a review request</summary>
+        <CopyBlock label="Example evidence" language="json" value={JSON.stringify({ mode: "dark", usages: [{ id: "1", location: "Panel.tsx:12", kind: "style", property: "background-color", value: "#ffffff" }, { id: "2", kind: "token", token: "color.surface.pressd" }, { id: "3", kind: "contrast", foreground: "color.foreground.muted", background: "color.surface", usage: "text" }] }, null, 2)} />
+      </details>
     </section>
 
     <section className="agent-honesty">

@@ -38,7 +38,7 @@ function SidebarFooter() {
 }
 
 export function Layout() {
-  const { workspace } = useWorkspace();
+  const { workspace, environment } = useWorkspace();
   const navigate = useNavigate();
   const location = useLocation();
   const [query, setQuery] = useState("");
@@ -46,7 +46,9 @@ export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
   const results = useMemo(() => workspace ? searchWorkspace(workspace, query).filter((result) => isSearchResultVisible(result.type)) : [], [workspace, query]);
-  const reviewCount = useMemo(() => workspace ? mappingsNeedingReview(workspace).length : 0, [workspace]);
+  // A count badge should mean "you have work waiting". On the bundled example that work is not the
+  // reader's, and it would be the only badge a first-time user ever sees, so it stays off there.
+  const reviewCount = useMemo(() => workspace && !environment?.bundled ? mappingsNeedingReview(workspace).length : 0, [workspace, environment]);
   useEffect(() => { setOpen(false); setMenuOpen(false); setQuery(""); }, [location.pathname]);
   useEffect(() => {
     document.body.classList.toggle("navigation-open", menuOpen);

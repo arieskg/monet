@@ -157,8 +157,8 @@ inherit Principles, resolved Foundations, and Patterns by default.
 
 The source schema stores mapped, needs-review, unmapped, ignored, and no-equivalent
 upstream components together with confidence, match type, primary-match, inventory,
-and provenance metadata. Source refreshes run Codex ephemerally in a read-only
-sandbox with a strict output schema. The mapper receives the complete taxonomy and
+and provenance metadata. Source refreshes run the configured provider command ephemerally
+in a read-only sandbox with a strict output schema. The mapper receives the complete taxonomy and
 cross-source mapping context, then its validated result is persisted atomically
 without an approval gate. Invalid canonical IDs degrade to unmapped inventory rows;
 explicit manual and exclusion decisions are preserved across later refreshes.
@@ -171,3 +171,26 @@ under `references/assets/` and are served through an ID-only route with restrict
 content headers. `analysis.json` stores collection-level recurring preferences and
 staged design-system suggestions. Approving a suggestion changes only its review
 status; it never mutates Principles, Themes, Foundations, Components, or Patterns.
+
+## Optional AI-assisted features
+
+Two features can shell out to a local AI CLI: source inventory mapping and reference
+analysis. Nothing else in Monet reaches `server/aiProvider.ts` — the workspace, the UI,
+the file service, retrieval, validation, conformance review, and the MCP server are all
+deterministic and run with no provider installed. With `MONET_AI_COMMAND` unset, both
+features say what to set instead of failing with a spawn error, and the UI shows that
+state before the click rather than after it.
+
+The abstraction is provider-neutral; the argument contract is not yet general. Monet
+invokes the command as:
+
+```
+<command> exec --ephemeral --sandbox read-only --output-schema <schema.json> -o <result.json> -
+```
+
+with the prompt on stdin, then reads the JSON the command wrote to `<result.json>`. That
+shape currently matches the [Codex CLI](https://github.com/openai/codex). Another provider
+works if it accepts the same flags, or behind a small wrapper script that translates them —
+point `MONET_AI_COMMAND` at the wrapper. `MONET_CODEX_EXECUTABLE` predates the
+provider-neutral name and still works. Generalizing the argument contract is future work,
+not a supported configuration today.

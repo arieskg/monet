@@ -1,187 +1,203 @@
-# Monet
+<p align="center">
+  <img src="public/monet-mark-2c.svg" width="76" height="76" alt="" />
+</p>
 
-Monet is a file-backed workspace for a personal design system, and a read-only
-MCP server that hands that design system to coding agents.
+<h1 align="center">Monet</h1>
 
-You keep principles, foundations, tokens, primitives, components, patterns, and
-visual references as plain files in a directory you own. Monet gives you a local
-UI to edit them, deterministic retrieval over them, and an MCP server so any
-compatible client can ask "how do I build a login form" and get *your* answer.
+<p align="center">
+  <b>Your design system, in files a coding agent can actually read.</b>
+</p>
 
-There is no database, no account, no hosted service, and no model API. Monet
-reads and writes files on your machine and speaks MCP over stdio.
+<p align="center">
+  <a href="https://github.com/arieskg/monet/actions/workflows/check.yml"><img src="https://github.com/arieskg/monet/actions/workflows/check.yml/badge.svg" alt="check status" /></a>
+  <img src="https://img.shields.io/badge/node-20.19%2B%20%7C%2022.12%2B-informational" alt="Requires Node 20.19+ or 22.12+" />
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT licence" />
+</p>
 
-## The tool and your workspace are separate things
+Monet keeps the decisions behind your interface — colour and spacing values, which components you
+use and which you avoid, the patterns you reach for, your themes, and the principles that settle
+the close calls — as plain files in a directory you own. It gives you a local editor for them, and
+a read-only [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that hands the
+relevant part of them to a coding agent while it builds. When the agent is done it can report what
+it actually implemented, and Monet checks that report against the same records.
 
-| | |
-| --- | --- |
-| **Monet** | The application in this repository: UI, file service, retrieval, MCP server. |
-| **A workspace** | A directory of design-system records. Yours. Monet never assumes a particular one. |
+## The problem
 
-This repository ships one workspace under [`monet/`](monet/) as a **starter and
-worked example** — a complete design system you can read, copy, or throw away.
-It is example data, not the product.
+Most design systems are a document. It is accurate on the day it is written, nobody can hold all of
+it in their head, and an AI coding agent reads none of it — so it invents an `#f5f5f5`, a `13px`
+gap, and a date picker you decided two years ago not to use.
 
-**Copy it; do not edit it in place.** The bundled workspace is also the fixture
-Monet's own tests assert against, so editing it there can break the test suite and
-will conflict on every `git pull`. Your design system belongs in a directory you
-own:
+Monet's bet is that the useful form of a design system is not prose but a small set of answerable
+questions:
+
+- *Which spacing values exist, and what is this one called?*
+- *Do we use a Segmented Control, and if not, what instead?*
+- *What does this look like in dark mode?*
+- *Is `#ffffff` on `color.surface` a value we actually defined?*
+
+Answer those once, and every build can ask the same source instead of guessing.
+
+![The Monet workspace: the home page, showing the decide, retrieve, build and review loop alongside how much of the design system has been decided](docs/images/monet-overview.png)
+
+## How it works
+
+| | | |
+| --- | --- | --- |
+| **1. Define** | In the Monet UI | Record what your product uses, what it avoids, and why. |
+| **2. Retrieve** | `get_design_context` | An agent asks for the guidance a task needs and gets your answer, not a generic one. |
+| **3. Build** | In your project | The agent implements with your tokens, components, and patterns. |
+| **4. Review** | `review_design_usage` | It reports what it built; Monet checks that evidence against the records. |
+
+Monet is deliberately one side of this. The agent knows what it wrote; Monet knows what the design
+system permits. It never reads your source code.
+
+## What it does
+
+- **Structured decisions, not prose.** Principles, foundations and tokens, components, patterns,
+  themes, and saved visual references — each a record with a status, so *undecided* is a real
+  answer rather than a gap.
+- **Retrieval you can predict.** Ask for "a settings page" and Monet returns the records that
+  actually apply, scored by a deterministic matcher. No embeddings and no external index: the same
+  question gives the same answer, and every result says how well it really matched.
+- **Any MCP client.** A local stdio server with no provider-specific behaviour. It exposes
+  resources and three read-only tools; it has no write operations and opens no network listener.
+- **Conformance review.** An agent can hand back the values, token names, components, and colour
+  pairings it used and get a check against your system. Monet reports what it could not verify
+  rather than treating missing information as a pass.
+- **Light and dark from one system.** One set of semantic tokens with an optional dark value each,
+  so dark mode is a resolution of your design system rather than a second copy of it.
+- **Files you own.** No database, no account, no hosted service, and no model API. Markdown and
+  JSON on your machine, readable and diffable without Monet.
+
+## Quick start
+
+Requires **Node 20.19+ or 22.12+** and [pnpm](https://pnpm.io/).
+
+```bash
+git clone https://github.com/arieskg/monet.git
+cd monet
+pnpm install
+pnpm dev
+```
+
+Open **http://127.0.0.1:43140**. The app talks only to a loopback file service on port 43141;
+nothing leaves your machine.
+
+You are now looking at the design system bundled with this repository — a complete worked example,
+so there is something real to read on the first run. Copy it somewhere you own before editing:
 
 ```bash
 cp -r monet ~/my-design-system
-export MONET_ROOT=~/my-design-system
-```
-
-An empty directory works too — Monet treats a workspace with no records as a new
-one rather than an error, through the UI, the MCP server, and `validate` alike:
-
-```bash
-mkdir ~/my-design-system
 MONET_ROOT=~/my-design-system pnpm dev
 ```
 
-Every entrypoint accepts `--root <path>` as well, and both the UI and the MCP
-server print which workspace they opened on startup.
-[`docs/WORKSPACE.md`](docs/WORKSPACE.md) describes the file layout if you want to
-build one from scratch; the fastest start is to copy `monet/` and edit it.
+An empty directory works too. Monet reads a workspace with no records as a new design system rather
+than as an error.
 
-## Install
-
-Requires **Node 20.19+ or 22.12+** (Vite 7's range; Node 21.x and 22.0-22.11 are
-excluded) and [pnpm](https://pnpm.io/).
+## Connect a coding agent
 
 ```bash
-git clone <your-fork-or-this-repo> monet
-cd monet
-pnpm install
+pnpm mcp                                # the bundled example
+MONET_ROOT=~/my-design-system pnpm mcp  # your own workspace
 ```
 
-[mise](https://mise.jdx.dev/) is optional. If you use it, `.mise.toml` pins Node and
-pnpm and mirrors the commands below as `mise run dev`, `mise run mcp`,
-`mise run validate`, and `mise run check`.
+Most MCP clients accept the configuration below; the rest need the same three facts — a command,
+its arguments, and optionally `MONET_ROOT`.
 
-## Run the workspace UI
+```json
+{
+  "mcpServers": {
+    "monet": {
+      "command": "pnpm",
+      "args": ["--dir", "/absolute/path/to/monet", "mcp"],
+      "env": { "MONET_ROOT": "/absolute/path/to/your-design-system" }
+    }
+  }
+}
+```
+
+Monet is client-neutral: any client that can launch a local stdio server works, and nothing in the
+server is written for a particular one. The UI's **Agent context** page shows this snippet with
+your real paths already filled in, and [`docs/MCP.md`](docs/MCP.md) documents every resource, tool,
+and argument.
+
+## Your workspace
+
+Monet is the application; a **workspace** is a directory of design-system records that belongs to
+you. Every entrypoint resolves it the same way — `--root`, then `MONET_ROOT`, then the example
+bundled here — and both the UI and the MCP server print which one they opened.
+
+Principles and patterns are Markdown with frontmatter; foundations, themes, taxonomies, decisions,
+sources, and references are JSON. Saving regenerates two readable views alongside them:
+`DESIGN_SYSTEM.md`, a summary of the whole system, and `tokens/`, resolved token exports per theme
+and mode. Both are derived from the records and carry no timestamps, so they change only when the
+design system does.
+
+[`docs/WORKSPACE.md`](docs/WORKSPACE.md) describes the file contract. To check a workspace:
 
 ```bash
-pnpm dev                       # bundled starter workspace
-MONET_ROOT=~/design pnpm dev   # your own workspace
+pnpm validate    # broken token references, dangling links, contrast below your own thresholds
 ```
-
-Open `http://127.0.0.1:43140/`. The Vite application talks only to a loopback
-file service on `127.0.0.1:43141`; nothing leaves your machine.
-
-The home page states what Monet is and the loop it belongs to, and says plainly
-when the workspace you are looking at is the bundled example. **Agent context**
-carries the MCP setup for the workspace that window has open, and **Settings**
-shows where that workspace lives, whether the optional AI provider is
-configured, and whether Monet renders in light or dark.
-
-## Run the MCP server
-
-```bash
-pnpm mcp
-MONET_ROOT=~/design pnpm mcp
-```
-
-The process speaks MCP on stdin/stdout and waits for a client. It exposes
-resources and three read-only tools — design context, reference search, and
-conformance review; it has no write operations and opens no network listener. See [`docs/MCP.md`](docs/MCP.md) for client configuration and
-[`mcp.example.json`](mcp.example.json) for a config you can copy.
-
-Monet is client-neutral. Any MCP client that can launch a local stdio server
-works, and nothing in the server is written for a particular one.
-
-The UI's **Agent context** page explains the same thing in place, with the
-command and client configuration already filled in for the open workspace.
-
-## Check a workspace
-
-```bash
-pnpm validate                       # is my workspace internally consistent?
-MONET_ROOT=~/design pnpm validate
-```
-
-`validate` reports broken token references, dangling component and pattern
-links, undecided records that still claim an approved source, preference
-values that break the compact contract, and colour pairings that fall below the
-contrast the Color foundation documents, measured for every theme in every mode
-it supports. Errors mean tools reading the workspace will misbehave; warnings
-mean a record is incomplete but usable.
-
-```bash
-pnpm check    # build, lint, test, and validate
-```
-
-## How records are stored
-
-The workspace directory is canonical and human-editable. Principles and patterns
-are Markdown with frontmatter; foundations, themes, taxonomies, component and
-primitive decisions, sources, and references are JSON. The UI writes files
-atomically and regenerates two derived views on save:
-
-- `DESIGN_SYSTEM.md` — a readable summary of the whole system.
-- `tokens/` — resolved token exports, per foundation and consolidated, plus
-  per-theme exports with base/mode/theme provenance, one file per theme and mode.
-
-Both are derived from the canonical records and carry no timestamps, so they
-change only when the design system changes. A third snapshot,
-`design-system.json`, is regenerated locally but deliberately not committed: it
-duplicates the entire workspace, including the source and reference registries.
-
-Preview is a read-only derived surface. Its Elements and Sample Page views
-compile the workspace in memory from the active theme, foundations, component
-preferences, primitives, and patterns, in either light or dark mode. It has no
-save route and no Preview-specific records.
 
 ## Light and dark
 
-A theme resolves in two modes over one semantic token system. Foundations carry
-the dark decisions: a token's `value` is its light value and an optional
-`modes.dark` is its dark value, so `color.surface` can point at a dark primitive
-while everything that references `color.surface` follows. Themes stay
-override-only and may add dark-only overrides. An MCP client that asks for a
-dark-mode task receives dark tokens and the light counterparts of every token
-that changes; a workspace with no dark values still says plainly that it has
-none.
+A token's value is its light value; an optional `modes.dark` is its dark value. Everything that
+refers to `color.surface` follows it into dark mode, and themes stay override-only, so a product
+theme is the handful of values it genuinely changes rather than a second design system. An agent
+asking about a dark-mode task gets dark tokens plus the light counterpart of everything that
+changed; a workspace with no dark values says plainly that it has none.
+
+## Conformance review
+
+`get_design_context` answers *how should this be built*. `review_design_usage` answers *does what I
+built follow it*. The agent submits observations it can collect cheaply from its own output — a
+literal colour, a token name, a component, a colour pairing — and Monet checks each against the
+resolved records for the theme and mode it was built in.
+
+The limits are part of the design. Monet has no parser and no view of your repository, so a review
+is bounded by what the agent reports. Anything your system has no rule for comes back as not
+applicable rather than as a failure, and an empty result means nothing reported contradicted the
+design system — not that the implementation is correct.
 
 ## Optional AI-assisted features
 
-Two features can call a local AI CLI: source inventory mapping (Sources) and
-reference analysis (References). **Both are optional.** Monet's workspace, UI,
-retrieval, validation, and MCP server all work with nothing configured.
+Two features can call a local AI CLI: mapping an external library's inventory into your taxonomy
+(Sources), and analysing saved visual references (References). **Both are optional and off by
+default.** The workspace, the editor, retrieval, validation, conformance review, and the MCP server
+are all deterministic and work with nothing configured.
 
 ```bash
 export MONET_AI_COMMAND=your-cli   # opt in
 ```
 
-Monet does not depend on, bundle, or prefer any provider — but it is honest about
-what the built-in call looks like. It invokes the command as:
-
-```
-<command> exec --ephemeral --sandbox read-only --output-schema <schema.json> -o <result.json> -
-```
-
-with the prompt on stdin, and reads the JSON the command writes to `<result.json>`.
-That argument shape currently matches the [Codex CLI](https://github.com/openai/codex).
-Another provider works if it accepts the same flags, or behind a small wrapper
-script that translates them — point `MONET_AI_COMMAND` at the wrapper. Generalizing
-the argument contract is future work, not a supported configuration today.
-
-With nothing configured, those two features explain what to set rather than failing
-with a spawn error.
+Monet does not bundle, depend on, or prefer any provider.
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md#optional-ai-assisted-features) documents the exact
+call it makes, so you can point it at a wrapper for whichever CLI you already use.
 
 ## Documentation
 
-- [`docs/MCP.md`](docs/MCP.md) — MCP resources, tools, retrieval, and client setup
+- [`docs/MCP.md`](docs/MCP.md) — resources, tools, retrieval, and client setup
 - [`docs/WORKSPACE.md`](docs/WORKSPACE.md) — the workspace file contract
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — how the application is put together
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) — development setup and expectations
-- [`monet/README.md`](monet/README.md) — about the bundled starter workspace
+- [`monet/README.md`](monet/README.md) — about the bundled example workspace
+
+## Development
+
+```bash
+pnpm dev        # UI and file service
+pnpm mcp        # MCP server on stdio
+pnpm validate   # workspace integrity
+pnpm check      # build, lint, test, and validate
+```
+
+[mise](https://mise.jdx.dev/) is optional; `.mise.toml` pins Node and pnpm and mirrors these as
+`mise run dev`, `mise run mcp`, `mise run validate`, and `mise run check`.
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
 
-The package is marked `private` because Monet is a clone-and-run application rather
-than an npm library: there is no published entry point, and the flag guards against
-an accidental `npm publish`. It has no bearing on the licence or on using the code.
+The package is marked `private` because Monet is a clone-and-run application rather than an npm
+library: there is no published entry point, and the flag guards against an accidental
+`npm publish`. It has no bearing on the licence or on using the code.

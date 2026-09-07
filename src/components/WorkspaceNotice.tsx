@@ -9,9 +9,9 @@ function dismissedRoot(): string {
 }
 
 /**
- * The bundled workspace is a worked example and the fixture Monet's own tests assert against, so
- * editing it in place breaks the suite and conflicts on every pull. Nothing else in the product
- * distinguishes it from a workspace the user owns, so the home page has to say so.
+ * Nothing else in the product distinguishes the bundled example from a workspace the user owns,
+ * so the home page has to. This says the one thing a first-time reader needs — copy it before
+ * editing — and leaves why it matters to a contributor (it is also the test fixture) to Settings.
  */
 export function WorkspaceNotice() {
   const { environment } = useWorkspace();
@@ -24,9 +24,9 @@ export function WorkspaceNotice() {
   }
   return <aside className="workspace-notice" aria-label="Workspace">
     <div>
-      <span className="eyebrow">Bundled starter workspace</span>
-      <b>You are reading the example, not your design system.</b>
-      <p>This repository ships one complete design system as a worked example. It is also the fixture Monet's tests assert against, so edits here can break the suite and will conflict on every <code>git pull</code>. Copy it to a directory you own, then point Monet at the copy.</p>
+      <span className="eyebrow">Example workspace</span>
+      <b>This is the example. Copy it before editing.</b>
+      <p>Monet ships one complete design system so there is something real to read on the first run. Copy it somewhere you own and point Monet at the copy — then everything you change is yours, and you can still pull updates to Monet itself.</p>
       <pre><code>{"cp -r monet ~/my-design-system\nMONET_ROOT=~/my-design-system pnpm dev"}</code></pre>
     </div>
     <div className="workspace-notice-actions">

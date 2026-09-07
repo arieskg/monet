@@ -79,7 +79,7 @@ export function OverviewPage() {
     ? <Link className="button primary" to="/principles">Add your first principle</Link>
     : <><Link className="button primary" to="/agent">Connect an agent</Link><Link className="button" to="/components">Browse components</Link></>;
 
-  return <div className="page overview-page"><PageHeader eyebrow="Design system workspace" title="Design decisions your agents can read." description="Monet keeps principles, foundations, components, patterns, and themes as plain files in a directory you own, and serves them to coding agents over MCP. Decide something once here and every build gets the same answer." action={<div className="button-row">{actions}</div>} />
+  return <div className="page overview-page"><PageHeader eyebrow="Design system workspace" title="Design decisions your agents can read." description="Monet keeps principles, foundations, components, patterns, and themes as plain files in a directory you own, and serves them to coding agents over the Model Context Protocol (MCP). Decide something once here and every build gets the same answer." action={<div className="button-row">{actions}</div>} />
     <WorkspaceNotice />
     <WorkflowStrip />
     {empty ? <NewWorkspace /> : <>

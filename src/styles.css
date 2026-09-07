@@ -1156,11 +1156,11 @@ html { color: var(--ink); background: var(--canvas); }
 
 .agent-page section { margin-bottom: var(--space-10); }
 .agent-loop { padding: var(--space-5); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); }
-.agent-loop ol { margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); list-style: none; }
-.agent-loop li { display: grid; gap: 2px; }
-.agent-loop li b { font: 650 var(--font-sm) var(--font-mono); }
-.agent-loop li small { color: var(--muted); font-size: var(--font-xs); }
-.agent-loop-arrow { color: var(--faint); font-size: var(--font-lg); }
+.agent-loop ol { margin: 0; padding: 0; display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-2) var(--space-4); list-style: none; }
+.agent-loop li { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name arrow" "note arrow"; align-items: center; column-gap: var(--space-4); row-gap: 2px; }
+.agent-loop li b { grid-area: name; font: 650 var(--font-sm) var(--font-mono); }
+.agent-loop li small { grid-area: note; color: var(--muted); font-size: var(--font-xs); }
+.agent-loop li:not(:last-child)::after { content: "→"; grid-area: arrow; color: var(--faint); font-size: var(--font-lg); }
 .agent-loop > p { max-width: var(--content-narrow); margin: var(--space-4) 0 0; color: var(--muted); font-size: var(--font-sm); line-height: 1.55; }
 .agent-connect-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-4); align-items: start; }
 .agent-note { max-width: var(--content-narrow); margin: var(--space-4) 0 0; color: var(--muted); font-size: var(--font-sm); line-height: 1.55; }
@@ -1215,16 +1215,17 @@ html { color: var(--ink); background: var(--canvas); }
 .route-loading i { width: 20px; height: 20px; display: block; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: var(--radius-full); animation: preview-spin 1s linear infinite; }
 
 @media (max-width: 1050px) {
-  .workflow-strip ol, .agent-tool-grid, .new-workspace-steps, .agent-state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .agent-connect-grid, .agent-review-grid, .agent-honesty dl, .settings-choice { grid-template-columns: 1fr; }
+  .workflow-strip ol, .new-workspace-steps, .agent-state-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .agent-tool-grid, .agent-connect-grid, .agent-review-grid, .agent-honesty dl, .settings-choice { grid-template-columns: 1fr; }
+  .agent-loop ol { display: grid; gap: var(--space-3); }
+  .agent-loop li { grid-template-columns: 1fr; grid-template-areas: "name" "note" "arrow"; }
+  .agent-loop li:not(:last-child)::after { content: "↓"; justify-self: start; line-height: 1; }
 }
 
 @media (max-width: 760px) {
   .workspace-notice { grid-template-columns: 1fr; }
   .workspace-notice-actions { grid-auto-flow: column; justify-content: start; }
   .workflow-strip ol, .agent-tool-grid, .new-workspace-steps, .agent-state-grid, .settings-facts > div { grid-template-columns: 1fr; }
-  .agent-loop ol { display: grid; }
-  .agent-loop-arrow { display: none; }
   .settings-facts > div { gap: var(--space-1); }
 }
 
@@ -1239,3 +1240,27 @@ html { color: var(--ink); background: var(--canvas); }
 }
 .component-index code { padding: 1px 4px; background: var(--surface-muted); border-radius: var(--radius-xs); font: var(--font-xs) var(--font-mono); }
 .component-index .button { margin-top: var(--space-4); }
+
+/* Final polish pass: layout balance, disclosures, and true-empty states. */
+
+/* The coverage panel is always taller than the tally beside it; matching their heights stops the
+   right column ending halfway up the row. */
+.overview-grid { align-items: stretch; }
+/* The coverage panel beside it is always taller. Rather than leaving the right column ending
+   halfway up the row, the tally takes the height and centres in it. */
+.status-panel { display: flex; flex-direction: column; }
+.status-panel .status-tally { flex: 1; }
+.status-panel .status-tally > div { align-content: center; gap: var(--space-1); }
+.status-panel-note { margin-top: auto; padding-top: var(--space-4); }
+
+.agent-connect-grid > div { display: grid; align-content: start; gap: var(--space-2); }
+.agent-connect-grid .agent-note { margin-top: var(--space-1); }
+.agent-evidence-disclosure { margin-top: var(--space-5); }
+.agent-evidence-disclosure summary { width: fit-content; padding: var(--space-2) 0; color: var(--accent); cursor: pointer; font-size: var(--font-sm); font-weight: 650; }
+.agent-evidence-disclosure[open] summary { margin-bottom: var(--space-2); }
+.agent-evidence-disclosure .copy-block { max-width: var(--content-narrow); }
+
+/* A workspace that genuinely has none of something needs to say what the thing is and how one
+   arrives, not "select one" against an empty rail. */
+.blank-editor .button, .blank-editor .button-row { margin-top: var(--space-4); justify-content: center; }
+.blank-editor code { padding: 1px 4px; background: var(--surface-muted); border-radius: var(--radius-xs); font: var(--font-xs) var(--font-mono); }

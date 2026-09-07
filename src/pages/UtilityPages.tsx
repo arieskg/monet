@@ -9,10 +9,10 @@ function WorkspaceSection() {
     <div className="section-heading"><span className="eyebrow">Files</span><h2>Workspace</h2><p>Monet is the application; a workspace is a directory of design-system records that you own. Every entrypoint resolves it the same way: <code>--root</code>, then <code>MONET_ROOT</code>, then the workspace bundled with the repository.</p></div>
     <dl className="settings-facts">
       <div><dt>Open workspace</dt><dd><code>{environment?.root ?? workspace?.filesRoot ?? "Unknown"}</code></dd></div>
-      <div><dt>Origin</dt><dd>{environment ? environment.bundled ? "Bundled starter workspace — a worked example, and the fixture Monet's own tests assert against." : "A workspace you own." : "The file service did not report an origin."}</dd></div>
+      <div><dt>Origin</dt><dd>{environment ? environment.bundled ? "The bundled example that ships with Monet. It is also the fixture Monet's own tests assert against, so editing it in place can break the test suite and will conflict on every git pull." : "A workspace you own." : "The file service did not report an origin."}</dd></div>
     </dl>
     {environment?.bundled && <>
-      <p className="settings-note">Copy it before you edit it. Editing in place can break the test suite and will conflict on every <code>git pull</code>.</p>
+      <p className="settings-note">Copy it before you edit it, so your design system and Monet's own files stay separate.</p>
       <CopyBlock label="Take a copy" language="bash" value={"cp -r monet ~/my-design-system\nMONET_ROOT=~/my-design-system pnpm dev"} />
     </>}
     <p className="settings-note">An empty directory works too: Monet reads a workspace with no records as a new design system rather than an error, through this UI, the MCP server, and <code>pnpm validate</code> alike. <code>docs/WORKSPACE.md</code> documents the file contract.</p>
