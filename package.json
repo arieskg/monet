@@ -2,7 +2,7 @@
   "name": "monet-design-system",
   "private": true,
   "version": "0.1.0",
-  "description": "Keep your design system as files a coding agent can read: a local editor, deterministic retrieval, and a read-only MCP server that answers design questions and checks what was built.",
+  "description": "A local design-system workspace that gives coding agents task-specific guidance and checks reported evidence through read-only MCP.",
   "license": "MIT",
   "homepage": "https://github.com/arieskg/monet#readme",
   "repository": { "type": "git", "url": "git+https://github.com/arieskg/monet.git" },
@@ -19,7 +19,7 @@
   ],
   "type": "module",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.13.0"
   },
   "packageManager": "pnpm@11.18.0",
   "scripts": {

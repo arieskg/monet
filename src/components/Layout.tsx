@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { mappingsNeedingReview, searchWorkspace } from "../domain";
 import { isSearchResultVisible } from "../featureVisibility";
+import { Modal } from "./Modal";
 import { AppearanceSwitch } from "./AppearanceSwitch";
 import { useWorkspace } from "../WorkspaceContext";
 
@@ -51,9 +52,9 @@ export function Layout() {
   const reviewCount = useMemo(() => workspace && !environment?.bundled ? mappingsNeedingReview(workspace).length : 0, [workspace, environment]);
   useEffect(() => { setOpen(false); setMenuOpen(false); setQuery(""); }, [location.pathname]);
   useEffect(() => {
-    document.body.classList.toggle("navigation-open", menuOpen);
+    document.body.classList.toggle("navigation-open", menuOpen || open);
     return () => document.body.classList.remove("navigation-open");
-  }, [menuOpen]);
+  }, [menuOpen, open]);
   useEffect(() => {
     const handle = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); setOpen(true); requestAnimationFrame(() => input.current?.focus()); }
@@ -71,7 +72,7 @@ export function Layout() {
       <SidebarFooter />
     </aside>
     <main className="main-shell"><div className="mobile-bar"><button className="mobile-menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(true)}>Menu</button><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button type="button" onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}>Search</button></div><Outlet /></main>
-    {menuOpen && <div className="mobile-navigation-backdrop" onMouseDown={(event) => { if (event.currentTarget === event.target) setMenuOpen(false); }}><aside className="mobile-navigation" id="mobile-navigation" role="dialog" aria-modal="true" aria-label="Mobile navigation"><header><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button className="dialog-close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>×</button></header><SidebarNavigation reviewCount={reviewCount} /><SidebarFooter /></aside></div>}
-    {open && <div className="search-backdrop" onMouseDown={(event) => { if (event.currentTarget === event.target) setOpen(false); }}><section className="search-dialog" role="dialog" aria-modal="true" aria-label="Search Monet"><div className="search-input-row"><span aria-hidden="true">⌕</span><input ref={input} aria-label="Search the design system" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search principles, foundations, components…" /><button className="dialog-close" type="button" aria-label="Close search" onClick={() => setOpen(false)}>×</button></div><div className="search-results">{!query && <div className="search-hint"><b>Find design knowledge</b><p>Try “layout”, “button”, “menu”, or an upstream item name.</p></div>}{query && results.length === 0 && <div className="search-hint"><b>No matches</b><p>Try a broader concept or alias.</p></div>}{results.map((result) => <button key={`${result.type}-${result.id}`} onClick={() => { void navigate(result.route); }}><span><small>{result.type}</small><b>{result.title}</b><p>{result.description}</p></span><i aria-hidden="true">→</i></button>)}</div></section></div>}
+    {menuOpen && <Modal className="mobile-navigation-backdrop" label="Mobile navigation" onClose={() => setMenuOpen(false)}><aside className="mobile-navigation" id="mobile-navigation"><header><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button className="dialog-close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>×</button></header><SidebarNavigation reviewCount={reviewCount} /><SidebarFooter /></aside></Modal>}
+    {open && <Modal className="search-backdrop" label="Search Monet" onClose={() => setOpen(false)}><section className="search-dialog"><div className="search-input-row"><span aria-hidden="true">⌕</span><input autoFocus ref={input} aria-label="Search the design system" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search principles, foundations, components…" /><button className="dialog-close" type="button" aria-label="Close search" onClick={() => setOpen(false)}>×</button></div><div className="search-results">{!query && <div className="search-hint"><b>Find design knowledge</b><p>Try “layout”, “button”, “menu”, or an upstream item name.</p></div>}{query && results.length === 0 && <div className="search-hint"><b>No matches</b><p>Try a broader concept or alias.</p></div>}{results.map((result) => <button key={`${result.type}-${result.id}`} onClick={() => { void navigate(result.route); }}><span><small>{result.type}</small><b>{result.title}</b><p>{result.description}</p></span><i aria-hidden="true">→</i></button>)}</div></section></Modal>}
   </div>;
 }

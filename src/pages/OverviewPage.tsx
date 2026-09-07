@@ -9,7 +9,7 @@ import { useWorkspace } from "../WorkspaceContext";
 const RECENT_LIMIT = 8;
 
 const workflow = [
-  { step: "1", title: "Decide", body: "Record what your product uses, what it avoids, and why. One component at a time.", to: "/components", action: "Components" },
+  { step: "1", title: "Define", body: "Record what your product uses, what it avoids, and why. One component at a time.", to: "/components", action: "Components" },
   { step: "2", title: "Retrieve", body: "A coding agent asks Monet for the guidance a task needs, over MCP.", to: "/agent", action: "Agent context" },
   { step: "3", title: "Build", body: "The agent implements with your tokens, your components, and your patterns.", to: "", action: "" },
   { step: "4", title: "Review", body: "It reports what it built and Monet checks that evidence against the records.", to: "/agent#review", action: "Conformance review" },
@@ -36,7 +36,7 @@ function NewWorkspace() {
     <div className="section-heading"><span className="eyebrow">Empty workspace</span><h2>Nothing decided here yet</h2><p>Monet read this directory and found no records. That is a valid starting point, not an error — every surface, the MCP server and <code>pnpm validate</code> included, treats it as a new design system.</p></div>
     <ol className="new-workspace-steps">
       <li><b>Write a principle</b><p>The beliefs that decide the close calls. They ship with every answer Monet gives an agent.</p><Link className="button primary" to="/principles">Add a principle</Link></li>
-      <li><b>Define a foundation</b><p>Colour, spacing, and typography as named token values everything else refers to.</p><Link className="button" to="/foundations">Add a foundation</Link></li>
+      <li><b>Define a foundation</b><p>Colour, spacing, and typography as named token values everything else refers to.</p><Link className="button" to="/foundations">Set up foundations</Link></li>
       <li><b>Copy the starter instead</b><p>A complete worked example is bundled with the repository. Copy it, then point <code>MONET_ROOT</code> at your copy.</p><Link className="button" to="/settings">Workspace settings</Link></li>
     </ol>
   </section>;

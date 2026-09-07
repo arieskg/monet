@@ -20,7 +20,7 @@ and removes internal filesystem fields from the response.
 
 ## Start locally
 
-From the repository root:
+Use the [README toolchain requirements](../README.md#try-it-locally). From the repository root:
 
 ```bash
 pnpm install
@@ -37,7 +37,8 @@ pnpm mcp -- --root /path/to/your-design-system
 
 The server writes protocol messages only to stdout. Its readiness line — which
 names the workspace it opened — and any errors go to stderr so they cannot
-corrupt the MCP stream.
+corrupt the MCP stream. A manual launch waits for protocol input; it does not open
+a UI or interactive prompt. Stop it with Ctrl+C.
 
 ## Client configuration
 
@@ -62,7 +63,14 @@ need the same three facts — a command, its arguments, and optionally `MONET_RO
 
 Omit `env` to use the bundled starter workspace. The client must launch the
 command as a child process and talk to it over stdin/stdout. Monet does not need
-its UI or loopback file service running for MCP to work.
+its UI or loopback file service running for MCP to work. Use absolute paths (JSON
+does not expand `~`), ensure `pnpm` is on the client's PATH, and restart the client
+connection after changing its configuration.
+
+For a first read, ask your agent to call `get_design_context` with
+`{ "query": "build a settings page" }`. The returned brief should describe your
+selected workspace. A missing-command error points to PATH or installation; an
+unknown record ID is a workspace/resource error, not a connection failure.
 
 ## Resources
 

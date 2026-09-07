@@ -2,7 +2,9 @@
 
 ## Setup
 
-Node 20.19+ or 22.12+ (Vite 7's range) and [pnpm](https://pnpm.io/).
+Node 22.13 or later and
+[pnpm 11.18.0](https://pnpm.io/installation), as pinned in `package.json`.
+The Node minimum comes from pnpm 11; Node 20 is not supported.
 
 ```bash
 pnpm install
@@ -59,7 +61,7 @@ neither. `server/` owns everything that touches disk.
   provider is not.
 - **A missing record set reads as empty.** `server/fileStore.ts` tolerates absent
   files and directories so a new workspace behaves the same through the UI, MCP, and
-  `validate`. Only `initializeStore` writes; MCP and `validate` never do.
+  `validate`. The file service initializes missing files and owns edits; MCP and `validate` never write.
 - **MCP stays read-only and thin.** No write tools, no remote transport, no auth.
 - **Tests assert behavior, not snapshots.** Retrieval changes belong in
   `shared/retrievalEvaluation.test.ts` as natural task prompts with expected and

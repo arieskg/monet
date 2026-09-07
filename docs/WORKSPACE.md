@@ -12,10 +12,13 @@ pnpm validate   # integrity check
 ```
 
 With neither set, Monet uses the starter workspace bundled at `monet/`.
+Use `MONET_ROOT` for the combined `pnpm dev` command; `--root <path>` can be
+passed directly to `pnpm mcp`, `pnpm validate`, or `pnpm dev:server`.
 
 ## Starting your own
 
-The fastest route is to copy the starter workspace and edit it:
+Stop any running dev server with Ctrl+C. From the Monet repository root, copy the
+starter to a destination that does not already exist, then restart with your copy:
 
 ```bash
 cp -r monet ~/my-design-system
@@ -105,8 +108,8 @@ primitive while the primitive itself stays what it is.
 ## The bundled starter workspace is a fixture
 
 `monet/` in this repository is an example, and Monet's tests assert against it. Copy
-it rather than editing it in place: edits there can break the test suite and will
-conflict whenever you pull.
+it rather than editing it in place: edits there can break the test suite and can
+conflict when you pull updates.
 
 ## Editing by hand
 

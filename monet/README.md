@@ -7,6 +7,9 @@ Monet uses it only as the default when no workspace is configured, and its own t
 suite uses it as a fixture. Treat it as read-only: copy it and point `MONET_ROOT` or
 `--root` at your copy, so your edits neither break tests nor conflict on `git pull`:
 
+Stop the dev server with Ctrl+C first. From the application repository root, use
+a destination that does not already exist:
+
 ```bash
 cp -r monet ~/my-design-system
 MONET_ROOT=~/my-design-system pnpm dev
@@ -43,8 +46,9 @@ supplies the value. The contract lives in `shared/preferences.ts` and is enforce
 by the integrity tests. Explanation belongs in `rationale`, `notes`, `behavior`,
 `use_when`, and `avoid_when`, which is also where retrieval looks for it.
 
-Adding or refreshing a source runs Monet's structured AI inventory mapper by
-default. Plausible mappings are persisted immediately; weak matches remain usable
+Saving and editing sources by hand works without AI. **AI refresh & map** requires
+the optional AI command to be configured. It is off by default; see
+`docs/ARCHITECTURE.md` in the application repository for the invocation contract. Plausible mappings are persisted immediately; weak matches remain usable
 with `needs_review`, and explicit manual or exclusion decisions survive refreshes.
 
 The conceptual hierarchy is Principles → Foundations → Tokens → Primitives →

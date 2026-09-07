@@ -26,7 +26,7 @@ export function WorkspaceNotice() {
     <div>
       <span className="eyebrow">Example workspace</span>
       <b>This is the example. Copy it before editing.</b>
-      <p>Monet ships one complete design system so there is something real to read on the first run. Copy it somewhere you own and point Monet at the copy — then everything you change is yours, and you can still pull updates to Monet itself.</p>
+      <p>Monet ships one complete design system so there is something real to read on the first run. Copy it somewhere you own and point Monet at the copy — then everything you change is yours, and you can still pull updates to Monet itself. Stop the dev server with Ctrl+C before restarting it with your copy. Run these commands from the repository root with a new destination.</p>
       <pre><code>{"cp -r monet ~/my-design-system\nMONET_ROOT=~/my-design-system pnpm dev"}</code></pre>
     </div>
     <div className="workspace-notice-actions">

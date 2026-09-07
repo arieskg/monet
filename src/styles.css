@@ -1264,3 +1264,28 @@ html { color: var(--ink); background: var(--canvas); }
    arrives, not "select one" against an empty rail. */
 .blank-editor .button, .blank-editor .button-row { margin-top: var(--space-4); justify-content: center; }
 .blank-editor code { padding: 1px 4px; background: var(--surface-muted); border-radius: var(--radius-xs); font: var(--font-xs) var(--font-mono); }
+
+/* Keep native modal behavior without the browser's default dialog box sizing. */
+.modal-backdrop { width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; color: var(--ink); }
+.modal-backdrop::backdrop { background: transparent; }
+.modal-backdrop.mobile-navigation-backdrop { display: block; padding: 0; }
+.agent-connect-grid > *, .copy-block, .theme-detail > *, .theme-title > * { min-width: 0; }
+.theme-overrides .section-heading.row, .theme-preview .section-heading.row { flex-wrap: wrap; }
+.theme-preview-controls { flex-wrap: wrap; min-width: 0; }
+.theme-preview-controls input { min-width: 0; }
+@media (max-width: 1050px) {
+  .themes-workspace { grid-template-columns: minmax(0, 1fr); }
+  .theme-rail { position: static; }
+  .component-workspace { display: block; }
+  .taxonomy-rail { max-height: 260px; overflow: auto; padding-right: 0; border-right: 0; border-bottom: 1px solid var(--line); }
+  .component-detail { padding: var(--space-5) 0 0; }
+  .review-toolbar, .review-fields { grid-template-columns: minmax(0, 1fr); }
+  .theme-title, .preview-page .page-header { flex-direction: column; align-items: stretch; }
+  .theme-actions { justify-content: start; }
+  .add-override { width: 100%; flex-wrap: wrap; }
+  .add-override select { min-width: 0; }
+  .preview-header-actions { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .route-loading i { animation: none; }
+}

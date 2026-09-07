@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { PageHeader } from "../components/Common";
+import { shellQuote } from "../shellQuote";
 import { CopyBlock } from "../components/CopyBlock";
 import { componentDecisionCoverage, taxonomyEntries } from "../domain";
 import { useWorkspace } from "../WorkspaceContext";
@@ -54,7 +55,7 @@ export function AgentContextPage() {
         <li><b>get_design_context</b><small>Ask Monet</small></li>
         <li><b>Build the UI</b><small>In your project</small></li>
         <li><b>review_design_usage</b><small>Check the result</small></li>
-        <li><b>Fix, review again</b><small>Until it conforms</small></li>
+        <li><b>Fix, review again</b><small>Check the evidence</small></li>
       </ol>
       <p>Monet is deliberately one side of this. The agent knows what it wrote; Monet knows what the design system permits. Neither has to do the other's job.</p>
     </section>
@@ -63,7 +64,7 @@ export function AgentContextPage() {
       <div className="section-heading"><span className="eyebrow">Setup</span><h2>Connect a client</h2><p>Monet speaks MCP on stdin and stdout and is client-neutral: any client that can launch a local stdio server works. Start it from a terminal, or let your client launch it.</p></div>
       <div className="agent-connect-grid">
         <div>
-          <CopyBlock label="Run it yourself" language="bash" value={`MONET_ROOT=${workspaceRoot} pnpm mcp`} />
+          <CopyBlock label="Run it yourself" language="bash" value={`MONET_ROOT=${shellQuote(workspaceRoot)} pnpm --dir ${shellQuote(appRoot)} mcp`} />
           <p className="agent-note">Both are filled in from the workspace this window has open{environment?.bundled ? " — the bundled example. Point Monet at your own workspace first if you have one." : "."} The same snippet lives in <code>mcp.example.json</code>, and <code>docs/MCP.md</code> documents every resource and argument.</p>
         </div>
         <CopyBlock label="Client configuration" language="json" value={clientConfig} />
@@ -77,7 +78,7 @@ export function AgentContextPage() {
     </section>
 
     <section className="agent-review" id="review">
-      <div className="section-heading"><span className="eyebrow">Closing the loop</span><h2>Conformance review</h2><p>The half that makes the design system enforceable rather than advisory.</p></div>
+      <div className="section-heading"><span className="eyebrow">Closing the loop</span><h2>Conformance review</h2><p>Check reported evidence against the decisions in your workspace.</p></div>
       <div className="agent-review-grid">
         <div>
           <h3>What the agent sends</h3>

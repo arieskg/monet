@@ -9,7 +9,7 @@ shared Monet service + domain model
         ↓ WorkspaceReader
 Node file store + bounded write orchestration
         ↕ atomic, allowlisted record writes
-monet/ Markdown + JSON
+active workspace: Markdown + JSON
         ↕ Git
 humans and coding agents
 ```
@@ -80,16 +80,16 @@ contracts in `shared/contrast.ts` for every theme in every mode, naming the
 layer — Foundation mode value, every-mode theme override, or mode-specific theme
 override — that produced each failing value.
 
-Canonical storage remains unchanged:
+Canonical storage is relative to the active workspace root (see [workspace selection](WORKSPACE.md)):
 
 | Entity | Canonical storage | Stable ID authority |
 | --- | --- | --- |
-| Principles | `monet/principles/*.md` | filename slug |
-| Foundations | `monet/foundations/*.json` | record `id` (normally equal to filename) |
-| Patterns | `monet/patterns/*.md` | filename slug |
-| Components | `monet/taxonomy/components.json` + `monet/components/decisions.json` | taxonomy entry `id` |
-| Themes | `monet/themes/*.json` + `monet/themes/config.json`; dark values live on Foundation tokens as `modes.dark` | filename slug |
-| References | `monet/references/registry.json` + bounded assets; collection analysis is separate | registry record `id` |
+| Principles | `principles/*.md` | filename slug |
+| Foundations | `foundations/*.json` | record `id` (normally equal to filename) |
+| Patterns | `patterns/*.md` | filename slug |
+| Components | `taxonomy/components.json` + `components/decisions.json` | taxonomy entry `id` |
+| Themes | `themes/*.json` + `themes/config.json`; dark values live on Foundation tokens as `modes.dark` | filename slug |
+| References | `references/registry.json` + bounded assets; collection analysis is separate | registry record `id` |
 
 `DESIGN_SYSTEM.md`, `design-system.json`, and `tokens/` are regenerated projections of the active workspace,
 not alternate persistence APIs.
@@ -163,7 +163,7 @@ cross-source mapping context, then its validated result is persisted atomically
 without an approval gate. Invalid canonical IDs degrade to unmapped inventory rows;
 explicit manual and exclusion decisions are preserved across later refreshes.
 
-References are a separate visual-memory collection under `monet/references/`.
+References are a separate visual-memory collection under `references/`.
 `registry.json` keeps the user's annotation distinct from AI observations and stores
 retrieval-oriented metadata such as UI type, patterns, components, visual qualities,
 density, hierarchy, and natural-language retrieval context. Bounded local assets live
