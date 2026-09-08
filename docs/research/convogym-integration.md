@@ -4,7 +4,8 @@ Status: historical integration/comparison evidence, 2026-09-07–08. Monet findi
 remain open; consumer action corrections completed at AriesKG `49d509d`. Local only;
 no external publication is authorized for this follow-up.
 Design authority: Monet `3790c61`, bundled workspace, Default theme, light/dark.
-Consumer: AriesKG `apps/convogym`.
+Consumer: ConvoGym, then at AriesKG `apps/convogym`; since 2026-09-08 its own
+repository at `/Users/aries/Developer/apps/convogym`.
 
 The consumer used the actual local stdio MCP server: initialize, catalog/resource
 reads, scoped `get_design_context`, full relevant records, and
@@ -134,7 +135,8 @@ through the real local bridge. Physical microphone/speaker quality is not part
 of this design integration test.
 
 Canonical consumer implementation/refresh instructions are in
-`apps/convogym/docs/MONET.md` in AriesKG. No scoring, evaluation, rubrics,
+`docs/MONET.md` in the ConvoGym repository (`/Users/aries/Developer/apps/convogym`,
+formerly AriesKG `apps/convogym`). No scoring, evaluation, rubrics,
 recommendations, dashboards or runtime dependency on Monet were introduced.
 
 ## M5 — Secondary/tertiary Button variants lack a resting-affordance example

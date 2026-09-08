@@ -11,8 +11,8 @@ prioritized recommendations, root-cause interpretation and suggested regression
 scenarios. [ConvoGym integration findings](convogym-integration.md) owns the
 historical query results, M1–M5 evidence and comparison record. Keep their IDs
 stable; update both documents' status when resolving a finding. This is separate
-from the consumer's implementation/refresh guide, AriesKG
-`apps/convogym/docs/MONET.md`.
+from the consumer's implementation/refresh guide, `docs/MONET.md` in the ConvoGym
+repository (`/Users/aries/Developer/apps/convogym`, formerly AriesKG `apps/convogym`).
 
 ## Executive summary
 
@@ -51,7 +51,7 @@ repeated primaries across independent cards.
 - Correction validation: five browser scenarios × six configurations = 30 passing
   tests. ConvoGym lint, typecheck, 99 unit tests and production build pass. Monet
   `pnpm check` passes: build, lint, 338 tests and workspace validation.
-- Test fixtures and reproduction: AriesKG `apps/convogym/e2e/design.spec.ts` and
+- Test fixtures and reproduction: ConvoGym `e2e/design.spec.ts` and
   `playwright.config.ts`; run `pnpm test:browser` from that application. Fixtures
   isolate browser storage and model endpoints; no account or private conversation
   is needed. Physical audio quality is outside this visual review.
