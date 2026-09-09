@@ -174,12 +174,18 @@ status; it never mutates Principles, Themes, Foundations, Components, or Pattern
 
 ## Optional AI-assisted features
 
-Two features can shell out to a local AI CLI: source inventory mapping and reference
-analysis. Nothing else in Monet reaches `server/aiProvider.ts` — the workspace, the UI,
-the file service, retrieval, validation, conformance review, and the MCP server are all
-deterministic and run with no provider installed. With `MONET_AI_COMMAND` unset, both
-features say what to set instead of failing with a spawn error, and the UI shows that
-state before the click rather than after it.
+Three features can shell out to a local AI CLI: source inventory mapping, reference
+analysis, and Gap diagnosis. Other workspace operations, retrieval, validation,
+conformance review, and MCP remain deterministic. The UI discloses provider availability;
+Gaps retains its deterministic review when no provider is configured.
+
+Gaps uses a separate editor-only contract (`shared/gaps.ts`) and HTTP endpoints.
+`server/fileStore.ts` persists each report and bounded raster image together in one
+atomic `gaps/<id>.json` record. `server/gapDiagnosis.ts` reuses the shared service over
+a workspace snapshot and supplies full canonical knowledge alongside compact retrieval
+to the optional provider. It validates evidence/record citations and saves diagnosis
+only. Gaps never enters `Workspace`, design context, exports, or MCP. There is no apply
+operation. See [Gaps](GAPS.md) for evidence boundaries and failure recovery.
 
 The abstraction is provider-neutral; the argument contract is not yet general. Monet
 invokes the command as:
@@ -194,3 +200,9 @@ works if it accepts the same flags, or behind a small wrapper script that transl
 point `MONET_AI_COMMAND` at the wrapper. `MONET_CODEX_EXECUTABLE` predates the
 provider-neutral name and still works. Generalizing the argument contract is future work,
 not a supported configuration today.
+
+For Gaps only, `MONET_AI_IMAGES=1` opts into the additional compatible argument
+`--image <temporary-image>`. Leave it unset unless the CLI/wrapper and model can
+inspect images. Otherwise the screenshot remains saved but analysis uses text and
+structured evidence. The provider must report whether it actually inspected an
+attached image; this status is shown with the diagnosis.

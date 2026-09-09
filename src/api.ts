@@ -1,11 +1,12 @@
 import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
+import type { Gap, GapInput, GapSummary } from "../shared/gaps";
 
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
 export interface SourceRefreshResult { source: Source; discovered: number; mapped: number; needs_review: number; unmapped: number }
 
 /** Facts about the running installation that the workspace records themselves do not carry. */
-export interface Environment { root: string; appRoot: string; bundled: boolean; aiConfigured: boolean; aiVariable: string }
+export interface Environment { root: string; appRoot: string; bundled: boolean; aiConfigured: boolean; aiVariable: string; aiImages?: boolean }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, headers: { "content-type": "application/json", ...init?.headers } });
@@ -15,6 +16,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  gaps: () => request<GapSummary[]>("/api/gaps"),
+  gap: (id: string) => request<Gap>("/api/gaps/" + encodeURIComponent(id)),
+  createGap: (value: GapInput) => request<Gap>("/api/gaps", { method: "POST", body: JSON.stringify(value) }),
+  diagnoseGap: (id: string) => request<Gap>("/api/gap-diagnoses/" + encodeURIComponent(id), { method: "POST" }),
+  gapImageUrl: (id: string) => "/api/gap-images/" + encodeURIComponent(id),
   environment: () => request<Environment>("/api/environment"),
   workspace: (themeId?: string, mode?: ThemeMode) => {
     const params = new URLSearchParams();

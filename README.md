@@ -112,16 +112,24 @@ does not prove correctness or conformance.** See [review limitations](docs/MCP.m
 
 ## Optional AI features
 
-Source inventory mapping and visual-reference analysis can use a local AI CLI. Both are
+Source inventory mapping, visual-reference analysis, and Gap diagnosis can use a local AI CLI. These are
 off by default; all core editing, retrieval, validation, review, and MCP features work
 without one. Set `MONET_AI_COMMAND` to opt in. Its current argument contract requires a
 compatible CLI or wrapper; see [the exact invocation](docs/ARCHITECTURE.md#optional-ai-assisted-features).
 The configured CLI may send data to its provider. Monet itself has no model API or account.
 
+**Gaps** captures screenshots and product feedback, then diagnoses missing or weak
+guidance, retrieval problems, conflicts, implementation violations, or local product
+choices. Reports are saved before analysis and stay out of canonical guidance and
+exports. V1 ends at recommendations. Image inspection requires an explicitly enabled,
+compatible provider; text-only diagnosis and deterministic checks remain available.
+See the [Gaps guide](docs/GAPS.md).
+
 ## Documentation and contributing
 
 - [Workspace guide](docs/WORKSPACE.md) — configuration, canonical files, exports, and modes
 - [MCP guide](docs/MCP.md) — setup, tools, resources, and evidence review
+- [Gaps guide](docs/GAPS.md) — private feedback capture, diagnosis, image support, and limitations
 - [Architecture](docs/ARCHITECTURE.md) — application internals and optional AI
 - [Starter workspace](monet/README.md) — what the example contains
 - [Contributing](CONTRIBUTING.md) — setup, expectations, and checks

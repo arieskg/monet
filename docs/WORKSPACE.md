@@ -53,6 +53,11 @@ Every path is relative to the workspace root.
 | `references/registry.json` | JSON | Visual reference memory. Assets live in `references/assets/`. |
 | `decisions/*.md` | Markdown | A readable log of component inspiration changes. |
 
+Private editor feedback lives separately in `gaps/<id>.json`: each Gap holds its
+report, optional bounded screenshot, and latest diagnosis. These are not canonical
+design decisions and never enter generated guidance, token exports, or MCP context.
+Missing Gaps read as empty. See [Gaps](GAPS.md) for storage, provider, and privacy details.
+
 ### Derived, written by Monet
 
 | Path | Contents |
