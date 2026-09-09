@@ -6,6 +6,9 @@ import { THEME_MODES } from "../shared/model.js";
 import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
 import { AI_COMMAND_VARIABLE, providerConfigured } from "./aiProvider.js";
 import { createMonetService } from "../shared/service.js";
+import { createGap, diagnoseSavedGap, getGap, listGaps, readGapImage } from "./fileStore.js";
+import { providerSupportsImages } from "./aiProvider.js";
+import { ZodError } from "zod";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
 const workspaceDirectory = resolveWorkspaceRoot();
@@ -50,6 +53,22 @@ const server = createServer(async (request, response) => {
   try {
     if (!allowedOrigin(request)) return respond(response, 403, { error: "Monet only accepts requests from a local browser origin." });
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    if (url.pathname === "/api/gaps") {
+      if (request.method === "GET") return respond(response, 200, await listGaps());
+      if (request.method === "POST") return respond(response, 201, await createGap(await body(request, 14 * 1024 * 1024)));
+    }
+    const gapImage = match(url.pathname, "/api/gap-images/");
+    if (request.method === "GET" && gapImage) {
+      const image = await readGapImage(gapImage);
+      response.writeHead(200, { "content-type": image.mediaType, "content-length": image.contents.length,
+        "cache-control": "no-store", "x-content-type-options": "nosniff", "content-security-policy": "sandbox; default-src 'none'" });
+      response.end(image.contents);
+      return;
+    }
+    const gapAnalysis = match(url.pathname, "/api/gap-diagnoses/");
+    if (request.method === "POST" && gapAnalysis) return respond(response, 200, await diagnoseSavedGap(gapAnalysis));
+    const gap = match(url.pathname, "/api/gaps/");
+    if (request.method === "GET" && gap) return respond(response, 200, await getGap(gap));
     const referenceAsset = match(url.pathname, "/api/reference-assets/");
     if (request.method === "GET" && referenceAsset) {
       const asset = await readReferenceAsset(referenceAsset);
@@ -74,6 +93,7 @@ const server = createServer(async (request, response) => {
         bundled: isBundledWorkspace(workspaceDirectory),
         aiConfigured: providerConfigured(),
         aiVariable: AI_COMMAND_VARIABLE,
+        aiImages: providerSupportsImages(),
       });
     }
     if (request.method === "GET" && url.pathname === "/api/workspace") {
@@ -126,8 +146,9 @@ const server = createServer(async (request, response) => {
     }
     return respond(response, 404, { error: "Not found." });
   } catch (error) {
+    if (error instanceof ZodError) return respond(response, 400, { error: error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ") });
     const message = error instanceof Error ? error.message : "Unexpected error.";
-    respond(response, message === "Invalid record id." ? 400 : 500, { error: message });
+    respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : message === "Invalid record id." ? 400 : 500, { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message });
   }
 });
 

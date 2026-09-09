@@ -4,10 +4,10 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 
 /**
- * Monet's optional AI-assisted features — source inventory mapping and reference analysis.
+ * Monet's optional AI-assisted features — source mapping, reference analysis, and Gap diagnosis.
  *
  * Everything else in Monet is deterministic and works with no provider installed: the workspace,
- * the UI, the file service, retrieval, and the MCP server never reach this module. These two
+ * the UI, retrieval, and the MCP server never directly reach this module. These optional
  * features shell out to a local CLI that can take a prompt on stdin and write JSON matching a
  * schema. Which CLI that is, is the user's choice; Monet does not depend on any provider.
  *
@@ -32,6 +32,12 @@ export interface ProviderTask {
   effortVariable: string;
   /** Environment variable holding an optional timeout in seconds for this task. */
   timeoutVariable: string;
+  /** Optional image supplied only when the operator enables the compatible --image contract. */
+  image?: { bytes: Uint8Array; extension: "png" | "jpg" | "webp" };
+}
+
+export function providerSupportsImages(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.MONET_AI_IMAGES === "1";
 }
 
 /** The configured provider command, or "" when the user has not opted into the optional features. */
@@ -71,13 +77,19 @@ export async function runProvider<T>(task: ProviderTask, env: NodeJS.ProcessEnv 
   const directory = await mkdtemp(path.join(tmpdir(), `monet-${task.label.replace(/[^a-z0-9]+/gi, "-")}-`));
   const schemaPath = path.join(directory, "schema.json");
   const outputPath = path.join(directory, "result.json");
-  await writeFile(schemaPath, JSON.stringify(task.schema), "utf8");
-  const args = ["exec", "--ephemeral", "--sandbox", "read-only", "--output-schema", schemaPath, "-o", outputPath];
-  if (env[task.modelVariable]) args.push("-m", env[task.modelVariable]!);
-  if (env[task.effortVariable]) args.push("-c", `model_reasoning_effort=${JSON.stringify(env[task.effortVariable])}`);
-  args.push("-");
-
   try {
+    await writeFile(schemaPath, JSON.stringify(task.schema), "utf8");
+    const args = ["exec", "--ephemeral", "--sandbox", "read-only", "--output-schema", schemaPath, "-o", outputPath];
+    if (task.image) {
+      if (!providerSupportsImages(env)) throw new Error("Image input is not enabled for this provider.");
+      const imagePath = path.join(directory, `evidence.${task.image.extension}`);
+      await writeFile(imagePath, task.image.bytes, { mode: 0o600 });
+      args.push("--image", imagePath);
+    }
+    if (env[task.modelVariable]) args.push("-m", env[task.modelVariable]!);
+    if (env[task.effortVariable]) args.push("-c", `model_reasoning_effort=${JSON.stringify(env[task.effortVariable])}`);
+    args.push("-");
+
     await new Promise<void>((resolve, reject) => {
       const child = spawn(command, args, { cwd: path.resolve(import.meta.dirname, ".."), stdio: ["pipe", "ignore", "pipe"] });
       let stderr = "";
@@ -96,6 +108,9 @@ export async function runProvider<T>(task: ProviderTask, env: NodeJS.ProcessEnv 
         if (code === 0) resolve();
         else reject(new Error(`${task.label} failed${stderr.trim() ? `: ${stderr.trim()}` : ` (exit ${code ?? "unknown"})`}`));
       });
+      // A CLI that rejects its flags can exit before reading a large Gap prompt. Its close/error
+      // handler reports the failure; EPIPE must not crash the editing service and lose the retry UI.
+      child.stdin.on("error", () => undefined);
       child.stdin.end(task.prompt);
     });
     return JSON.parse(await readFile(outputPath, "utf8")) as T;

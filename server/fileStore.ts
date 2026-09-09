@@ -1,5 +1,8 @@
 import { mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { GAP_IMAGE_LIMIT, gapInputSchema, type Gap, type GapImage, type GapSummary } from "../shared/gaps.js";
+import { diagnoseGap } from "./gapDiagnosis.js";
 import type { ComponentDecision, Foundation, MappingConfidence, MappingMatchType, MappingStatus, MarkdownDocument, Principle, PrimitiveDecision, Reference, ReferenceCollectionAnalysis, ReferenceSuggestionStatus, ReferenceType, Source, SourceMapping, Status, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./model.js";
 import { THEME_MODES } from "../shared/model.js";
 import { analyzeReference, analyzeReferenceCollection } from "./referenceAnalysis.js";
@@ -224,9 +227,11 @@ async function readDirectoryOrEmpty(directory: string): Promise<string[]> {
 }
 
 async function atomicWrite(file: string, contents: string | Uint8Array): Promise<void> {
-  const temp = `${file}.${process.pid}.tmp`;
-  await writeFile(temp, contents, { mode: 0o600 });
-  await rename(temp, file);
+  const temp = `${file}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temp, contents, { mode: 0o600 });
+    await rename(temp, file);
+  } finally { await unlink(temp).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT") throw error; }); }
 }
 
 async function writeJson(file: string, value: unknown): Promise<void> {
@@ -763,13 +768,89 @@ export async function readReferenceAsset(id: string): Promise<{ contents: Buffer
   return { contents: await readFile(path.join(root(), "references", reference.asset_path)), mediaType: reference.asset_media_type || "application/octet-stream", filename: reference.original_filename || path.basename(reference.asset_path) };
 }
 
+// Gap evidence is editor-only. Keeping the image in the same atomic record means a failed save
+// cannot strand an asset or create a report whose screenshot was never persisted.
+interface StoredGap extends Omit<Gap, "image"> { image: (GapImage & { data_url: string }) | null }
+function publicGap(stored: StoredGap): Gap {
+  return { ...stored, image: stored.image ? { media_type: stored.image.media_type, filename: stored.image.filename, bytes: stored.image.bytes } : null };
+}
+
+export function decodeGapImage(dataUrl: string): { bytes: Buffer; mediaType: GapImage["media_type"] } {
+  const match = /^data:(image\/(?:png|jpeg|webp));base64,([A-Za-z0-9+/]+={0,2})$/.exec(dataUrl);
+  if (!match) throw new Error("Choose a PNG, JPEG, or WebP image.");
+  const bytes = Buffer.from(match[2]!, "base64");
+  if (!bytes.length || bytes.length > GAP_IMAGE_LIMIT || bytes.toString("base64") !== match[2]) throw new Error("Images must be valid base64 and no larger than 10 MB.");
+  const mediaType = match[1] as GapImage["media_type"];
+  const valid = mediaType === "image/png" ? bytes.length >= 24 && bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])) && bytes.toString("ascii", 12, 16) === "IHDR"
+    : mediaType === "image/jpeg" ? bytes.length >= 4 && bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255 && bytes.at(-2) === 255 && bytes.at(-1) === 217
+    : bytes.length >= 16 && bytes.toString("ascii", 0, 4) === "RIFF" && bytes.toString("ascii", 8, 12) === "WEBP";
+  if (!valid) throw new Error("The image contents do not match its PNG, JPEG, or WebP format.");
+  return { bytes, mediaType };
+}
+
+async function readStoredGap(id: string, directory = root()): Promise<StoredGap> {
+  const gap = await readJson<StoredGap>(path.join(directory, "gaps", `${cleanId(id)}.json`));
+  if (gap.version !== 1 || gap.id !== id || !gap.created_at || !gap.report) throw new Error("Invalid Gap record.");
+  gapInputSchema.omit({ image: true }).parse(gap.report);
+  return gap;
+}
+
+export async function listGaps(): Promise<GapSummary[]> {
+  const files = await readDirectoryOrEmpty(path.join(root(), "gaps"));
+  const gaps = await Promise.all(files.filter((f) => f.endsWith(".json")).map((f) => readStoredGap(f.slice(0, -5))));
+  return gaps.sort((a, b) => b.created_at.localeCompare(a.created_at)).map((g) => ({
+    id: g.id, created_at: g.created_at, problem: g.report.problem, context: g.report.context,
+    image: publicGap(g).image, diagnosed: Boolean(g.diagnosis),
+  }));
+}
+
+export async function getGap(id: string): Promise<Gap> { return publicGap(await readStoredGap(id)); }
+
+export async function createGap(input: unknown): Promise<Gap> {
+  const { image, ...report } = gapInputSchema.parse(input);
+  let savedImage: StoredGap["image"] = null;
+  if (image) {
+    const decoded = decodeGapImage(image.data_url);
+    savedImage = { data_url: image.data_url, media_type: decoded.mediaType, bytes: decoded.bytes.length,
+      filename: path.basename(image.filename).replace(/[\x00-\x1f\x7f]/g, "") || "screenshot" };
+  }
+  const gap: StoredGap = { version: 1, id: randomUUID(), created_at: new Date().toISOString(), report, image: savedImage, diagnosis: null };
+  await writeJson(path.join(root(), "gaps", `${gap.id}.json`), gap);
+  return publicGap(gap);
+}
+
+const gapAnalyses = new Set<string>();
+export async function diagnoseSavedGap(id: string): Promise<Gap> {
+  const directory = root();
+  const file = path.join(directory, "gaps", `${cleanId(id)}.json`);
+  if (gapAnalyses.has(file)) throw new Error("This Gap is already being diagnosed. Reload in a moment.");
+  gapAnalyses.add(file);
+  try {
+    const gap = await readStoredGap(id, directory);
+    const workspace = await loadWorkspace(gap.report.theme_id, gap.report.mode);
+    const decoded = gap.image ? decodeGapImage(gap.image.data_url) : null;
+    const image = decoded ? { bytes: decoded.bytes, extension: decoded.mediaType === "image/png" ? "png" as const : decoded.mediaType === "image/jpeg" ? "jpg" as const : "webp" as const } : undefined;
+    const diagnosis = await diagnoseGap(publicGap(gap), workspace, image);
+    const next = { ...gap, diagnosis };
+    await writeJson(file, next);
+    return publicGap(next);
+  } finally { gapAnalyses.delete(file); }
+}
+
+export async function readGapImage(id: string): Promise<{ contents: Buffer; mediaType: string }> {
+  const gap = await readStoredGap(id);
+  if (!gap.image) throw new Error("This Gap has no screenshot.");
+  const decoded = decodeGapImage(gap.image.data_url);
+  return { contents: decoded.bytes, mediaType: decoded.mediaType };
+}
+
 /**
  * Prepares a workspace directory for use, so pointing MONET_ROOT at an empty directory starts a
  * new design system rather than failing on the first missing file. Existing files are never
  * touched; only what is absent is created.
  */
 export async function initializeStore(): Promise<void> {
-  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources"];
+  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps"];
   await Promise.all([
     ...directories.map((name) => mkdir(path.join(root(), name), { recursive: true })),
     mkdir(path.join(root(), "references", "assets"), { recursive: true }),
