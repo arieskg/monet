@@ -8,6 +8,7 @@ import { AI_COMMAND_VARIABLE, providerConfigured } from "./aiProvider.js";
 import { createMonetService } from "../shared/service.js";
 import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage } from "./fileStore.js";
 import { providerSupportsImages } from "./aiProvider.js";
+import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
 import { ZodError } from "zod";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
@@ -70,6 +71,26 @@ const server = createServer(async (request, response) => {
     const gap = match(url.pathname, "/api/gaps/");
     if (request.method === "GET" && gap) return respond(response, 200, await getGap(gap));
     if (request.method === "DELETE" && gap) { await deleteGap(gap); return respond(response, 200, { ok: true }); }
+    // Proposals: editor-only change sets derived from a Gap diagnosis. Review and approval only; no route here writes a canonical record.
+    if (url.pathname === "/api/proposals") {
+      if (request.method === "GET") return respond(response, 200, await listProposals(url.searchParams.get("gap") ?? undefined));
+      if (request.method === "POST") return respond(response, 201, await createProposal(await body(request)));
+    }
+    const gapProposals = match(url.pathname, "/api/gap-proposals/");
+    if (request.method === "GET" && gapProposals) return respond(response, 200, await gapProposalOverview(gapProposals));
+    const proposal = match(url.pathname, "/api/proposals/");
+    if (request.method === "GET" && proposal) return respond(response, 200, await getProposal(proposal));
+    const proposalActions: [prefix: string, action: (id: string, value: unknown) => Promise<unknown>][] = [
+      ["/api/proposal-revisions/", (id, value) => saveProposalRevision(id, value)],
+      ["/api/proposal-drafts/", (id) => draftProposalWithAi(id)],
+      ["/api/proposal-approvals/", (id, value) => approveProposal(id, value)],
+      ["/api/proposal-rejections/", (id, value) => rejectProposal(id, value)],
+      ["/api/proposal-supersessions/", (id) => supersedeProposal(id)],
+    ];
+    for (const [prefix, action] of proposalActions) {
+      const id = match(url.pathname, prefix);
+      if (request.method === "POST" && id) return respond(response, 200, await action(id, request.headers["content-length"] && request.headers["content-length"] !== "0" ? await body(request) : {}));
+    }
     const referenceAsset = match(url.pathname, "/api/reference-assets/");
     if (request.method === "GET" && referenceAsset) {
       const asset = await readReferenceAsset(referenceAsset);
@@ -149,7 +170,8 @@ const server = createServer(async (request, response) => {
   } catch (error) {
     if (error instanceof ZodError) return respond(response, 400, { error: error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ") });
     const message = error instanceof Error ? error.message : "Unexpected error.";
-    respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : message === "Invalid record id." ? 400 : 500, { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message });
+    const status = typeof (error as { status?: unknown })?.status === "number" ? (error as { status: number }).status : undefined;
+    respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : status ?? (message === "Invalid record id." ? 400 : 500), { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message });
   }
 });
 

@@ -861,7 +861,7 @@ export async function readGapImage(id: string): Promise<{ contents: Buffer; medi
  * touched; only what is absent is created.
  */
 export async function initializeStore(): Promise<void> {
-  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps"];
+  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals"];
   await Promise.all([
     ...directories.map((name) => mkdir(path.join(root(), name), { recursive: true })),
     mkdir(path.join(root(), "references", "assets"), { recursive: true }),
@@ -902,4 +902,4 @@ export async function initializeStore(): Promise<void> {
   }
 }
 
-export { parseFrontmatter, parsePrinciple, renderFrontmatter, renderPrinciple };
+export { cleanId, isMissing, parseFrontmatter, parsePrinciple, readDirectoryOrEmpty, readJson, renderFrontmatter, renderPrinciple, writeJson };

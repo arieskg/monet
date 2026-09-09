@@ -20,7 +20,7 @@ export const gapAnalysisSchema = z.object({
 
 /** All canonical knowledge, not just the records that won retrieval. No reference memory or file paths. */
 export function gapKnowledge(workspace: Workspace) {
-  const records: Array<GapRecordLink & { content: unknown }> = [];
+  const records: GapKnowledgeRecord[] = [];
   const add = (kind: string, id: string, title: string, route: string, content: unknown) => records.push({ key: `${kind}:${id}`, title, route, content });
   for (const p of workspace.principles) add("principle", p.id, p.title, `/principles/${p.id}`, { body: p.body });
   for (const f of workspace.foundations) add("foundation", f.id, f.name, `/foundations/${f.id}`, { status: f.status, description: f.description, guidance: f.guidance, rationale: f.rationale, notes: f.notes, tokens: f.tokens });
@@ -33,6 +33,16 @@ export function gapKnowledge(workspace: Workspace) {
   for (const p of workspace.primitiveTaxonomy.flatMap((c) => c.entries)) add("primitive", p.id, p.name, "", { ...p, decision: workspace.primitives.find((d) => d.id === p.id) ?? null });
   for (const t of workspace.themes) add("theme", t.id, t.name, "/themes", { overrides: t.overrides, modes: t.modes });
   return records;
+}
+
+export type GapKnowledgeRecord = GapRecordLink & { content: unknown };
+/** One hash over every canonical record, so a diagnosis or proposal can say which knowledge it saw. */
+export function knowledgeFingerprint(knowledge: readonly GapKnowledgeRecord[]): string {
+  return createHash("sha256").update(JSON.stringify(knowledge)).digest("hex");
+}
+/** Content hash of one record, for target-level staleness. */
+export function recordFingerprint(record: GapKnowledgeRecord): string {
+  return createHash("sha256").update(JSON.stringify(record.content)).digest("hex");
 }
 
 type Runner = (task: ProviderTask, env: NodeJS.ProcessEnv) => Promise<unknown>;
@@ -81,7 +91,7 @@ export async function diagnoseGap(gap: Gap, workspace: Workspace, image: Provide
   const relevantKeys = new Set(context.retrieval.map((r) => `${r.entity_type}:${r.entity_id}`));
   deterministic.forEach((f) => f.record_keys.forEach((key) => relevantKeys.add(key)));
   const result: GapDiagnosis = {
-    version: 1, created_at: new Date().toISOString(), workspace_fingerprint: createHash("sha256").update(JSON.stringify(knowledge)).digest("hex"),
+    version: 1, created_at: new Date().toISOString(), workspace_fingerprint: knowledgeFingerprint(knowledge),
     conclusion: deterministic[0]?.conclusion ?? fallback.conclusion, findings: [...deterministic, fallback], evidence,
     records: knowledge.filter((r) => relevantKeys.has(r.key)).map(({ content: _content, ...r }) => r),
     retrieval: { query, coverage: context.coverage, provenance: context.retrieval, notices: [...context.notices.map((n) => n.message), ...context.warnings] },
