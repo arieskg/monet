@@ -23,8 +23,8 @@ MCP write tool.
    uncertainty, and recommended next actions. Expand the retrieval/conformance
    details to see exactly what the deterministic checks established.
 
-Reports are immutable in V1. Diagnose again replaces the latest diagnosis against
-current knowledge; it does not rewrite the original report. The UI can be closed
+Reports are immutable in V1. A successful Diagnose again replaces the latest
+diagnosis against current knowledge; it does not rewrite the original report. The UI can be closed
 during a diagnosis. Reload the saved report to see a completed result. A service
 restart interrupts a running analysis, but the saved report remains available for
 retry. There is no persisted running state that can become permanently stuck.
@@ -44,7 +44,14 @@ or diagnoses. SVG, HTML, PDF, URLs, and other attachments are not supported in V
 Signature checking is not a full image decoder; the UI reports an unreadable image
 without losing the report. Image metadata is not stripped. Crop or redact sensitive
 content before saving; files are local, not encrypted, and follow the workspace's
-own backup/Git policy.
+own backup/Git policy. The bundled starter ignores `monet/gaps/` in Git. Other
+workspaces retain their own Git and backup policy; exclusion from Monet guidance
+is not a promise that Git, backups, or the configured provider will forget evidence.
+
+Use **Delete gap** on a saved report and confirm to remove its report, diagnosis,
+and embedded screenshot together. Deletion is blocked during an active diagnosis
+so completion cannot recreate the evidence. Later report/image GETs return 404.
+Deletion does not remove copies already retained in Git, backups, or a provider.
 
 List and detail responses omit image bytes. The ID-only image route serves the
 saved bytes with a verified image MIME type, `nosniff`, sandbox CSP, and `no-store`.
@@ -78,16 +85,34 @@ The pipeline:
    claim. Images never become fabricated computed styles or interaction evidence.
 5. Optionally run the provider with a strict output schema, then validate its output
    again at runtime. Reject unknown classifications, unknown record/evidence IDs,
-   uncited existing-guidance findings, or image-inspection claims without an image.
+   uncited existing-guidance findings, or invalid image claims. Conflicting guidance
+   requires two distinct Monet records; a missing decision requires at least one
+   nearest existing record examined. Every finding must cite report-derived evidence:
+   screenshot, retrieval and catalog citations alone do not qualify. Inspection
+   requires an attached image and explicit, nonempty `image_observations`.
 6. Persist the diagnosis with a canonical-knowledge fingerprint, time, version,
    provider outcome, and explicit image-inspection status.
 
 Findings may mix missing decisions, weak guidance, retrieval/relationship problems,
 conflicting guidance, already-covered implementation violations, project-specific
 choices, and insufficient evidence. The AI recommends; it is not a conformance
-authority. Deterministically measured violations remain visible alongside its
-interpretation. A missing retrieval match never automatically becomes a missing
-decision. No findings never certifies the UI.
+authority. The trust order is **measured evidence > user report > AI interpretation**.
+Measured errors control the headline; the AI conclusion is saved separately as
+interpretation. The UI separates **Measured checks** from **AI interpretation**,
+labels AI implementation findings **Suspected violation**, and keeps the notice
+that no canonical records changed visible under the diagnosis header. Each deterministic error preserves
+its conformance check ID, its basis (`monet_rule` or `wcag_floor`), and relevant record
+keys when the check refers to a Monet token or component. Literal contrast failures
+against a WCAG floor do not claim to contradict Monet guidance.
+
+The provider must state `measured_errors` as `acknowledged`, `disputed`, or
+`not_assessed`. A mechanical possible-contradiction flag is set when measured errors
+coexist with a disputed assessment, a missing-decision finding, or an insufficient-
+evidence finding citing the measured usages. This conservative signal may flag
+coexisting causes; it does not reconcile semantics or prove the AI wrong. Flagged
+AI findings stay visible below measured checks. AI reasoning and image observations
+remain unverified; citation validation does not increase their confidence. A missing
+retrieval match never automatically becomes a missing decision. No findings never certifies the UI.
 
 Current knowledge cannot reconstruct historical delivery. Original queries and
 pasted guidance are labelled as user evidence; links open current records. Missing
@@ -119,14 +144,19 @@ diagnosis only. The configured CLI remains responsible for honoring its read-onl
 sandbox; this is not an OS security boundary for arbitrary wrappers.
 
 With no provider, deterministic retrieval/conformance results are still saved.
-Provider failure or invalid output saves the deterministic fallback and an actionable
-error. Provider stderr/output is not copied into the Gap failure message. Failure
-before analysis or during persistence leaves the saved report and prior diagnosis
+Provider failure or invalid output saves a deterministic fallback only if there is
+no prior successful diagnosis (a provider-free deterministic review counts as
+successful). Otherwise the entire saved file remains byte-for-byte unchanged and
+the response returns a separate `failed_retry` for the UI to display. An unavailable
+provider also cannot replace a prior completed AI diagnosis. The failed attempt is
+not persisted as diagnosis history; reloading retains the prior diagnosis. Provider
+stderr/output is not copied into the Gap failure message. Failure before analysis or during persistence leaves the saved report and prior diagnosis
 untouched. Retry does not duplicate the report.
 
 ## V1 limits and verification
 
-- One raster image per report; no editing, deletion, closure state, or diagnosis history.
+- One raster image per report; no editing, closure state, or diagnosis history.
+  Confirmed deletion is supported.
 - Latest diagnosis only; no background job manager. Concurrent requests for the same
   Gap are rejected within the running editing service. Use one editing service per
   workspace, as with existing Monet saves.
@@ -143,6 +173,9 @@ Run `pnpm check`. Gap tests cover empty reads, immutable capture, image bytes,
 invalid input, atomic disk-failure recovery, provider failure/retry, concurrent runs,
 privacy/export isolation, mixed findings, evidence citation validation, full-catalog
 inspection, image capability/declined inspection, and deterministic violations.
+Regressions also cover measured headline precedence, possible contradictions,
+byte-preserving failed retries, citation requirements, image observations, deletion
+and subsequent HTTP 404s, and rendered UI provenance and the visible no-change notice.
 Provider contract tests exercise image staging/cleanup and early CLI exit with a
 large prompt.
 

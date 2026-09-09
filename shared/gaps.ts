@@ -32,10 +32,17 @@ export interface GapFinding {
   classification: typeof GAP_CLASSIFICATIONS[number]; conclusion: string; reasoning: string;
   evidence_ids: string[]; record_keys: string[]; uncertainty: string[]; next_action: string;
   source: "deterministic" | "ai";
+  check?: string;
+  basis?: "monet_rule" | "wcag_floor";
+  contradiction?: boolean;
 }
 export interface GapDiagnosis {
   version: 1; created_at: string; workspace_fingerprint: string;
   conclusion: string; findings: GapFinding[];
+  /** AI prose never replaces a measured error headline. Optional for saved V1 records. */
+  interpretation?: string;
+  contradiction?: boolean;
+  image_observations?: string[];
   evidence: { id: string; description: string }[]; records: GapRecordLink[];
   retrieval: { query: string; coverage: string; provenance: RetrievalProvenance[]; notices: string[] };
   conformance: DesignReview; knowledge_count: number;
@@ -49,3 +56,5 @@ export interface Gap {
   diagnosis: GapDiagnosis | null;
 }
 export type GapSummary = Pick<Gap, "id" | "created_at" | "image"> & { problem: string; context: string; diagnosed: boolean };
+/** A failed retry is returned separately and never written over a successful diagnosis. */
+export type GapDiagnosisResponse = Gap & { failed_retry?: GapDiagnosis };

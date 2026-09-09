@@ -6,7 +6,7 @@ import { THEME_MODES } from "../shared/model.js";
 import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
 import { AI_COMMAND_VARIABLE, providerConfigured } from "./aiProvider.js";
 import { createMonetService } from "../shared/service.js";
-import { createGap, diagnoseSavedGap, getGap, listGaps, readGapImage } from "./fileStore.js";
+import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage } from "./fileStore.js";
 import { providerSupportsImages } from "./aiProvider.js";
 import { ZodError } from "zod";
 
@@ -69,6 +69,7 @@ const server = createServer(async (request, response) => {
     if (request.method === "POST" && gapAnalysis) return respond(response, 200, await diagnoseSavedGap(gapAnalysis));
     const gap = match(url.pathname, "/api/gaps/");
     if (request.method === "GET" && gap) return respond(response, 200, await getGap(gap));
+    if (request.method === "DELETE" && gap) { await deleteGap(gap); return respond(response, 200, { ok: true }); }
     const referenceAsset = match(url.pathname, "/api/reference-assets/");
     if (request.method === "GET" && referenceAsset) {
       const asset = await readReferenceAsset(referenceAsset);
@@ -154,6 +155,7 @@ const server = createServer(async (request, response) => {
 
 await initializeStore();
 server.listen(PORT, "127.0.0.1", () => {
-  console.log(`Monet file service: http://127.0.0.1:${PORT}`);
+  const address = server.address();
+  console.log(`Monet file service: http://127.0.0.1:${typeof address === "object" && address ? address.port : PORT}`);
   console.log(`Workspace: ${workspaceDirectory}${isBundledWorkspace(workspaceDirectory) ? " (bundled starter workspace — set MONET_ROOT to use your own)" : ""}`);
 });

@@ -508,7 +508,7 @@ function reviewContrast(context: Context, usage: DesignUsage): Result {
   if (ratio === null) return unverifiable(usage, `${rawForeground} on ${rawBackground}`, "Monet could not compute a ratio from these two values.");
 
   const describe = `${rawForeground} (${foreground.colour}) on ${rawBackground} (${background.colour}) is ${ratio.toFixed(2)}:1 in ${context.mode} mode`;
-  const related = [...new Set([...[foreground.token, background.token].flatMap((token) => token ? [resourceUri("foundations", token.foundation)] : []), resourceUri("foundations", "color")])];
+  const related = [...new Set([foreground.token, background.token].flatMap((token) => token ? [resourceUri("foundations", token.foundation)] : []))];
   const declared = usage.usage;
   const contract = contractFor(context.mode, foreground.token?.name, background.token?.name);
 
@@ -561,6 +561,7 @@ function reviewContrast(context: Context, usage: DesignUsage): Result {
       outcome: "checked", checks: ["contrast_below_minimum"],
       findings: [finding(usage, {
         level: "error", check: "contrast_below_minimum", observed: describe,
+        basis: contract ? "monet_rule" : "wcag_floor",
         expected: `at least ${floor}:1 for ${kind === "text" ? "normal text" : "a meaningful non-text boundary or indicator"}`,
         why: `This pairing is below the WCAG ${floor}:1 minimum for ${kind}, so the content is not reliably legible. ${documented}`,
         related,

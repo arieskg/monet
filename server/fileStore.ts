@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { GAP_IMAGE_LIMIT, gapInputSchema, type Gap, type GapImage, type GapSummary } from "../shared/gaps.js";
+import { GAP_IMAGE_LIMIT, gapInputSchema, type Gap, type GapDiagnosisResponse, type GapImage, type GapSummary } from "../shared/gaps.js";
 import { diagnoseGap } from "./gapDiagnosis.js";
 import type { ComponentDecision, Foundation, MappingConfidence, MappingMatchType, MappingStatus, MarkdownDocument, Principle, PrimitiveDecision, Reference, ReferenceCollectionAnalysis, ReferenceSuggestionStatus, ReferenceType, Source, SourceMapping, Status, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./model.js";
 import { THEME_MODES } from "../shared/model.js";
@@ -820,7 +820,15 @@ export async function createGap(input: unknown): Promise<Gap> {
 }
 
 const gapAnalyses = new Set<string>();
-export async function diagnoseSavedGap(id: string): Promise<Gap> {
+export async function deleteGap(id: string): Promise<void> {
+  const file = path.join(root(), "gaps", `${cleanId(id)}.json`);
+  if (gapAnalyses.has(file)) throw new Error("This Gap is already being diagnosed. Reload in a moment.");
+  // Share the diagnosis lock: a completing run must not recreate deleted evidence.
+  gapAnalyses.add(file);
+  try { await unlink(file); } finally { gapAnalyses.delete(file); }
+}
+
+export async function diagnoseSavedGap(id: string): Promise<GapDiagnosisResponse> {
   const directory = root();
   const file = path.join(directory, "gaps", `${cleanId(id)}.json`);
   if (gapAnalyses.has(file)) throw new Error("This Gap is already being diagnosed. Reload in a moment.");
@@ -831,6 +839,9 @@ export async function diagnoseSavedGap(id: string): Promise<Gap> {
     const decoded = gap.image ? decodeGapImage(gap.image.data_url) : null;
     const image = decoded ? { bytes: decoded.bytes, extension: decoded.mediaType === "image/png" ? "png" as const : decoded.mediaType === "image/jpeg" ? "jpg" as const : "webp" as const } : undefined;
     const diagnosis = await diagnoseGap(publicGap(gap), workspace, image);
+    if (gap.diagnosis && gap.diagnosis.ai.status !== "failed" && (diagnosis.ai.status === "failed" || (gap.diagnosis.ai.status === "complete" && diagnosis.ai.status === "unavailable"))) {
+      return { ...publicGap(gap), failed_retry: diagnosis };
+    }
     const next = { ...gap, diagnosis };
     await writeJson(file, next);
     return publicGap(next);

@@ -104,6 +104,8 @@ export interface ReviewFinding {
   level: ReviewLevel;
   /** Stable machine-readable check id, so a caller can filter or suppress by rule. */
   check: string;
+  /** Explicit grounding where a check can apply an external floor rather than a Monet rule. */
+  basis?: "monet_rule" | "wcag_floor";
   /** The submitted usage this came from, echoed verbatim. */
   usage_id?: string;
   location?: string;

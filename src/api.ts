@@ -1,5 +1,5 @@
 import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
-import type { Gap, GapInput, GapSummary } from "../shared/gaps";
+import type { Gap, GapDiagnosisResponse, GapInput, GapSummary } from "../shared/gaps";
 
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
@@ -19,7 +19,8 @@ export const api = {
   gaps: () => request<GapSummary[]>("/api/gaps"),
   gap: (id: string) => request<Gap>("/api/gaps/" + encodeURIComponent(id)),
   createGap: (value: GapInput) => request<Gap>("/api/gaps", { method: "POST", body: JSON.stringify(value) }),
-  diagnoseGap: (id: string) => request<Gap>("/api/gap-diagnoses/" + encodeURIComponent(id), { method: "POST" }),
+  diagnoseGap: (id: string) => request<GapDiagnosisResponse>("/api/gap-diagnoses/" + encodeURIComponent(id), { method: "POST" }),
+  deleteGap: (id: string) => request<{ ok: boolean }>("/api/gaps/" + encodeURIComponent(id), { method: "DELETE" }),
   gapImageUrl: (id: string) => "/api/gap-images/" + encodeURIComponent(id),
   environment: () => request<Environment>("/api/environment"),
   workspace: (themeId?: string, mode?: ThemeMode) => {

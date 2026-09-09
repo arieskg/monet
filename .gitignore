@@ -7,3 +7,6 @@ dist/
 # embeds the source and reference registries, and would otherwise churn on each edit.
 # DESIGN_SYSTEM.md and tokens/ stay committed: they are small, readable, and consumable.
 monet/design-system.json
+
+# Product reports and screenshots are private evidence, not starter guidance.
+monet/gaps/

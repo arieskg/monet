@@ -17,7 +17,7 @@ function ProviderNote({ hasImage }: { hasImage: boolean }) {
   const { environment } = useWorkspace();
   return <p className="gap-provider-note">{environment?.aiConfigured
     ? `Diagnose sends this report and current Monet guidance to your configured AI provider. ${!hasImage ? "This report has no screenshot; analysis uses text and structured evidence." : environment.aiImages ? "The screenshot is included; the result states whether the provider inspected it." : "Image input is not enabled for this provider. The screenshot stays saved; analysis uses text and structured evidence."}`
-    : "AI diagnosis is optional. Without a configured provider, Diagnose retrieves guidance and checks structured evidence for you to review."} Raw reports and screenshots stay out of design-system exports and agent guidance.</p>;
+    : "AI diagnosis is optional. Without a configured provider, Diagnose retrieves guidance and checks structured evidence for you to review."} Raw reports and screenshots stay outside canonical guidance, exports and MCP. They follow your workspace Git and backup policy.</p>;
 }
 
 function GapCapture() {
@@ -103,21 +103,33 @@ function GapCapture() {
   </div>;
 }
 
-function Diagnosis({ diagnosis: d }: { diagnosis: GapDiagnosis }) {
+export function Diagnosis({ diagnosis: d }: { diagnosis: GapDiagnosis }) {
   const evidence = new Map(d.evidence.map((e) => [e.id, e.description]));
+  const hasMeasuredErrors = d.conformance.findings.some((f) => f.level === "error");
   return <section className="gap-diagnosis" aria-labelledby="diagnosis-heading">
-    <span className="eyebrow">{d.ai.status === "complete" ? "AI-assisted diagnosis" : "Deterministic review"} · {formatDate(d.created_at)}</span>
-    <h2 id="diagnosis-heading">{d.conclusion}</h2>
+    <span className="eyebrow">{hasMeasuredErrors ? "Measured diagnosis" : d.ai.status === "complete" ? "AI interpretation" : "Deterministic review"} · {formatDate(d.created_at)}</span>
+    <h2 id="diagnosis-heading">{hasMeasuredErrors ? d.findings.find((f) => f.source === "deterministic" && f.classification === "implementation_violation")?.conclusion ?? "Submitted observations fail measured checks." : d.conclusion}</h2>
+    <p className="gap-provider-note">No canonical Monet records were changed.</p>
+    <p className="gap-evidence-line">Trust order: measured evidence &gt; user report &gt; AI interpretation.</p>
+    {d.contradiction && <p className="gap-error" role="status">Possible contradiction: AI interpretation may deny a measured violation. Measured checks take precedence; review the interpretation separately.</p>}
     <p className={d.ai.status === "failed" ? "gap-error" : "gap-provider-note"} role={d.ai.status === "failed" ? "alert" : undefined}>{d.ai.message}</p>
-    <p className="gap-image-status">{d.image_status === "not_supplied" ? "No screenshot supplied." : d.image_status === "not_inspected" ? "Screenshot saved · not inspected by AI" : "Screenshot inspected · reported by the provider"}</p>
-    {d.findings.map((finding, index) => <article className="gap-finding" key={index}>
-      <span className="gap-classification">{gapClassificationLabels[finding.classification]}</span>
+    <p className="gap-image-status">{d.image_status === "not_supplied" ? "No screenshot supplied." : d.image_status === "not_inspected" ? "Screenshot saved · not inspected by AI" : "Screenshot inspection · provider-reported / unverified"}</p>
+    {(["deterministic", "ai"] as const).map((source) => <section key={source} aria-label={source === "deterministic" ? "Measured checks" : "AI interpretation"}>
+      <h3>{source === "deterministic" ? "Measured checks" : "AI interpretation"}</h3>
+      {source === "deterministic" && <p className="gap-evidence-line">{d.conformance.coverage.checked} of {d.conformance.coverage.submitted} submitted observations checked. These checks do not certify the UI.</p>}
+      {source === "ai" && <><p className="gap-provider-note">AI findings are unverified interpretations. Citation checks do not establish correctness.</p>{d.ai.status === "complete" && <p className="gap-prose">{d.interpretation ?? d.conclusion}</p>}
+        {d.image_observations?.length ? <div><b>Provider-reported image observations · unverified</b><ul>{d.image_observations.map((o, i) => <li key={i}>{o}</li>)}</ul></div> : null}</>}
+    {d.findings.filter((f) => f.source === source).map((finding, index) => <article className="gap-finding" key={index}>
+      <span className="gap-classification">{finding.classification === "implementation_violation" ? finding.source === "ai" ? "Suspected violation" : "Measured violation" : gapClassificationLabels[finding.classification]}</span>
+      <p className="gap-evidence-line"><b>Source:</b> {finding.source === "ai" ? "AI interpretation" : "Deterministic check"}{finding.check && <> · Check: <code>{finding.check}</code></>}{finding.basis && <> · Basis: {finding.basis === "wcag_floor" ? "WCAG floor" : "Monet rule"}</>}</p>
+      {finding.contradiction && <p className="gap-error">Possible contradiction with measured checks · AI finding demoted for review.</p>}
       <h3>{finding.conclusion}</h3><p className="gap-prose">{finding.reasoning}</p>
       <p className="gap-evidence-line"><b>Evidence:</b> {finding.evidence_ids.map((id) => evidence.get(id) ?? id).join(" · ")}</p>
       {finding.record_keys.length > 0 && <div className="gap-record-links">{finding.record_keys.map((key) => { const record = d.records.find((r) => r.key === key); return record?.route ? <Link key={key} to={record.route}>{record.title}</Link> : <span key={key}>{record?.title ?? key}</span>; })}</div>}
       {finding.uncertainty.length > 0 && <div className="gap-uncertainty"><b>Uncertainty / missing information</b><ul>{finding.uncertainty.map((text, i) => <li key={i}>{text}</li>)}</ul></div>}
       <div className="gap-next"><b>Recommended next action</b><p>{finding.next_action}</p></div>
     </article>)}
+    </section>)}
     <details className="gap-details"><summary>Evidence considered and relevant Monet records</summary>
       <ul>{d.evidence.map((e) => <li key={e.id}>{e.description}</li>)}</ul>
       <div className="gap-record-links">{d.records.map((r) => r.route ? <Link key={r.key} to={r.route}>{r.title}</Link> : <span key={r.key}>{r.title}</span>)}</div>
@@ -137,6 +149,8 @@ function Diagnosis({ diagnosis: d }: { diagnosis: GapDiagnosis }) {
 }
 
 function GapDetail({ id }: { id: string }) {
+  const navigate = useNavigate();
+  const [failedRetry, setFailedRetry] = useState<GapDiagnosis | null>(null);
   const [gap, setGap] = useState<Gap | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -144,14 +158,21 @@ function GapDetail({ id }: { id: string }) {
   useEffect(() => { let active = true; api.gap(id).then((value) => { if (active) { setGap(value); setError(""); } }).catch((e) => { if (active) setError(message(e)); }); return () => { active = false; }; }, [id, attempt]);
   async function diagnose() {
     setBusy(true); setError("");
-    try { setGap(await api.diagnoseGap(id)); }
+    try { const { failed_retry, ...saved } = await api.diagnoseGap(id); setGap(saved); setFailedRetry(failed_retry ?? null); }
     catch (caught) { setError(`Your Gap is saved. ${message(caught)} You can reload or retry Diagnose.`); }
     finally { setBusy(false); }
   }
+  async function remove() {
+    if (!window.confirm("Delete this Gap, its diagnosis and screenshot evidence? This cannot be undone. Copies in Git, backups or your provider are not removed.")) return;
+    setBusy(true); setError("");
+    try { await api.deleteGap(id); void navigate("/gaps"); }
+    catch (caught) { setError(message(caught)); setBusy(false); }
+  }
   return <div className="page gap-page">
     <Link className="gap-back" to="/gaps">← Gaps</Link>
-    <PageHeader eyebrow="Product feedback" title="Gap report" description={gap ? `Saved ${formatDate(gap.created_at)} · ${gap.diagnosis ? "Review diagnosis" : "Ready to diagnose"}` : error ? "Unable to open this report" : "Loading report…"} action={gap && <button className="button primary" disabled={busy} onClick={() => void diagnose()}>{busy ? "Diagnosing…" : gap.diagnosis ? "Diagnose again" : "Diagnose"}</button>} />
+    <PageHeader eyebrow="Product feedback" title="Gap report" description={gap ? `Saved ${formatDate(gap.created_at)} · ${gap.diagnosis ? "Review diagnosis" : "Ready to diagnose"}` : error ? "Unable to open this report" : "Loading report…"} action={gap && <div className="gap-actions"><button className="button ghost" disabled={busy} onClick={() => void remove()}>Delete gap</button><button className="button primary" disabled={busy} onClick={() => void diagnose()}>{busy ? "Diagnosing…" : gap.diagnosis ? "Diagnose again" : "Diagnose"}</button></div>} />
     {error && <div className="gap-error" role="alert">{error} <button className="button ghost micro" onClick={() => setAttempt((a) => a + 1)}>Reload report</button></div>}
+    {failedRetry && <div className="gap-error" role="alert"><b>Retry did not complete. Previous diagnosis preserved.</b><p>{failedRetry.ai.message}</p></div>}
     {gap && <><ProviderNote hasImage={Boolean(gap.image)} /><div className="gap-detail-layout"><section className="gap-report" aria-label="Submitted evidence">
       {gap.image ? <div className="gap-saved-image"><a href={api.gapImageUrl(gap.id)} target="_blank" rel="noreferrer" aria-label="Open saved screenshot"><ImagePreview src={api.gapImageUrl(gap.id)} alt="User-submitted product screenshot" /></a><small>{gap.image.filename} · saved with this report</small></div> : <p className="gap-no-image">Non-visual report · no screenshot</p>}
       <h2>What went wrong</h2><p className="gap-prose">{gap.report.problem}</p>
