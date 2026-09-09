@@ -1,8 +1,8 @@
 import { mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
-import { GAP_IMAGE_LIMIT, gapInputSchema, type Gap, type GapDiagnosisResponse, type GapImage, type GapSummary } from "../shared/gaps.js";
-import { diagnoseGap } from "./gapDiagnosis.js";
+import { GAP_IMAGE_LIMIT, gapInputSchema, gapReviewInputSchema, type Gap, type GapDiagnosisResponse, type GapHumanReview, type GapImage, type GapSummary } from "../shared/gaps.js";
+import { diagnoseGap, gapKnowledge, knowledgeFingerprint } from "./gapDiagnosis.js";
 import type { ComponentDecision, Foundation, MappingConfidence, MappingMatchType, MappingStatus, MarkdownDocument, Principle, PrimitiveDecision, Reference, ReferenceCollectionAnalysis, ReferenceSuggestionStatus, ReferenceType, Source, SourceMapping, Status, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./model.js";
 import { THEME_MODES } from "../shared/model.js";
 import { analyzeReference, analyzeReferenceCollection } from "./referenceAnalysis.js";
@@ -842,7 +842,38 @@ export async function diagnoseSavedGap(id: string): Promise<GapDiagnosisResponse
     if (gap.diagnosis && gap.diagnosis.ai.status !== "failed" && (diagnosis.ai.status === "failed" || (gap.diagnosis.ai.status === "complete" && diagnosis.ai.status === "unavailable"))) {
       return { ...publicGap(gap), failed_retry: diagnosis };
     }
-    const next = { ...gap, diagnosis };
+    // A human review classifies one diagnosis; a new diagnosis needs a new review.
+    const next = { ...gap, diagnosis, review: null };
+    await writeJson(file, next);
+    return publicGap(next);
+  } finally { gapAnalyses.delete(file); }
+}
+
+/**
+ * Records a person's classification of the latest diagnosis, with citations that must resolve to
+ * current canonical records. This is editor-only Gap evidence, not a canonical write, and it is
+ * the no-provider route to a Proposal: the deterministic diagnosis cannot classify a Gap as
+ * missing or weak guidance, so the reviewer does, on the record.
+ */
+export async function saveGapReview(id: string, input: unknown): Promise<Gap> {
+  const review = gapReviewInputSchema.parse(input);
+  const file = path.join(root(), "gaps", `${cleanId(id)}.json`);
+  if (gapAnalyses.has(file)) throw new Error("This Gap is being diagnosed. Reload in a moment and review the new diagnosis.");
+  gapAnalyses.add(file);
+  try {
+    const gap = await readStoredGap(id);
+    if (!gap.diagnosis) throw new Error("Diagnose the Gap before reviewing it.");
+    const knowledge = gapKnowledge(await loadWorkspace());
+    const fingerprint = knowledgeFingerprint(knowledge);
+    if (gap.diagnosis.workspace_fingerprint !== fingerprint) throw new Error("Monet's knowledge changed after this diagnosis. Diagnose again, then review.");
+    const known = new Set(knowledge.map((record) => record.key));
+    const keys = [...new Set(review.record_keys)];
+    const unknown = keys.find((key) => !known.has(key));
+    if (unknown) throw new Error(`Cited record ${unknown} does not exist.`);
+    if (review.classification === "conflicting_guidance" && keys.length < 2) throw new Error("Conflicting guidance needs two distinct cited records.");
+    if (gap.diagnosis.conformance.findings.some((finding) => finding.level === "error") && !review.acknowledges_measured_errors) throw new Error("This diagnosis measured conformance errors. Acknowledge them to record a review; a review does not excuse them.");
+    const saved: GapHumanReview = { ...review, record_keys: keys, created_at: new Date().toISOString(), diagnosis_created_at: gap.diagnosis.created_at, workspace_fingerprint: fingerprint };
+    const next = { ...gap, review: saved };
     await writeJson(file, next);
     return publicGap(next);
   } finally { gapAnalyses.delete(file); }

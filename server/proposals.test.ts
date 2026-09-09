@@ -1,17 +1,17 @@
-import { cp, mkdtemp, readFile, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
 import type { Gap } from "../shared/gaps.js";
 import { lineDiff } from "../shared/diff.js";
-import { fieldValueText, lintProposal, parseFieldText, projectProposal, proposalEligibility, type ProposalChange } from "../shared/proposals.js";
+import { fieldEditorText, fieldValueText, lintProposal, parseFieldText, projectProposal, proposalEligibility, type Proposal, type ProposalChange } from "../shared/proposals.js";
 import { resolveThemeTokens } from "../shared/tokens.js";
 import { runProvider } from "./aiProvider.js";
-import { createGap, deleteGap, diagnoseSavedGap, initializeStore, loadWorkspace, regenerateExports, saveComponents, savePrinciple } from "./fileStore.js";
+import { createGap, deleteGap, diagnoseSavedGap, getGap, initializeStore, loadWorkspace, regenerateExports, saveComponents, saveGapReview, saveMarkdown, savePrinciple, saveTheme } from "./fileStore.js";
 import type { gapAnalysisSchema } from "./gapDiagnosis.js";
 import type { proposalDraftSchema } from "./proposalDrafting.js";
-import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, ProposalStateError, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
+import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, ProposalStateError, rebaseProposal, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
 import { BUNDLED_WORKSPACE, setWorkspaceRoot } from "./workspace.js";
 
 vi.mock("./aiProvider.js", async (original) => ({ ...await original<typeof import("./aiProvider.js")>(), runProvider: vi.fn() }));
@@ -175,16 +175,20 @@ describe("Proposal revisions", () => {
   });
 
   it("saves nothing when the AI draft fails, malforms, or reaches past the cited records", async () => {
-    vi.stubEnv("MONET_AI_COMMAND", "provider");
     const gap = await diagnosedGap(analysis(finding("weak_guidance", ["component:button"])));
+    // The provider must be configured for the draft path to run at all; without this the test only exercised the no-provider branch.
+    vi.stubEnv("MONET_AI_COMMAND", "provider");
     const proposal = await createProposal({ gap_id: gap.id });
     const file = path.join(directory, "proposals", `${proposal.id}.json`);
     const before = await readFile(file);
     const outside: Draft = { summary: "s", rationale: "r", changes: [{ target: "component:card", operation: "amend", field: "notes", value: "x", note: "" }] };
     const badShape: Draft = { summary: "s", rationale: "r", changes: [{ target: "component:button", operation: "amend", field: "use_when", value: "not json", note: "" }] };
     for (const outcome of [new Error("private stderr"), {}, outside, badShape]) {
+      const calls = vi.mocked(runProvider).mock.calls.length;
       if (outcome instanceof Error) vi.mocked(runProvider).mockRejectedValueOnce(outcome); else vi.mocked(runProvider).mockResolvedValueOnce(outcome);
       const result = await draftProposalWithAi(proposal.id);
+      expect(vi.mocked(runProvider).mock.calls.length, "the provider must actually be invoked").toBe(calls + 1);
+      expect(vi.mocked(runProvider).mock.calls.at(-1)![0].label).toBe("Proposal draft");
       expect(result.draft_failed).toBeTruthy();
       expect(result.draft_failed).not.toContain("private stderr");
       expect(result.revisions).toEqual([]);
@@ -236,7 +240,7 @@ describe("Proposal approval, staleness, and closure", () => {
     vi.mocked(runProvider).mockResolvedValueOnce(eligibleAnalysis());
     await diagnoseSavedGap(gap.id);
     expect((await getProposal(proposal.id)).staleness).toMatchObject({ stale: true, diagnosis_changed: true });
-    await expect(approveProposal(proposal.id, { revision: 2, hash: refreshed.revisions[1]!.hash })).rejects.toThrow(/diagnosed again/);
+    await expect(approveProposal(proposal.id, { revision: 2, hash: refreshed.revisions[1]!.hash })).rejects.toThrow(/diagnosis or human review changed/);
 
     await deleteGap(gap.id);
     expect((await getProposal(proposal.id)).staleness).toMatchObject({ stale: true, gap_missing: true });
@@ -352,6 +356,182 @@ describe("Proposal projection, lint, and diff helpers", () => {
     const diagnosis = { workspace_fingerprint: "f", findings: [{ classification: "weak_guidance", record_keys: ["component:button"], conclusion: "c", contradiction: false, source: "ai" }], records: [{ key: "component:button", title: "Button", route: "/components/button" }], created_at: "" } as unknown as NonNullable<Gap["diagnosis"]>;
     expect(proposalEligibility({ diagnosis }, "f")).toMatchObject({ eligible: true, targets: [{ key: "component:button" }], allow_new_pattern: false });
     expect(proposalEligibility({ diagnosis }, "other").eligible).toBe(false);
+  });
+});
+
+describe("Astra review regressions", () => {
+  const file = (id: string) => path.join(directory, "proposals", `${id}.json`);
+  async function tamper(id: string, edit: (proposal: Proposal) => void): Promise<void> {
+    const proposal = JSON.parse(await readFile(file(id), "utf8")) as Proposal;
+    edit(proposal);
+    await writeFile(file(id), JSON.stringify(proposal));
+  }
+
+  it("fingerprints every proposable field: pattern title, principle title, and theme name all mark a proposal stale", async () => {
+    const workspace = await loadWorkspace();
+    const principle = workspace.principles[0]!;
+    const gap = await diagnosedGap(analysis(finding("weak_guidance", ["pattern:dashboard", `principle:${principle.id}`, "theme:default"])));
+    const proposal = await createProposal({ gap_id: gap.id });
+    const saved = await saveProposalRevision(proposal.id, { summary: "Touch three kinds", changes: [
+      { target: "pattern:dashboard", field: "summary", after: "A dashboard summary that is stronger." },
+      { target: `principle:${principle.id}`, field: "body", after: `${principle.body}\n\nOne more sentence.` },
+      { target: "theme:default", field: "overrides", after: { ...workspace.themes[0]!.overrides, "color.accent": "#123456" } },
+    ] });
+    expect(Object.keys(saved.revisions[0]!.target_fingerprints).sort()).toEqual([`principle:${principle.id}`, "pattern:dashboard", "theme:default"].sort());
+    expect(saved.staleness.changed_targets).toEqual([]);
+    const dashboard = workspace.patterns.find((p) => p.id === "dashboard")!;
+    await saveMarkdown("patterns", "dashboard", { ...dashboard, title: "Dashboard, renamed" });
+    await savePrinciple(principle.id, { ...principle, title: `${principle.title} (renamed)` });
+    await saveTheme("default", { ...workspace.themes[0]!, name: "Default, renamed" });
+    const stale = await getProposal(proposal.id);
+    expect(stale.staleness.changed_targets.sort()).toEqual([`principle:${principle.id}`, "pattern:dashboard", "theme:default"].sort());
+    await expect(approveProposal(proposal.id, { revision: 1, hash: saved.revisions[0]!.hash })).rejects.toThrow(/Target records changed/);
+  });
+
+  it("recomputes checks and hashes at approval instead of trusting the stored file", async () => {
+    const gap = await diagnosedGap();
+    const workspace = await loadWorkspace();
+    const blocked = await createProposal({ gap_id: gap.id });
+    const revision = (await saveProposalRevision(blocked.id, { summary: "Links a URL", changes: [{ target: "component:button", field: "notes", after: "See https://example.com/design for the real rule." }] })).revisions[0]!;
+    expect(revision.checks.ok).toBe(false);
+    await tamper(blocked.id, (proposal) => { proposal.revisions[0]!.checks = { ...proposal.revisions[0]!.checks, ok: true, lint: [], validation: { ...proposal.revisions[0]!.checks.validation, new_errors: [] } }; });
+    expect((await getProposal(blocked.id)).integrity.ok).toBe(true);
+    await expect(approveProposal(blocked.id, { revision: 1, hash: revision.hash })).rejects.toThrow(/validation or lint errors against the current workspace/);
+
+    const edited = await createProposal({ gap_id: gap.id });
+    const good = (await saveProposalRevision(edited.id, revisionInput([...buttonUseWhen(workspace), "Card actions"]))).revisions[0]!;
+    await tamper(edited.id, (proposal) => { proposal.revisions[0]!.changes[0]!.after = [...(proposal.revisions[0]!.changes[0]!.after as string[]), "Smuggled in by hand"]; });
+    const view = await getProposal(edited.id);
+    expect(view.integrity).toEqual({ ok: false, revisions: [1] });
+    expect(view.revisions[0]!.hash).toBe(good.hash);
+    await expect(approveProposal(edited.id, { revision: 1, hash: good.hash })).rejects.toThrow(/does not match its hash/);
+    expect((await getProposal(edited.id)).status).toBe("draft");
+  });
+
+  it("refuses a status transition that would silently clear a selection, and the projection never clears it", async () => {
+    const gap = await diagnosedGap();
+    const workspace = await loadWorkspace();
+    expect(workspace.components.find((c) => c.id === "button")?.selection).not.toBeNull();
+    const proposal = await createProposal({ gap_id: gap.id });
+    const saved = await saveProposalRevision(proposal.id, { summary: "Undecide button", changes: [{ target: "component:button", field: "status", after: "undecided" }] });
+    const checks = saved.revisions[0]!.checks;
+    expect(checks.lint).toEqual([expect.objectContaining({ rule: "excluded_field_transition", level: "error", target: "component:button", field: "status" })]);
+    expect(checks.validation.new_errors).toEqual([expect.stringContaining("undecided but still names an approved source inspiration")]);
+    expect(checks.ok).toBe(false);
+    const projected = projectProposal(workspace, saved.revisions[0]!.changes);
+    expect(projected.components.find((c) => c.id === "button")).toMatchObject({ status: "undecided", selection: workspace.components.find((c) => c.id === "button")!.selection });
+    const kept = await saveProposalRevision(proposal.id, { summary: "Mark for review", changes: [{ target: "component:button", field: "status", after: "needs_review" }] });
+    expect(kept.revisions[1]!.checks.lint.some((f) => f.rule === "excluded_field_transition")).toBe(false);
+  });
+
+  it("round-trips Foundation tokens losslessly and normalizes edited tokens like the Foundation file", async () => {
+    const gap = await diagnosedGap(analysis(finding("weak_guidance", ["foundation:color"])));
+    const proposal = await createProposal({ gap_id: gap.id });
+    const current = proposal.targets.find((t) => t.key === "foundation:color")!.fields.tokens!.current as Record<string, unknown>[];
+    expect(current.length).toBeGreaterThan(10);
+    expect(current[0]).toHaveProperty("foundation", "color");
+    expect(parseFieldText("tokens", fieldEditorText("tokens", current))).toEqual(current);
+    expect(fieldValueText("tokens", current)).not.toContain('"foundation"');
+    expect(fieldEditorText("tokens", current)).toContain('"foundation": "color"');
+    const untouched = await saveProposalRevision(proposal.id, { summary: "No token change", changes: [{ target: "foundation:color", field: "tokens", after: current }] });
+    expect(untouched.revisions[0]!.changes[0]!.after).toEqual(current);
+    expect(untouched.revisions[0]!.checks.lint).toEqual([expect.objectContaining({ rule: "no_change" })]);
+    const stripped = current.map(({ id: _id, foundation: _foundation, order: _order, ...token }) => token);
+    stripped[0] = { ...stripped[0]!, description: "Edited in a proposal" };
+    const edited = await saveProposalRevision(proposal.id, { summary: "Edit one token", changes: [{ target: "foundation:color", field: "tokens", after: stripped }] });
+    const after = edited.revisions[1]!.changes[0]!.after as Record<string, unknown>[];
+    expect(after.every((token) => token.foundation === "color" && typeof token.id === "string" && typeof token.order === "number")).toBe(true);
+    expect(after[0]).toMatchObject({ id: current[0]!.id, name: current[0]!.name, value: current[0]!.value, description: "Edited in a proposal" });
+    expect(after.slice(1)).toEqual(current.slice(1));
+    expect(edited.revisions[1]!.changes[0]!.before).toEqual(current);
+    expect(edited.revisions[1]!.checks.lint.some((f) => f.rule === "no_change")).toBe(false);
+    expect(edited.revisions[1]!.checks.validation.new_errors).toEqual([]);
+    // A value edit is validated the way the Foundation editor would validate it: contrast contracts run on the projected tokens.
+    const darkened = await saveProposalRevision(proposal.id, { summary: "Darken white", changes: [{ target: "foundation:color", field: "tokens", after: stripped.map((token) => token.name === "neutral.white" ? { ...token, value: "#101010" } : token) }] });
+    expect(darkened.revisions[2]!.checks.validation.new_errors.length).toBeGreaterThan(0);
+    expect(darkened.revisions[2]!.checks.validation.new_errors[0]).toContain("contrast");
+    expect(darkened.revisions[2]!.checks.ok).toBe(false);
+  });
+
+  it("keeps AI provenance through summary-only saves, later revisions, and supersession", async () => {
+    const gap = await diagnosedGap();
+    const proposal = await createProposal({ gap_id: gap.id });
+    vi.stubEnv("MONET_AI_COMMAND", "provider");
+    const workspace = await loadWorkspace();
+    vi.mocked(runProvider).mockResolvedValueOnce({ summary: "Draft", rationale: "Because.", changes: [
+      { target: "component:button", operation: "amend", field: "use_when", value: JSON.stringify([...buttonUseWhen(workspace), "Actions inside a card"]), note: "" },
+      { target: "component:card", operation: "amend", field: "notes", value: "Name the primary action.", note: "" },
+    ] } satisfies Draft);
+    const drafted = await draftProposalWithAi(proposal.id);
+    const carry = (changes: ProposalChange[]) => changes.map(({ target, field, after }) => ({ target, field, after }));
+    const summaryOnly = await saveProposalRevision(proposal.id, { summary: "Draft, retitled by a person", rationale: "Because.", changes: carry(drafted.revisions[0]!.changes) });
+    expect(summaryOnly.revisions[1]!.changes.map((c) => c.author)).toEqual(["ai", "ai"]);
+    const oneEdit = await saveProposalRevision(proposal.id, { summary: "Draft, retitled by a person", changes: carry(summaryOnly.revisions[1]!.changes).map((c) => c.field === "notes" ? { ...c, after: "Name the primary action and keep the rest secondary." } : c) });
+    expect(oneEdit.revisions[2]!.changes.map((c) => [c.field, c.author])).toEqual([["use_when", "ai"], ["notes", "human"]]);
+    vi.mocked(runProvider).mockResolvedValueOnce(eligibleAnalysis());
+    await diagnoseSavedGap(gap.id);
+    const successor = await supersedeProposal(proposal.id);
+    expect(successor.revisions[0]!.changes.map((c) => [c.field, c.author])).toEqual([["use_when", "ai"], ["notes", "human"]]);
+    const later = await saveProposalRevision(successor.id, { summary: "Retitled again", changes: carry(successor.revisions[0]!.changes) });
+    expect(later.revisions[1]!.changes.map((c) => [c.field, c.author])).toEqual([["use_when", "ai"], ["notes", "human"]]);
+  });
+
+  it("lets a person review a deterministic diagnosis with citations and reach a proposal without a provider", async () => {
+    const gap = await createGap({ problem: "No guidance for actions inside cards", context: "A training grid." });
+    await diagnoseSavedGap(gap.id);
+    expect((await getGap(gap.id)).diagnosis?.ai.status).toBe("unavailable");
+    const before = (await gapProposalOverview(gap.id)).eligibility;
+    expect(before.eligible).toBe(false);
+    expect(before.reasons.join(" ")).toMatch(/person can review/);
+    await expect(saveGapReview(gap.id, { classification: "weak_guidance", conclusion: "Button guidance is silent on cards.", record_keys: [] })).rejects.toThrow(/at least one/);
+    await expect(saveGapReview(gap.id, { classification: "weak_guidance", conclusion: "x", record_keys: ["component:invented"] })).rejects.toThrow(/does not exist/);
+    await expect(saveGapReview(gap.id, { classification: "conflicting_guidance", conclusion: "x", record_keys: ["component:button", "component:button"] })).rejects.toThrow(/two distinct/);
+    const reviewed = await saveGapReview(gap.id, { classification: "weak_guidance", conclusion: "Button guidance is silent on cards.", reasoning: "Read Button and Card.", record_keys: ["component:button"] });
+    expect(reviewed.review).toMatchObject({ classification: "weak_guidance", diagnosis_created_at: reviewed.diagnosis!.created_at, workspace_fingerprint: reviewed.diagnosis!.workspace_fingerprint });
+    const overview = await gapProposalOverview(gap.id);
+    expect(overview.eligibility).toMatchObject({ eligible: true, allow_new_pattern: false, basis: [{ finding_index: -1, source: "human", classification: "weak_guidance", record_keys: ["component:button"] }], targets: [{ key: "component:button", title: "Button" }] });
+    const proposal = await createProposal({ gap_id: gap.id });
+    expect(proposal.review_created_at).toBe(reviewed.review!.created_at);
+    const saved = await saveProposalRevision(proposal.id, revisionInput([...buttonUseWhen(await loadWorkspace()), "Actions inside a card"]));
+    expect((await approveProposal(proposal.id, { revision: 1, hash: saved.revisions[0]!.hash })).status).toBe("approved");
+    await saveGapReview(gap.id, { classification: "missing_decision", conclusion: "Actually a missing pattern.", record_keys: ["component:card"] });
+    expect((await getProposal(proposal.id)).staleness).toMatchObject({ stale: true, diagnosis_changed: true });
+    await diagnoseSavedGap(gap.id);
+    expect((await getGap(gap.id)).review).toBeNull();
+    expect((await gapProposalOverview(gap.id)).eligibility.eligible).toBe(false);
+
+    const measured = await createGap({ problem: "White on white", usages: [{ kind: "contrast", foreground: "#fff", background: "#fff", usage: "text" }] });
+    await diagnoseSavedGap(measured.id);
+    await expect(saveGapReview(measured.id, { classification: "weak_guidance", conclusion: "x", record_keys: ["foundation:color"] })).rejects.toThrow(/Acknowledge/);
+    await saveGapReview(measured.id, { classification: "weak_guidance", conclusion: "Contrast guidance is thin.", record_keys: ["foundation:color"], acknowledges_measured_errors: true });
+    const withErrors = (await gapProposalOverview(measured.id)).eligibility;
+    expect(withErrors.eligible).toBe(true);
+    expect(withErrors.basis.map((b) => b.source)).toEqual(["human"]);
+    expect(JSON.stringify(await loadWorkspace())).not.toContain("Contrast guidance is thin");
+  });
+
+  it("refreshes a stale proposal against current records without a content edit and keeps authorship", async () => {
+    const gap = await diagnosedGap();
+    const proposal = await createProposal({ gap_id: gap.id });
+    vi.stubEnv("MONET_AI_COMMAND", "provider");
+    const workspace = await loadWorkspace();
+    vi.mocked(runProvider).mockResolvedValueOnce({ summary: "Draft", rationale: "Because.", changes: [{ target: "component:button", operation: "amend", field: "use_when", value: JSON.stringify([...buttonUseWhen(workspace), "Actions inside a card"]), note: "" }] } satisfies Draft);
+    const drafted = await draftProposalWithAi(proposal.id);
+    await expect(rebaseProposal((await createProposal({ gap_id: gap.id })).id)).rejects.toThrow(/Save a revision/);
+    const button = workspace.components.find((c) => c.id === "button")!;
+    await saveComponents("button", { ...button, notes: `${button.notes} Edited elsewhere.` });
+    expect((await getProposal(proposal.id)).staleness.changed_targets).toEqual(["component:button"]);
+    const refreshed = await rebaseProposal(proposal.id);
+    expect(refreshed.revisions.length).toBe(2);
+    expect(refreshed.revisions[1]!.changes[0]).toMatchObject({ author: "ai", after: drafted.revisions[0]!.changes[0]!.after });
+    // Same content, same hash: approval binds to revision number and hash together, and the snapshot fingerprints moved.
+    expect(refreshed.revisions[1]!.hash).toBe(drafted.revisions[0]!.hash);
+    expect(refreshed.revisions[1]!.target_fingerprints["component:button"]).not.toBe(drafted.revisions[0]!.target_fingerprints["component:button"]);
+    expect(refreshed.staleness).toMatchObject({ stale: false, changed_targets: [] });
+    expect((await approveProposal(proposal.id, { revision: 2, hash: refreshed.revisions[1]!.hash })).status).toBe("approved");
+    vi.mocked(runProvider).mockResolvedValueOnce(eligibleAnalysis());
+    await diagnoseSavedGap(gap.id);
+    await expect(rebaseProposal(proposal.id)).rejects.toThrow(/Supersede/);
   });
 });
 

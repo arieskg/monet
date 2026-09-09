@@ -22,16 +22,17 @@ export const gapAnalysisSchema = z.object({
 export function gapKnowledge(workspace: Workspace) {
   const records: GapKnowledgeRecord[] = [];
   const add = (kind: string, id: string, title: string, route: string, content: unknown) => records.push({ key: `${kind}:${id}`, title, route, content });
-  for (const p of workspace.principles) add("principle", p.id, p.title, `/principles/${p.id}`, { body: p.body });
+  // Every field a Proposal can change is part of the knowledge, so the fingerprint moves when any of them does.
+  for (const p of workspace.principles) add("principle", p.id, p.title, `/principles/${p.id}`, { title: p.title, body: p.body });
   for (const f of workspace.foundations) add("foundation", f.id, f.name, `/foundations/${f.id}`, { status: f.status, description: f.description, guidance: f.guidance, rationale: f.rationale, notes: f.notes, tokens: f.tokens });
-  for (const p of workspace.patterns) add("pattern", p.id, p.title, `/patterns/${p.id}`, { status: p.status, summary: p.summary, body: p.body, tags: p.tags, components: p.components, foundations: p.foundations });
+  for (const p of workspace.patterns) add("pattern", p.id, p.title, `/patterns/${p.id}`, { title: p.title, status: p.status, summary: p.summary, body: p.body, tags: p.tags, components: p.components, foundations: p.foundations });
   for (const c of joinComponents(workspace)) {
     const d = c.decision;
     add("component", c.id, c.name, `/components/${c.id}`, { description: c.description, aliases: c.aliases, relationships: c.relationships, deprecated: c.deprecated,
       decision: d ? { status: d.status, selection: d.selection, preferences: d.preferences, behavior: d.behavior, rationale: d.rationale, notes: d.notes, use_when: d.use_when, avoid_when: d.avoid_when, foundations: d.foundations, primitives: d.primitives } : null });
   }
   for (const p of workspace.primitiveTaxonomy.flatMap((c) => c.entries)) add("primitive", p.id, p.name, "", { ...p, decision: workspace.primitives.find((d) => d.id === p.id) ?? null });
-  for (const t of workspace.themes) add("theme", t.id, t.name, "/themes", { overrides: t.overrides, modes: t.modes });
+  for (const t of workspace.themes) add("theme", t.id, t.name, "/themes", { name: t.name, overrides: t.overrides, modes: t.modes });
   return records;
 }
 
@@ -40,11 +41,6 @@ export type GapKnowledgeRecord = GapRecordLink & { content: unknown };
 export function knowledgeFingerprint(knowledge: readonly GapKnowledgeRecord[]): string {
   return createHash("sha256").update(JSON.stringify(knowledge)).digest("hex");
 }
-/** Content hash of one record, for target-level staleness. */
-export function recordFingerprint(record: GapKnowledgeRecord): string {
-  return createHash("sha256").update(JSON.stringify(record.content)).digest("hex");
-}
-
 type Runner = (task: ProviderTask, env: NodeJS.ProcessEnv) => Promise<unknown>;
 
 export async function diagnoseGap(gap: Gap, workspace: Workspace, image: ProviderTask["image"], env: NodeJS.ProcessEnv = process.env, run: Runner = runProvider): Promise<GapDiagnosis> {

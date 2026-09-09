@@ -6,9 +6,9 @@ import { THEME_MODES } from "../shared/model.js";
 import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
 import { AI_COMMAND_VARIABLE, providerConfigured } from "./aiProvider.js";
 import { createMonetService } from "../shared/service.js";
-import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage } from "./fileStore.js";
+import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage, saveGapReview } from "./fileStore.js";
 import { providerSupportsImages } from "./aiProvider.js";
-import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
+import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, rebaseProposal, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
 import { ZodError } from "zod";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
@@ -68,6 +68,8 @@ const server = createServer(async (request, response) => {
     }
     const gapAnalysis = match(url.pathname, "/api/gap-diagnoses/");
     if (request.method === "POST" && gapAnalysis) return respond(response, 200, await diagnoseSavedGap(gapAnalysis));
+    const gapReview = match(url.pathname, "/api/gap-reviews/");
+    if (request.method === "POST" && gapReview) return respond(response, 200, await saveGapReview(gapReview, await body(request)));
     const gap = match(url.pathname, "/api/gaps/");
     if (request.method === "GET" && gap) return respond(response, 200, await getGap(gap));
     if (request.method === "DELETE" && gap) { await deleteGap(gap); return respond(response, 200, { ok: true }); }
@@ -86,6 +88,7 @@ const server = createServer(async (request, response) => {
       ["/api/proposal-approvals/", (id, value) => approveProposal(id, value)],
       ["/api/proposal-rejections/", (id, value) => rejectProposal(id, value)],
       ["/api/proposal-supersessions/", (id) => supersedeProposal(id)],
+      ["/api/proposal-rebases/", (id) => rebaseProposal(id)],
     ];
     for (const [prefix, action] of proposalActions) {
       const id = match(url.pathname, prefix);

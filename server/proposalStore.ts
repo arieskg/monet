@@ -6,11 +6,12 @@ import type { Gap } from "../shared/gaps.js";
 import type { Workspace } from "../shared/model.js";
 import {
   PROPOSAL_CREATABLE_KIND, PROPOSAL_FIELDS, canonicalJson, lintProposal, parseFieldValue, parseRecordKey, projectProposal, proposalEligibility, proposalRevisionInputSchema, recordFieldValues, valuesEqual,
-  type GapProposalOverview, type Proposal, type ProposalAuthor, type ProposalChange, type ProposalChecks, type ProposalDraftResponse, type ProposalRevision, type ProposalRevisionInput, type ProposalStaleness, type ProposalSummary, type ProposalTargetView, type ProposalView,
+  type GapProposalOverview, type Proposal, type ProposalAuthor, type ProposalChange, type ProposalChecks, type ProposalDraftResponse, type ProposalIntegrity, type ProposalRevision, type ProposalRevisionInput, type ProposalStaleness, type ProposalSummary, type ProposalTargetView, type ProposalView,
 } from "../shared/proposals.js";
 import { providerConfigured } from "./aiProvider.js";
 import { cleanId, getGap, isMissing, loadWorkspace, readDirectoryOrEmpty, readJson, writeJson } from "./fileStore.js";
-import { gapKnowledge, knowledgeFingerprint, recordFingerprint, type GapKnowledgeRecord } from "./gapDiagnosis.js";
+import { gapKnowledge, knowledgeFingerprint, type GapKnowledgeRecord } from "./gapDiagnosis.js";
+import { normalizeTokens } from "../shared/tokens.js";
 import { draftProposal } from "./proposalDrafting.js";
 import { validateWorkspace } from "./validate.js";
 import { workspaceRoot } from "./workspace.js";
@@ -32,6 +33,22 @@ async function context(): Promise<Context> {
   const workspace = await loadWorkspace();
   const knowledge = gapKnowledge(workspace);
   return { workspace, knowledge, fingerprint: knowledgeFingerprint(knowledge), records: new Map(knowledge.map((record) => [record.key, record])) };
+}
+
+/** Hash of every proposable field of one record, so any of them changing marks a proposal stale. */
+function targetFingerprint(workspace: Workspace, key: string): string | null {
+  const values = recordFieldValues(workspace, key);
+  return values === null ? null : createHash("sha256").update(canonicalJson(values)).digest("hex");
+}
+
+function revisionHash(revision: Pick<ProposalRevision, "summary" | "rationale" | "changes">): string {
+  return createHash("sha256").update(canonicalJson({ summary: revision.summary, rationale: revision.rationale, changes: revision.changes })).digest("hex");
+}
+
+/** Revisions whose stored content no longer matches their hash. Approval refuses them; the UI warns. */
+function integrity(proposal: Proposal): ProposalIntegrity {
+  const revisions = proposal.revisions.filter((revision) => revision.hash !== revisionHash(revision)).map((revision) => revision.number);
+  return { ok: !revisions.length, revisions };
 }
 
 async function readProposal(id: string): Promise<Proposal> {
@@ -73,20 +90,21 @@ function staleness(proposal: Proposal, gap: Gap | null, ctx: Context): ProposalS
   const changed_targets: string[] = [];
   const missing_targets: string[] = [];
   for (const [key, fingerprint] of Object.entries(revision?.target_fingerprints ?? {})) {
-    const record = ctx.records.get(key);
-    if (!record) missing_targets.push(key);
-    else if (recordFingerprint(record) !== fingerprint) changed_targets.push(key);
+    const current = targetFingerprint(ctx.workspace, key);
+    if (current === null) missing_targets.push(key);
+    else if (current !== fingerprint) changed_targets.push(key);
   }
   for (const change of revision?.changes ?? []) {
-    if (change.operation === "create" && ctx.records.has(change.target) && !changed_targets.includes(change.target)) changed_targets.push(change.target);
+    if (change.operation === "create" && recordFieldValues(ctx.workspace, change.target) !== null && !changed_targets.includes(change.target)) changed_targets.push(change.target);
   }
-  const diagnosis_changed = gap !== null && gap.diagnosis?.created_at !== proposal.diagnosis_created_at;
+  const reviewBased = proposal.basis.some((item) => item.source === "human");
+  const diagnosis_changed = gap !== null && (gap.diagnosis?.created_at !== proposal.diagnosis_created_at || (reviewBased && (gap.review?.created_at ?? null) !== (proposal.review_created_at ?? null)));
   return { changed_targets, missing_targets, knowledge_changed: revision ? revision.knowledge_fingerprint !== ctx.fingerprint : false, diagnosis_changed, gap_missing: gap === null,
     stale: changed_targets.length > 0 || missing_targets.length > 0 || diagnosis_changed || gap === null };
 }
 
 function view(proposal: Proposal, gap: Gap | null, ctx: Context): ProposalView {
-  return { ...proposal, staleness: staleness(proposal, gap, ctx), targets: targetViews(proposal, ctx.workspace), ai_available: providerConfigured() };
+  return { ...proposal, staleness: staleness(proposal, gap, ctx), integrity: integrity(proposal), targets: targetViews(proposal, ctx.workspace), ai_available: providerConfigured() };
 }
 
 function fieldError(target: string, field: string, error: unknown): Error {
@@ -100,11 +118,14 @@ function fieldError(target: string, field: string, error: unknown): Error {
  * Turns submitted changes into stored ones: every target must be a record the diagnosis cited (or
  * the one permitted new pattern), every field must exist for the kind, every value must parse as
  * its type, and `before` is snapshotted from the current record. Authorship is decided here, not
- * by the client: a value identical to the AI draft stays AI-authored; anything else is human.
+ * by the client: a value unchanged from the previous revision keeps that revision's author, a value
+ * identical to the AI draft is AI-authored, and anything else is human. The chain is what lets
+ * AI provenance survive summary-only saves, later revisions, and supersession.
  */
 function normalizeChanges(proposal: Proposal, input: z.output<typeof proposalRevisionInputSchema>["changes"], workspace: Workspace, revisionAuthor: ProposalAuthor, authors?: ReadonlyMap<string, ProposalAuthor>): ProposalChange[] {
   const allowed = new Set(proposal.allowed_targets.map((target) => target.key));
   const aiDraft = proposal.revisions.find((revision) => revision.author === "ai");
+  const previous = proposal.revisions[proposal.revisions.length - 1];
   const seen = new Set<string>();
   const created = new Set<string>();
   return input.map((change) => {
@@ -128,10 +149,17 @@ function normalizeChanges(proposal: Proposal, input: z.output<typeof proposalRev
     }
     let after: unknown;
     try { after = parseFieldValue(spec.type, change.after); } catch (error) { throw fieldError(change.target, change.field, error); }
+    // Tokens are stored exactly as the Foundation file stores them, so an untouched token list equals its snapshot.
+    if (spec.type === "tokens") after = normalizeTokens(parsed.id, after);
     if (parsed.kind === "component" && change.field === "relationships" && (after as string[]).includes(parsed.id)) throw new Error(`${slot}: a component cannot relate to itself.`);
     const before = change.operation === "create" ? null : current?.[change.field] ?? null;
-    const draft = aiDraft?.changes.find((item) => item.target === change.target && item.field === change.field && item.operation === change.operation);
-    const author: ProposalAuthor = revisionAuthor === "ai" || (draft && valuesEqual(draft.after, after)) ? "ai" : authors?.get(slot) ?? "human";
+    const same = (item: ProposalChange) => item.target === change.target && item.field === change.field && item.operation === change.operation;
+    const prior = previous?.changes.find(same);
+    const draft = aiDraft?.changes.find(same);
+    const author: ProposalAuthor = revisionAuthor === "ai" ? "ai"
+      : prior && valuesEqual(prior.after, after) ? prior.author
+      : draft && valuesEqual(draft.after, after) ? "ai"
+      : authors?.get(slot) ?? "human";
     return { target: change.target, operation: change.operation, field: change.field, type: spec.type, before, after, author, note: change.note };
   });
 }
@@ -144,6 +172,13 @@ function computeChecks(ctx: Context, changes: ProposalChange[], gap: Gap, propos
   const after = new Set(projected.map((finding) => `${finding.level} ${describe(finding)}`));
   const knownTerms = ctx.knowledge.flatMap((record) => [record.title, record.key.slice(record.key.indexOf(":") + 1)]);
   const lint = lintProposal(changes, gap.report, knownTerms, new Set(proposal.allowed_targets.map((target) => target.key)));
+  // A transition that would also need a field proposals cannot change is refused here, never applied implicitly.
+  for (const change of changes) {
+    const parsed = parseRecordKey(change.target)!;
+    if (parsed.kind === "component" && change.field === "status" && change.after === "undecided" && ctx.workspace.components.find((item) => item.id === parsed.id)?.selection) {
+      lint.push({ level: "error", rule: "excluded_field_transition", target: change.target, field: change.field, message: "Setting the status to undecided also requires clearing the selected inspiration, which a proposal cannot change. Clear the selection in the Components editor first, or keep the status." });
+    }
+  }
   const validation = {
     new_errors: projected.filter((finding) => finding.level === "error" && !before.has(`error ${describe(finding)}`)).map(describe),
     new_warnings: projected.filter((finding) => finding.level === "warning" && !before.has(`warning ${describe(finding)}`)).map(describe),
@@ -152,10 +187,6 @@ function computeChecks(ctx: Context, changes: ProposalChange[], gap: Gap, propos
     baseline_warnings: baseline.filter((finding) => finding.level === "warning").length,
   };
   return { computed_at: new Date().toISOString(), validation, lint, ok: !validation.new_errors.length && !lint.some((finding) => finding.level === "error") };
-}
-
-function revisionHash(revision: Pick<ProposalRevision, "summary" | "rationale" | "changes">): string {
-  return createHash("sha256").update(canonicalJson({ summary: revision.summary, rationale: revision.rationale, changes: revision.changes })).digest("hex");
 }
 
 async function withLock<T>(id: string, work: () => Promise<T>): Promise<T> {
@@ -173,16 +204,16 @@ export async function listProposals(gapId?: string): Promise<ProposalSummary[]> 
 export async function gapProposalOverview(gapId: string): Promise<GapProposalOverview> {
   const gap = await getGap(gapId);
   const ctx = await context();
-  return { eligibility: proposalEligibility(gap, ctx.fingerprint), proposals: await listProposals(gap.id) };
+  return { eligibility: proposalEligibility(gap, ctx.fingerprint, ctx.knowledge), proposals: await listProposals(gap.id) };
 }
 
 const createSchema = z.object({ gap_id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,79}$/) }).strict();
 
 async function newProposal(gap: Gap, ctx: Context, supersedes: string | null): Promise<Proposal> {
-  const eligibility = proposalEligibility(gap, ctx.fingerprint);
+  const eligibility = proposalEligibility(gap, ctx.fingerprint, ctx.knowledge);
   if (!eligibility.eligible) throw new ProposalStateError(eligibility.reasons.join(" "));
   const now = new Date().toISOString();
-  return { version: 1, id: randomUUID(), gap_id: gap.id, diagnosis_created_at: gap.diagnosis!.created_at, created_at: now, updated_at: now, status: "draft",
+  return { version: 1, id: randomUUID(), gap_id: gap.id, diagnosis_created_at: gap.diagnosis!.created_at, review_created_at: eligibility.basis.some((item) => item.source === "human") ? gap.review?.created_at ?? null : null, created_at: now, updated_at: now, status: "draft",
     basis: eligibility.basis, allowed_targets: eligibility.targets, allow_new_pattern: eligibility.allow_new_pattern, revisions: [], approval: null, rejection: null, superseded_by: null, supersedes };
 }
 
@@ -213,7 +244,7 @@ async function appendRevision(proposal: Proposal, input: ProposalRevisionInput, 
   const ctx = await context();
   const changes = normalizeChanges(proposal, parsed.changes, ctx.workspace, author, authors);
   const checks = computeChecks(ctx, changes, gap, proposal);
-  const target_fingerprints = Object.fromEntries(changes.filter((change) => change.operation === "amend").map((change) => [change.target, recordFingerprint(ctx.records.get(change.target)!)]));
+  const target_fingerprints = Object.fromEntries(changes.filter((change) => change.operation === "amend").map((change) => [change.target, targetFingerprint(ctx.workspace, change.target)!]));
   const content = { summary: parsed.summary, rationale: parsed.rationale, changes };
   const revision: ProposalRevision = { number: (latest(proposal)?.number ?? 0) + 1, created_at: new Date().toISOString(), author, ...content, hash: revisionHash(content), knowledge_fingerprint: ctx.fingerprint, target_fingerprints, checks };
   // Approval binds to one exact revision; a new revision always clears it, even if it changes nothing but a note.
@@ -259,11 +290,17 @@ export async function approveProposal(id: string, input: unknown): Promise<Propo
     const current = latest(proposal);
     if (!current) throw new ProposalStateError("Save a revision before approving.");
     if (current.number !== revision || current.hash !== hash) throw new ProposalStateError(`Approval must name the current revision ${current.number} and its hash. Reload the proposal and review it again.`);
+    // The hash is recomputed from the stored content, so a file edited outside Monet cannot be approved under its old hash.
+    if (revisionHash(current) !== hash) throw new ProposalStateError(`Revision ${current.number}'s stored content does not match its hash. The proposal file was changed outside Monet; save a new revision to continue.`);
     const gap = await gapOrNull(proposal.gap_id);
     const ctx = await context();
     const stale = staleness(proposal, gap, ctx);
-    if (stale.stale) throw new ProposalStateError(stale.gap_missing ? "The Gap behind this proposal was deleted." : stale.diagnosis_changed ? "The Gap was diagnosed again after this proposal was created. Supersede it to re-derive the proposal." : `Target records changed since revision ${current.number}: ${[...stale.changed_targets, ...stale.missing_targets].join(", ")}. Save a new revision against the current records.`);
-    if (!current.checks.ok) throw new ProposalStateError("This revision has validation or lint errors. Fix them in a new revision before approving.");
+    if (stale.stale) throw new ProposalStateError(stale.gap_missing ? "The Gap behind this proposal was deleted." : stale.diagnosis_changed ? "The Gap's diagnosis or human review changed after this proposal was created. Supersede it to re-derive the proposal." : `Target records changed since revision ${current.number}: ${[...stale.changed_targets, ...stale.missing_targets].join(", ")}. Refresh the proposal against the current records.`);
+    const drifted = current.changes.find((change) => change.operation === "amend" && !valuesEqual(change.before, recordFieldValues(ctx.workspace, change.target)?.[change.field] ?? null));
+    if (drifted) throw new ProposalStateError(`${drifted.target}.${drifted.field} no longer matches the value this revision was written against. Refresh the proposal against the current records.`);
+    // Checks are recomputed against the live workspace rather than read from the stored revision.
+    const checks = computeChecks(ctx, current.changes, gap!, proposal);
+    if (!checks.ok) throw new ProposalStateError("This revision has validation or lint errors against the current workspace. Fix them in a new revision before approving.");
     const approved_at = new Date().toISOString();
     const next: Proposal = { ...proposal, status: "approved", approval: { revision, hash, approved_at, note }, updated_at: approved_at };
     await writeProposal(next);
@@ -282,6 +319,26 @@ export async function rejectProposal(id: string, input: unknown): Promise<Propos
     const next: Proposal = { ...proposal, status: "rejected", approval: null, rejection: { rejected_at, reason }, updated_at: rejected_at };
     await writeProposal(next);
     return view(next, await gapOrNull(proposal.gap_id), await context());
+  });
+}
+
+/**
+ * Refreshes a stale proposal against the current records: the same summary, rationale, and
+ * proposed values are saved as a new revision with fresh `before` snapshots and fresh checks, and
+ * each change keeps its author. Nothing about the proposed content is invented to force a save.
+ */
+export async function rebaseProposal(id: string): Promise<ProposalView> {
+  return withLock(id, async () => {
+    const proposal = await readProposal(id);
+    assertEditable(proposal);
+    const current = latest(proposal);
+    if (!current) throw new ProposalStateError("Save a revision before refreshing.");
+    const gap = await gapOrNull(proposal.gap_id);
+    if (!gap) throw new ProposalStateError("The Gap behind this proposal was deleted.");
+    const ctx = await context();
+    if (staleness(proposal, gap, ctx).diagnosis_changed) throw new ProposalStateError("The Gap's diagnosis or human review changed. Supersede the proposal instead.");
+    const authors = new Map(current.changes.map((change) => [`${change.target}.${change.field}`, change.author]));
+    return appendRevision(proposal, { summary: current.summary, rationale: current.rationale, changes: current.changes.map(({ target, operation, field, after, note }) => ({ target, operation, field, after, note })) }, "human", authors);
   });
 }
 

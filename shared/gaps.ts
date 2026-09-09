@@ -50,10 +50,33 @@ export interface GapDiagnosis {
   image_status: "not_supplied" | "not_inspected" | "provider_reported_inspected";
   limitations: string[];
 }
+export const GAP_REVIEW_CLASSIFICATIONS = ["missing_decision", "weak_guidance", "conflicting_guidance", "retrieval_relationship"] as const;
+/**
+ * A person's own classification of a diagnosed Gap, with required record citations. This is the
+ * eligibility path when no AI provider is configured: the deterministic diagnosis cannot classify
+ * a Gap as missing or weak guidance, so a reviewer states it and cites the records concerned.
+ */
+export const gapReviewInputSchema = z.object({
+  classification: z.enum(GAP_REVIEW_CLASSIFICATIONS),
+  conclusion: z.string().trim().min(1, "State what the review concluded.").max(2000),
+  reasoning: z.string().trim().max(6000).default(""),
+  record_keys: z.array(z.string().trim().min(1).max(200)).min(1, "Cite at least one Monet record.").max(10),
+  /** Required to be true when the diagnosis measured conformance errors: the reviewer confirms they are not excusing them. */
+  acknowledges_measured_errors: z.boolean().default(false),
+}).strict();
+export type GapReviewInput = z.input<typeof gapReviewInputSchema>;
+export interface GapHumanReview extends z.output<typeof gapReviewInputSchema> {
+  created_at: string;
+  /** The diagnosis this review classified; a later diagnosis makes the review inert. */
+  diagnosis_created_at: string;
+  workspace_fingerprint: string;
+}
 /** Editor-only feedback. Deliberately not part of Workspace or DesignContext. */
 export interface Gap {
   version: 1; id: string; created_at: string; report: GapReport; image: GapImage | null;
   diagnosis: GapDiagnosis | null;
+  /** Optional human review of the latest diagnosis. Absent on V1 records. */
+  review?: GapHumanReview | null;
 }
 export type GapSummary = Pick<Gap, "id" | "created_at" | "image"> & { problem: string; context: string; diagnosed: boolean };
 /** A failed retry is returned separately and never written over a successful diagnosis. */

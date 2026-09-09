@@ -59,7 +59,7 @@ const TOKEN_NAME_PATTERN = /^[a-z][a-z0-9.-]*$/;
 const STATUSES = ["undecided", "selected", "needs_review", "experimental", "do_not_use"] as const satisfies readonly Status[];
 const TOKEN_TYPES = ["color", "dimension", "number", "font-family", "font-size", "font-weight", "duration", "cubic-bezier", "shadow", "border", "breakpoint", "z-index"] as const;
 const tokenSchema = z.object({
-  id: z.string().max(120).optional(), name: z.string().regex(TOKEN_NAME_PATTERN, "Token names use lowercase letters, numbers, dots, and hyphens."),
+  id: z.string().max(120).optional(), foundation: z.string().max(120).optional(), name: z.string().regex(TOKEN_NAME_PATTERN, "Token names use lowercase letters, numbers, dots, and hyphens."),
   type: z.enum(TOKEN_TYPES), level: z.enum(["primitive", "semantic", "component"]), value: z.union([z.string().max(300), z.number()]),
   description: z.string().max(600).default(""), alias: z.string().max(120).optional(), order: z.number().optional(),
   modes: z.object({ dark: z.union([z.string().max(300), z.number()]).optional() }).strict().optional(),
@@ -128,11 +128,14 @@ export interface ProposalRevision {
   target_fingerprints: Record<string, string>;
   checks: ProposalChecks;
 }
-export interface ProposalBasis { finding_index: number; classification: ProposalEligibleClassification; conclusion: string; record_keys: string[]; source: GapFinding["source"] }
+/** `finding_index` is -1 when the basis is the Gap's human review rather than a diagnosis finding. */
+export interface ProposalBasis { finding_index: number; classification: ProposalEligibleClassification; conclusion: string; record_keys: string[]; source: GapFinding["source"] | "human" }
 export interface Proposal {
   version: 1; id: string; gap_id: string; diagnosis_created_at: string; created_at: string; updated_at: string;
   status: ProposalStatus;
   basis: ProposalBasis[];
+  /** The human review the basis drew on, if any; a replaced review makes the proposal stale. */
+  review_created_at?: string | null;
   allowed_targets: GapRecordLink[];
   allow_new_pattern: boolean;
   revisions: ProposalRevision[];
@@ -147,11 +150,14 @@ export interface ProposalStaleness {
   changed_targets: string[];
   missing_targets: string[];
   knowledge_changed: boolean;
+  /** The Gap was diagnosed again, or the human review the basis drew on was replaced. */
   diagnosis_changed: boolean;
   gap_missing: boolean;
 }
+/** Every stored revision is re-hashed on read; a mismatch means the file was edited outside Monet. */
+export interface ProposalIntegrity { ok: boolean; revisions: number[] }
 export interface ProposalTargetView { key: string; kind: ProposalRecordKind; title: string; route: string; exists: boolean; fields: Record<string, ProposalFieldSpec & { current: unknown }> }
-export interface ProposalView extends Proposal { staleness: ProposalStaleness; targets: ProposalTargetView[]; ai_available: boolean }
+export interface ProposalView extends Proposal { staleness: ProposalStaleness; integrity: ProposalIntegrity; targets: ProposalTargetView[]; ai_available: boolean }
 export type ProposalSummary = Pick<Proposal, "id" | "gap_id" | "status" | "created_at" | "updated_at"> & { summary: string; revision: number; approved_revision: number | null };
 export interface ProposalEligibility { eligible: boolean; reasons: string[]; basis: ProposalBasis[]; targets: GapRecordLink[]; allow_new_pattern: boolean }
 export interface GapProposalOverview { eligibility: ProposalEligibility; proposals: ProposalSummary[] }
@@ -159,8 +165,16 @@ export type ProposalDraftResponse = ProposalView & { draft_failed?: string };
 
 export const proposalStatusLabels: Record<ProposalStatus, string> = { draft: "Draft", approved: "Approved", rejected: "Rejected", superseded: "Superseded" };
 
-/** Eligibility is decided from the saved diagnosis against the current knowledge fingerprint. */
-export function proposalEligibility(gap: Pick<Gap, "diagnosis">, currentFingerprint: string): ProposalEligibility {
+function measuredErrors(diagnosis: NonNullable<Gap["diagnosis"]>): boolean {
+  return diagnosis.conformance.findings.some((finding) => finding.level === "error");
+}
+
+/**
+ * Eligibility is decided from the saved diagnosis against the current knowledge fingerprint. A
+ * human review of that same diagnosis counts as a basis finding when its citations resolve and,
+ * where the diagnosis measured errors, the reviewer acknowledged them.
+ */
+export function proposalEligibility(gap: Pick<Gap, "diagnosis" | "review">, currentFingerprint: string, knowledge: readonly GapRecordLink[] = gap.diagnosis?.records ?? []): ProposalEligibility {
   const none = (reasons: string[]): ProposalEligibility => ({ eligible: false, reasons, basis: [], targets: [], allow_new_pattern: false });
   const diagnosis = gap.diagnosis;
   if (!diagnosis) return none(["Diagnose this Gap before proposing an improvement."]);
@@ -172,15 +186,25 @@ export function proposalEligibility(gap: Pick<Gap, "diagnosis">, currentFingerpr
     if (eligible && finding.contradiction) excluded.push(`Finding ${index + 1} is flagged as a possible contradiction of measured checks.`);
     else if (eligible) basis.push({ finding_index: index, classification: finding.classification as ProposalEligibleClassification, conclusion: finding.conclusion, record_keys: [...new Set(finding.record_keys)], source: finding.source });
   });
+  const review = gap.review ?? null;
+  const known = new Map(knowledge.map((record) => [record.key, record]));
+  if (review) {
+    if (review.diagnosis_created_at !== diagnosis.created_at) excluded.push("The human review refers to an earlier diagnosis. Review the current diagnosis again.");
+    else if (review.workspace_fingerprint !== currentFingerprint) excluded.push("Monet's knowledge changed after the human review. Review again.");
+    else if (measuredErrors(diagnosis) && !review.acknowledges_measured_errors) excluded.push("The diagnosis measured conformance errors. A human review must acknowledge them before it can back a proposal.");
+    else if (review.record_keys.some((key) => !known.has(key))) excluded.push("The human review cites a record that no longer exists.");
+    else basis.push({ finding_index: -1, classification: review.classification, conclusion: review.conclusion, record_keys: [...new Set(review.record_keys)], source: "human" });
+  }
   if (!basis.length) {
     const reasons = excluded.length ? excluded : ["No finding classifies this Gap as a missing decision, weak guidance, conflicting guidance, or retrieval problem."];
     if (diagnosis.findings.some((f) => f.classification === "implementation_violation")) reasons.push("Implementation violations are fixed in the product, not in Monet.");
     if (diagnosis.findings.some((f) => f.classification === "project_specific")) reasons.push("Project-specific choices stay local.");
-    if (diagnosis.findings.some((f) => f.classification === "insufficient_evidence")) reasons.push("Insufficient evidence cannot justify a change to shared guidance.");
+    if (diagnosis.findings.some((f) => f.classification === "insufficient_evidence")) reasons.push("Insufficient evidence cannot justify a change to shared guidance on its own. A person can review the diagnosis, classify the Gap, and cite the records concerned.");
     return none(reasons);
   }
   const keys = new Set(basis.flatMap((b) => b.record_keys));
-  const targets = diagnosis.records.filter((record) => keys.has(record.key) && parseRecordKey(record.key) !== null);
+  const links = new Map<string, GapRecordLink>([...diagnosis.records, ...knowledge].map((record) => [record.key, record]));
+  const targets = [...keys].flatMap((key) => { const link = links.get(key); return link && parseRecordKey(key) ? [{ key: link.key, title: link.title, route: link.route }] : []; });
   const allow_new_pattern = basis.some((b) => b.classification === "missing_decision");
   if (!targets.length && !allow_new_pattern) return none(["The eligible findings cite no Monet record that a proposal could amend."]);
   return { eligible: true, reasons: [], basis, targets, allow_new_pattern };
@@ -257,7 +281,8 @@ export function projectProposal(workspace: Workspace, changes: readonly Proposal
       else {
         let decision = next.components.find((item) => item.id === id);
         if (!decision) { decision = EMPTY_DECISION(id); next.components.push(decision); }
-        if (change.field === "status") { decision.status = value as Status; if (decision.status === "undecided") decision.selection = null; }
+        // Status only. Clearing a selection is a decision of its own that proposals cannot express; the checks refuse the transition instead.
+        if (change.field === "status") decision.status = value as Status;
         else if (["rationale", "notes", "use_when", "avoid_when", "preferences", "behavior", "foundations", "primitives"].includes(change.field)) (decision as unknown as Record<string, unknown>)[change.field] = value;
       }
     } else if (kind === "primitive") {
@@ -317,7 +342,16 @@ export function fieldValueText(type: ProposalFieldType, value: unknown): string 
   }
 }
 
-/** The inverse of `fieldValueText` for the editable types. Tokens are edited as JSON. */
+/**
+ * A value as the editor shows it. Identical to the diff text except for tokens, which are edited as
+ * the JSON the record actually stores so every field round-trips; the diff shows them as lines.
+ */
+export function fieldEditorText(type: ProposalFieldType, value: unknown): string {
+  if (type === "tokens") return Array.isArray(value) && value.length ? JSON.stringify(value, null, 2) : "[]";
+  return fieldValueText(type, value);
+}
+
+/** The inverse of `fieldEditorText`. */
 export function parseFieldText(type: ProposalFieldType, text: string): unknown {
   const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
   const pairs = () => lines.map((line) => { const separator = line.indexOf(":"); if (separator < 0) throw new Error(`"${line}" needs a "key: value" shape.`); return [line.slice(0, separator).trim(), line.slice(separator + 1).trim()] as const; });
