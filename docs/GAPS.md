@@ -23,7 +23,10 @@ MCP write tool.
    uncertainty, and recommended next actions. Expand the retrieval/conformance
    details to see exactly what the deterministic checks established.
 
-Reports are immutable in V1. A successful Diagnose again replaces the latest
+A diagnosed Gap can also carry one **human review**: a person's classification
+with cited records, used by Proposals when no AI provider is configured. It is
+part of the Gap record, is cleared by a new diagnosis, and is described in
+[PROPOSALS.md](PROPOSALS.md). Reports are immutable in V1. A successful Diagnose again replaces the latest
 diagnosis against current knowledge; it does not rewrite the original report. The UI can be closed
 during a diagnosis. Reload the saved report to see a completed result. A service
 restart interrupts a running analysis, but the saved report remains available for
