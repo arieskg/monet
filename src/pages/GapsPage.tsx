@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { GAP_IMAGE_LIMIT, gapClassificationLabels, gapInputSchema, type Gap, type GapDiagnosis, type GapInput, type GapSummary } from "../../shared/gaps";
+import { proposalStatusLabels, type GapProposalOverview } from "../../shared/proposals";
 import { api } from "../api";
 import { PageHeader, formatDate } from "../components/Common";
 import { useWorkspace } from "../WorkspaceContext";
@@ -148,6 +149,23 @@ export function Diagnosis({ diagnosis: d }: { diagnosis: GapDiagnosis }) {
   </section>;
 }
 
+/** Gap → Propose improvement. Eligibility is decided by the server from the saved diagnosis and current knowledge. */
+export function ProposalSection({ gapId, diagnosedAt, overview, error, onCreate, busy }: { gapId: string; diagnosedAt: string | null; overview: GapProposalOverview | null; error: string; onCreate: () => void; busy: boolean }) {
+  if (!diagnosedAt) return null;
+  return <section className="gap-proposals" aria-label="Proposals">
+    <span className="eyebrow">Next · Propose improvement</span>
+    {error && <p className="gap-error" role="alert">{error}</p>}
+    {!overview && !error && <p role="status">Checking whether this diagnosis can back a proposal…</p>}
+    {overview && (overview.eligibility.eligible
+      ? <><h2>Turn this diagnosis into a reviewed change</h2><p>A proposal drafts typed changes to the records the diagnosis cited{overview.eligibility.allow_new_pattern ? ", or one new pattern," : ""} for review and approval. Nothing changes in Monet until a later Apply step.</p>
+        <div className="gap-record-links">{overview.eligibility.targets.map((target) => target.route ? <Link key={target.key} to={target.route}>{target.title}</Link> : <span key={target.key}>{target.title}</span>)}</div>
+        <button className="button primary" disabled={busy} onClick={onCreate}>{busy ? "Creating…" : "Propose improvement"}</button></>
+      : <><h2>No proposal from this diagnosis</h2><ul>{overview.eligibility.reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul></>)}
+    {overview && overview.proposals.length > 0 && <div className="gap-proposal-list"><b>Proposals for this Gap</b>{overview.proposals.map((proposal) => <Link key={proposal.id} className="gap-proposal-row" to={`/proposals/${proposal.id}`}><span className={`status-pill proposal-${proposal.status}`}>{proposalStatusLabels[proposal.status]}</span><span>{proposal.summary || "No revision yet"}</span><small>{proposal.revision ? `revision ${proposal.revision}` : "empty"}{proposal.approved_revision ? ` · approved ${proposal.approved_revision}` : ""} · {formatDate(proposal.updated_at)}</small></Link>)}</div>}
+    <p className="gap-evidence-line">Gap {gapId.slice(0, 8)} · proposals stay outside canonical guidance, exports, and MCP.</p>
+  </section>;
+}
+
 function GapDetail({ id }: { id: string }) {
   const navigate = useNavigate();
   const [failedRetry, setFailedRetry] = useState<GapDiagnosis | null>(null);
@@ -155,7 +173,23 @@ function GapDetail({ id }: { id: string }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [attempt, setAttempt] = useState(0);
+  const [overview, setOverview] = useState<GapProposalOverview | null>(null);
+  const [overviewError, setOverviewError] = useState("");
+  const [creating, setCreating] = useState(false);
   useEffect(() => { let active = true; api.gap(id).then((value) => { if (active) { setGap(value); setError(""); } }).catch((e) => { if (active) setError(message(e)); }); return () => { active = false; }; }, [id, attempt]);
+  const diagnosedAt = gap?.diagnosis?.created_at ?? null;
+  useEffect(() => {
+    if (!diagnosedAt) return;
+    let active = true;
+    setOverview(null); setOverviewError("");
+    api.gapProposals(id).then((value) => { if (active) setOverview(value); }).catch((e) => { if (active) setOverviewError(message(e)); });
+    return () => { active = false; };
+  }, [id, diagnosedAt, attempt]);
+  async function propose() {
+    setCreating(true); setOverviewError("");
+    try { const created = await api.createProposal(id); void navigate(`/proposals/${created.id}`); }
+    catch (caught) { setOverviewError(message(caught)); setCreating(false); }
+  }
   async function diagnose() {
     setBusy(true); setError("");
     try { const { failed_retry, ...saved } = await api.diagnoseGap(id); setGap(saved); setFailedRetry(failed_retry ?? null); }
@@ -179,7 +213,7 @@ function GapDetail({ id }: { id: string }) {
       {gap.report.context && <><h3>Product / task context</h3><p className="gap-prose">{gap.report.context}</p></>}
       {gap.report.expected && <><h3>Expected outcome</h3><p className="gap-prose">{gap.report.expected}</p></>}
       <details className="gap-details"><summary>Additional submitted evidence</summary>{[gap.report.notes, gap.report.original_query, gap.report.delivered_guidance].filter(Boolean).map((v, i) => <p key={i} className="gap-prose">{v}</p>)}<p>Theme: {gap.report.theme_id || "workspace default"} · appearance: {gap.report.mode || "not specified"}</p><pre>{JSON.stringify(gap.report.usages, null, 2)}</pre></details>
-    </section><div aria-live="polite">{busy && <p className="gap-progress" role="status">Inspecting current Monet knowledge and checking the evidence… Your report is already saved. You can leave this page and reload later.</p>}{gap.diagnosis ? <Diagnosis diagnosis={gap.diagnosis} /> : <section className="gap-empty-diagnosis"><span className="eyebrow">Next · Diagnose</span><h2>Understand why Monet fell short</h2><p>Compare this report with current guidance, relationships, retrieval, and any conformance observations. Monet may find more than one cause.</p><p>Diagnosis ends with a recommendation. It does not change your design system.</p></section>}</div></div></>}
+    </section><div aria-live="polite">{busy && <p className="gap-progress" role="status">Inspecting current Monet knowledge and checking the evidence… Your report is already saved. You can leave this page and reload later.</p>}{gap.diagnosis ? <><Diagnosis diagnosis={gap.diagnosis} /><ProposalSection gapId={id} diagnosedAt={diagnosedAt} overview={overview} error={overviewError} busy={creating} onCreate={() => void propose()} /></> : <section className="gap-empty-diagnosis"><span className="eyebrow">Next · Diagnose</span><h2>Understand why Monet fell short</h2><p>Compare this report with current guidance, relationships, retrieval, and any conformance observations. Monet may find more than one cause.</p><p>Diagnosis ends with a recommendation. It does not change your design system.</p></section>}</div></div></>}
   </div>;
 }
 

@@ -1361,3 +1361,57 @@ html { color: var(--ink); background: var(--canvas); }
 .gap-hash { overflow-wrap: anywhere; }
 @media (max-width: 900px) { .gap-detail-layout { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 600px) { .gap-context-row { grid-template-columns: 1fr; } .gap-row { grid-template-columns: 64px minmax(0, 1fr); gap: var(--space-3); } .gap-row > span { display: none; } .gap-thumbnail, .gap-thumbnail img { height: 64px; } .gap-upload { padding: var(--space-4); } .gap-page .page-header { flex-wrap: wrap; gap: var(--space-4); } }
+
+/* Gap proposals: review typed before/after changes, checks, and approval. */
+.gap-proposals { margin-top: var(--space-6); padding: var(--space-6); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface-muted); }
+.gap-proposals h2 { font-size: var(--font-xl); margin: var(--space-3) 0; }
+.gap-proposals p, .gap-proposals li { color: var(--muted); line-height: 1.6; font-size: var(--font-sm); }
+.gap-proposals ul { padding-left: var(--space-5); }
+.gap-proposal-list { display: grid; gap: var(--space-2); margin-top: var(--space-5); font-size: var(--font-sm); }
+.gap-proposal-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--line); color: inherit; text-decoration: none; }
+.gap-proposal-row:hover span:nth-child(2) { color: var(--accent); }
+.gap-proposal-row small { color: var(--muted); white-space: nowrap; }
+.status-pill.proposal-approved { color: #285446; background: #dfece6; } .status-pill.proposal-rejected { color: #86382f; background: #f4dfdc; } .status-pill.proposal-superseded { opacity: .7; }
+.proposal-layout { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: var(--space-8); align-items: start; }
+.proposal-basis { padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); font-size: var(--font-sm); display: grid; gap: var(--space-4); }
+.proposal-basis-item { padding-bottom: var(--space-3); border-bottom: 1px solid var(--line); }
+.proposal-basis-item p { margin: var(--space-2) 0; }
+.proposal-basis-item small, .proposal-revisions { color: var(--muted); }
+.proposal-revisions { padding-left: var(--space-5); line-height: 1.7; margin: 0; }
+.proposal-note { padding: var(--space-4); border-left: 2px solid var(--accent); background: var(--surface-muted); font-size: var(--font-sm); line-height: 1.6; overflow-wrap: anywhere; }
+.proposal-note p { margin: 0; }
+.proposal-note p + p { margin-top: var(--space-2); }
+.proposal-start { padding: var(--space-6); border-radius: var(--radius-lg); background: var(--surface-muted); margin-bottom: var(--space-5); }
+.proposal-start h2 { font-size: var(--font-xl); margin: var(--space-3) 0; }
+.proposal-start p { color: var(--muted); font-size: var(--font-sm); line-height: 1.6; }
+.proposal-add { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) auto; gap: var(--space-3); align-items: end; margin-bottom: var(--space-5); }
+.proposal-add label, .proposal-fields label { display: grid; gap: var(--space-2); font-size: var(--font-sm); font-weight: 600; }
+.proposal-fields { border: 0; padding: 0; margin: 0 0 var(--space-5); min-width: 0; display: grid; gap: var(--space-4); }
+.proposal-fields textarea { min-height: 80px; }
+.proposal-empty { color: var(--muted); font-size: var(--font-sm); padding: var(--space-5); border: 1px dashed var(--line); border-radius: var(--radius-md); }
+.proposal-change { margin: var(--space-4) 0; border: 1px solid var(--line); border-radius: var(--radius-lg); padding: var(--space-5); }
+.proposal-change header { display: flex; justify-content: space-between; align-items: start; gap: var(--space-4); margin-bottom: var(--space-4); }
+.proposal-change h3 { font-size: var(--font-md); margin: var(--space-1) 0 0; line-height: 1.5; }
+.proposal-author { flex-shrink: 0; padding: var(--space-1) var(--space-2); border-radius: var(--radius-full); font: 650 var(--font-xs)/1.2 var(--font-mono); background: var(--surface-muted); color: var(--muted); }
+.proposal-author.ai { color: #5f4776; background: #ece3f3; }
+.proposal-author.human { color: #285446; background: #dfece6; }
+.proposal-diff { margin: 0; padding: var(--space-3) 0; font: var(--font-xs)/1.6 var(--font-mono); white-space: pre-wrap; overflow-wrap: anywhere; max-height: 420px; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.proposal-diff-line { display: grid; grid-template-columns: 18px minmax(0, 1fr); padding: 0 var(--space-2); }
+.proposal-diff-line i { font-style: normal; color: var(--muted); }
+.proposal-diff-line.added { background: color-mix(in srgb, #2f7d5b 12%, transparent); }
+.proposal-diff-line.removed { background: color-mix(in srgb, #a42e32 11%, transparent); text-decoration: line-through; text-decoration-color: color-mix(in srgb, #a42e32 40%, transparent); }
+.proposal-diff-empty { color: var(--muted); font-size: var(--font-xs); }
+.proposal-change-edit { display: grid; gap: var(--space-3); margin-top: var(--space-4); }
+.proposal-change-edit small { color: var(--muted); font-size: var(--font-xs); }
+.proposal-change-edit .button { justify-self: start; }
+.proposal-markdown { min-height: 180px; }
+.proposal-structured { min-height: 120px; font-family: var(--font-mono); font-size: var(--font-xs); }
+.proposal-dirty { align-self: center; color: var(--muted); font-size: var(--font-xs); }
+.proposal-checks { margin-top: var(--space-6); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); font-size: var(--font-sm); }
+.proposal-checks h3 { margin: var(--space-2) 0 var(--space-3); font-size: var(--font-lg); }
+.proposal-checks-ok { color: #285446; } .proposal-checks-blocked { color: var(--danger, #a42e32); }
+.proposal-check-group { margin-top: var(--space-4); line-height: 1.6; }
+.proposal-check-group ul { padding-left: var(--space-5); margin: var(--space-2) 0; }
+.proposal-check-errors li { color: var(--danger, #a42e32); } .proposal-check-warnings li { color: #7b531c; }
+.proposal-check-group code { font-size: var(--font-xs); }
+@media (max-width: 900px) { .proposal-layout, .proposal-add { grid-template-columns: minmax(0, 1fr); } .gap-proposal-row { grid-template-columns: auto minmax(0, 1fr); } .gap-proposal-row small { grid-column: span 2; white-space: normal; } }
