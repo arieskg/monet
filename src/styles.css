@@ -1415,3 +1415,14 @@ html { color: var(--ink); background: var(--canvas); }
 .proposal-check-errors li { color: var(--danger, #a42e32); } .proposal-check-warnings li { color: #7b531c; }
 .proposal-check-group code { font-size: var(--font-xs); }
 @media (max-width: 900px) { .proposal-layout, .proposal-add { grid-template-columns: minmax(0, 1fr); } .gap-proposal-row { grid-template-columns: auto minmax(0, 1fr); } .gap-proposal-row small { grid-column: span 2; white-space: normal; } }
+.proposal-current { margin-top: var(--space-3); padding: var(--space-3); border: 1px dashed var(--line); border-radius: var(--radius-md); background: var(--surface-muted); }
+.proposal-current .eyebrow { margin-bottom: var(--space-2); }
+.proposal-history { margin-top: var(--space-5); }
+.proposal-history-revision { padding: var(--space-4) 0; border-top: 1px solid var(--line); }
+.proposal-history-revision > p { margin: var(--space-2) 0; }
+.proposal-history-change { margin-top: var(--space-3); }
+.gap-review { margin-top: var(--space-5); }
+.gap-review form .gap-fields { margin-top: var(--space-3); }
+.gap-review select[multiple] { min-height: 180px; font-size: var(--font-xs); }
+.gap-review-check { display: flex !important; gap: var(--space-2); align-items: start; font-weight: 400 !important; line-height: 1.5; }
+.gap-review-check input { width: auto; margin-top: 3px; }

@@ -1,5 +1,5 @@
 import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
-import type { Gap, GapDiagnosisResponse, GapInput, GapSummary } from "../shared/gaps";
+import type { Gap, GapDiagnosisResponse, GapInput, GapReviewInput, GapSummary } from "../shared/gaps";
 import type { GapProposalOverview, ProposalDraftResponse, ProposalRevisionInput, ProposalSummary, ProposalView } from "../shared/proposals";
 
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
@@ -22,6 +22,7 @@ export const api = {
   createGap: (value: GapInput) => request<Gap>("/api/gaps", { method: "POST", body: JSON.stringify(value) }),
   diagnoseGap: (id: string) => request<GapDiagnosisResponse>("/api/gap-diagnoses/" + encodeURIComponent(id), { method: "POST" }),
   deleteGap: (id: string) => request<{ ok: boolean }>("/api/gaps/" + encodeURIComponent(id), { method: "DELETE" }),
+  saveGapReview: (id: string, value: GapReviewInput) => request<Gap>("/api/gap-reviews/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
   gapImageUrl: (id: string) => "/api/gap-images/" + encodeURIComponent(id),
   // Proposals review and approve typed change sets; none of these routes writes a canonical record.
   proposals: (gapId?: string) => request<ProposalSummary[]>(`/api/proposals${gapId ? `?gap=${encodeURIComponent(gapId)}` : ""}`),
@@ -33,6 +34,7 @@ export const api = {
   approveProposal: (id: string, value: { revision: number; hash: string; note: string }) => request<ProposalView>("/api/proposal-approvals/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
   rejectProposal: (id: string, reason: string) => request<ProposalView>("/api/proposal-rejections/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify({ reason }) }),
   supersedeProposal: (id: string) => request<ProposalView>("/api/proposal-supersessions/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
+  rebaseProposal: (id: string) => request<ProposalView>("/api/proposal-rebases/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
   environment: () => request<Environment>("/api/environment"),
   workspace: (themeId?: string, mode?: ThemeMode) => {
     const params = new URLSearchParams();
