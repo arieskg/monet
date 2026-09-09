@@ -154,14 +154,40 @@ export interface ProposalStaleness {
   diagnosis_changed: boolean;
   gap_missing: boolean;
 }
-/** Every stored revision is re-hashed on read; a mismatch means the file was edited outside Monet. */
-export interface ProposalIntegrity { ok: boolean; revisions: number[] }
+/**
+ * Every stored revision is re-hashed on read; a mismatch means the file was edited outside Monet.
+ * `revisions` lists every corrupt revision and stays visible for good; `current_ok` says whether
+ * the latest revision is intact, which is what approval depends on.
+ */
+export interface ProposalIntegrity { ok: boolean; revisions: number[]; current_ok: boolean }
 export interface ProposalTargetView { key: string; kind: ProposalRecordKind; title: string; route: string; exists: boolean; fields: Record<string, ProposalFieldSpec & { current: unknown }> }
 export interface ProposalView extends Proposal { staleness: ProposalStaleness; integrity: ProposalIntegrity; targets: ProposalTargetView[]; ai_available: boolean }
 export type ProposalSummary = Pick<Proposal, "id" | "gap_id" | "status" | "created_at" | "updated_at"> & { summary: string; revision: number; approved_revision: number | null };
 export interface ProposalEligibility { eligible: boolean; reasons: string[]; basis: ProposalBasis[]; targets: GapRecordLink[]; allow_new_pattern: boolean }
 export interface GapProposalOverview { eligibility: ProposalEligibility; proposals: ProposalSummary[] }
 export type ProposalDraftResponse = ProposalView & { draft_failed?: string };
+
+/**
+ * The one approval rule the server enforces and the UI mirrors: what, in the saved state, stops
+ * the current revision from being approved. Empty means approvable, subject to the server's live
+ * re-check of snapshots, validation, and lint. Corruption in an earlier revision is evidence, not a
+ * blocker: a clean current revision recovers the workflow.
+ */
+export function approvalBlockers(proposal: Pick<Proposal, "status" | "revisions"> & { staleness: ProposalStaleness; integrity: ProposalIntegrity }): string[] {
+  if (proposal.status === "rejected") return ["This proposal was rejected. Create a new proposal from the Gap instead."];
+  if (proposal.status === "superseded") return ["This proposal was superseded. Edit the newer proposal instead."];
+  if (proposal.status === "approved") return ["This proposal is already approved."];
+  const current = proposal.revisions[proposal.revisions.length - 1];
+  if (!current) return ["Save a revision before approving."];
+  const blockers: string[] = [];
+  const { staleness, integrity } = proposal;
+  if (!integrity.current_ok) blockers.push(`Revision ${current.number}'s stored content does not match its hash. The proposal file was changed outside Monet; save a new revision to continue.`);
+  if (staleness.gap_missing) blockers.push("The Gap behind this proposal was deleted.");
+  else if (staleness.diagnosis_changed) blockers.push("The Gap's diagnosis or human review changed after this proposal was created. Supersede it to re-derive the proposal.");
+  else if (staleness.stale) blockers.push(`Target records changed since revision ${current.number}: ${[...staleness.changed_targets, ...staleness.missing_targets].join(", ")}. Refresh the proposal against the current records.`);
+  if (!current.checks.ok) blockers.push("This revision has validation or lint errors. Fix them in a new revision before approving.");
+  return blockers;
+}
 
 export const proposalStatusLabels: Record<ProposalStatus, string> = { draft: "Draft", approved: "Approved", rejected: "Rejected", superseded: "Superseded" };
 

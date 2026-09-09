@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { z } from "zod";
 import type { Gap } from "../shared/gaps.js";
 import { lineDiff } from "../shared/diff.js";
-import { fieldEditorText, fieldValueText, lintProposal, parseFieldText, projectProposal, proposalEligibility, type Proposal, type ProposalChange } from "../shared/proposals.js";
+import { approvalBlockers, fieldEditorText, fieldValueText, lintProposal, parseFieldText, projectProposal, proposalEligibility, type Proposal, type ProposalChange } from "../shared/proposals.js";
 import { resolveThemeTokens } from "../shared/tokens.js";
 import { runProvider } from "./aiProvider.js";
 import { createGap, deleteGap, diagnoseSavedGap, getGap, initializeStore, loadWorkspace, regenerateExports, saveComponents, saveGapReview, saveMarkdown, savePrinciple, saveTheme } from "./fileStore.js";
@@ -402,10 +402,33 @@ describe("Astra review regressions", () => {
     const good = (await saveProposalRevision(edited.id, revisionInput([...buttonUseWhen(workspace), "Card actions"]))).revisions[0]!;
     await tamper(edited.id, (proposal) => { proposal.revisions[0]!.changes[0]!.after = [...(proposal.revisions[0]!.changes[0]!.after as string[]), "Smuggled in by hand"]; });
     const view = await getProposal(edited.id);
-    expect(view.integrity).toEqual({ ok: false, revisions: [1] });
+    expect(view.integrity).toEqual({ ok: false, revisions: [1], current_ok: false });
     expect(view.revisions[0]!.hash).toBe(good.hash);
     await expect(approveProposal(edited.id, { revision: 1, hash: good.hash })).rejects.toThrow(/does not match its hash/);
     expect((await getProposal(edited.id)).status).toBe("draft");
+  });
+
+  it("recovers from a corrupt earlier revision: the warning stays, history is untouched, and a clean current revision approves", async () => {
+    const gap = await diagnosedGap();
+    const workspace = await loadWorkspace();
+    const proposal = await createProposal({ gap_id: gap.id });
+    const first = (await saveProposalRevision(proposal.id, revisionInput([...buttonUseWhen(workspace), "Card actions"]))).revisions[0]!;
+    await tamper(proposal.id, (stored) => { stored.revisions[0]!.changes[0]!.after = [...(stored.revisions[0]!.changes[0]!.after as string[]), "Smuggled in by hand"]; });
+    const corrupt = await getProposal(proposal.id);
+    expect(corrupt.integrity).toEqual({ ok: false, revisions: [1], current_ok: false });
+    expect(approvalBlockers(corrupt)).toEqual([expect.stringContaining("Revision 1's stored content does not match its hash")]);
+    await expect(approveProposal(proposal.id, { revision: 1, hash: first.hash })).rejects.toThrow(/does not match its hash/);
+
+    const clean = await saveProposalRevision(proposal.id, revisionInput([...buttonUseWhen(workspace), "Card actions, restated"]));
+    expect(clean.integrity).toEqual({ ok: false, revisions: [1], current_ok: true });
+    expect(approvalBlockers(clean)).toEqual([]);
+    // The corrupt revision is neither repaired nor erased: same tampered content, same original hash.
+    expect(clean.revisions[0]!.changes[0]!.after).toContain("Smuggled in by hand");
+    expect(clean.revisions[0]!.hash).toBe(first.hash);
+    const approved = await approveProposal(proposal.id, { revision: 2, hash: clean.revisions[1]!.hash });
+    expect(approved).toMatchObject({ status: "approved", approval: { revision: 2 }, integrity: { ok: false, revisions: [1], current_ok: true } });
+    expect(approvalBlockers(approved)).toEqual(["This proposal is already approved."]);
+    expect(JSON.parse(await readFile(file(proposal.id), "utf8")).revisions[0].changes[0].after).toContain("Smuggled in by hand");
   });
 
   it("refuses a status transition that would silently clear a selection, and the projection never clears it", async () => {

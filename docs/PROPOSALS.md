@@ -104,9 +104,12 @@ refresh, and a supersession all preserve field-level provenance. AI drafting is
 available only before the first revision is saved.
 
 Approval names the current revision number and hash exactly. Before approving,
-the server re-hashes the stored revision content and refuses a mismatch (a
-proposal file edited outside Monet is flagged on every read as an integrity
-failure), verifies every snapshot still equals the live record, and reruns
+the server re-hashes the stored revision content and refuses a mismatch. A
+proposal file edited outside Monet is flagged on every read: every corrupt
+revision stays listed as evidence, but only the current revision's integrity
+decides approvability, so saving a clean new revision recovers the workflow.
+The same rule (`approvalBlockers`) is applied by the server and mirrored by the
+UI. The server then verifies every snapshot still equals the live record, and reruns
 prospective validation and the lint against the live workspace rather than
 reading the stored checks. It is also refused when the proposal is stale,
 rejected, or superseded. Any new revision clears approval and returns the

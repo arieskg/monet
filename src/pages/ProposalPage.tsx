@@ -65,7 +65,10 @@ export function StalenessNotice({ staleness }: { staleness: ProposalStaleness })
 
 export function IntegrityNotice({ integrity }: { integrity: ProposalIntegrity }) {
   if (integrity.ok) return null;
-  return <div className="gap-error" role="alert"><p><b>Revision {integrity.revisions.join(", ")} no longer matches its hash.</b> The proposal file was edited outside Monet. Approval is refused until a new revision is saved from this page.</p></div>;
+  const list = integrity.revisions.join(", ");
+  return integrity.current_ok
+    ? <div className="proposal-note proposal-integrity-history" role="status"><p><b>Earlier revision {list} no longer matches its hash.</b> The proposal file was edited outside Monet at some point. That history is kept as saved and stays flagged; the current revision is intact, so the normal approval checks apply to it.</p></div>
+    : <div className="gap-error" role="alert"><p><b>Revision {list} no longer matches its hash.</b> The proposal file was edited outside Monet. The current revision cannot be approved; save a new revision from this page to continue. Earlier corruption stays on record.</p></div>;
 }
 
 function fromRevision(revision: ProposalRevision | undefined): { summary: string; rationale: string; changes: DraftChange[] } {

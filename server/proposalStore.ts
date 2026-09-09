@@ -5,7 +5,7 @@ import { z, ZodError } from "zod";
 import type { Gap } from "../shared/gaps.js";
 import type { Workspace } from "../shared/model.js";
 import {
-  PROPOSAL_CREATABLE_KIND, PROPOSAL_FIELDS, canonicalJson, lintProposal, parseFieldValue, parseRecordKey, projectProposal, proposalEligibility, proposalRevisionInputSchema, recordFieldValues, valuesEqual,
+  PROPOSAL_CREATABLE_KIND, PROPOSAL_FIELDS, approvalBlockers, canonicalJson, lintProposal, parseFieldValue, parseRecordKey, projectProposal, proposalEligibility, proposalRevisionInputSchema, recordFieldValues, valuesEqual,
   type GapProposalOverview, type Proposal, type ProposalAuthor, type ProposalChange, type ProposalChecks, type ProposalDraftResponse, type ProposalIntegrity, type ProposalRevision, type ProposalRevisionInput, type ProposalStaleness, type ProposalSummary, type ProposalTargetView, type ProposalView,
 } from "../shared/proposals.js";
 import { providerConfigured } from "./aiProvider.js";
@@ -45,10 +45,11 @@ function revisionHash(revision: Pick<ProposalRevision, "summary" | "rationale" |
   return createHash("sha256").update(canonicalJson({ summary: revision.summary, rationale: revision.rationale, changes: revision.changes })).digest("hex");
 }
 
-/** Revisions whose stored content no longer matches their hash. Approval refuses them; the UI warns. */
+/** Revisions whose stored content no longer matches their hash. The list is permanent evidence; approval looks only at the current one. */
 function integrity(proposal: Proposal): ProposalIntegrity {
   const revisions = proposal.revisions.filter((revision) => revision.hash !== revisionHash(revision)).map((revision) => revision.number);
-  return { ok: !revisions.length, revisions };
+  const current = proposal.revisions[proposal.revisions.length - 1];
+  return { ok: !revisions.length, revisions, current_ok: !current || !revisions.includes(current.number) };
 }
 
 async function readProposal(id: string): Promise<Proposal> {
@@ -285,17 +286,14 @@ export async function approveProposal(id: string, input: unknown): Promise<Propo
   return withLock(id, async () => {
     const { revision, hash, note } = approvalSchema.parse(input);
     const proposal = await readProposal(id);
-    assertEditable(proposal);
-    if (proposal.status === "approved") throw new ProposalStateError("This proposal is already approved.");
+    const gap = await gapOrNull(proposal.gap_id);
+    const ctx = await context();
+    // The shared rule, over the saved state; the UI applies the same one. A corrupt earlier revision stays on record but does not block a clean current one.
+    const blockers = approvalBlockers({ ...proposal, staleness: staleness(proposal, gap, ctx), integrity: integrity(proposal) });
+    if (blockers.length) throw new ProposalStateError(blockers[0]!);
     const current = latest(proposal);
     if (!current) throw new ProposalStateError("Save a revision before approving.");
     if (current.number !== revision || current.hash !== hash) throw new ProposalStateError(`Approval must name the current revision ${current.number} and its hash. Reload the proposal and review it again.`);
-    // The hash is recomputed from the stored content, so a file edited outside Monet cannot be approved under its old hash.
-    if (revisionHash(current) !== hash) throw new ProposalStateError(`Revision ${current.number}'s stored content does not match its hash. The proposal file was changed outside Monet; save a new revision to continue.`);
-    const gap = await gapOrNull(proposal.gap_id);
-    const ctx = await context();
-    const stale = staleness(proposal, gap, ctx);
-    if (stale.stale) throw new ProposalStateError(stale.gap_missing ? "The Gap behind this proposal was deleted." : stale.diagnosis_changed ? "The Gap's diagnosis or human review changed after this proposal was created. Supersede it to re-derive the proposal." : `Target records changed since revision ${current.number}: ${[...stale.changed_targets, ...stale.missing_targets].join(", ")}. Refresh the proposal against the current records.`);
     const drifted = current.changes.find((change) => change.operation === "amend" && !valuesEqual(change.before, recordFieldValues(ctx.workspace, change.target)?.[change.field] ?? null));
     if (drifted) throw new ProposalStateError(`${drifted.target}.${drifted.field} no longer matches the value this revision was written against. Refresh the proposal against the current records.`);
     // Checks are recomputed against the live workspace rather than read from the stored revision.

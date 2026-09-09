@@ -19,7 +19,7 @@ function revision(number: number, overrides: Partial<ProposalRevision> = {}): Pr
 const staleness: ProposalStaleness = { stale: false, changed_targets: [], missing_targets: [], knowledge_changed: false, diagnosis_changed: false, gap_missing: false };
 function view(overrides: Partial<ProposalView> = {}): ProposalView {
   return { version: 1, id: "p1", gap_id: "g1", diagnosis_created_at: "2026-09-09T11:00:00Z", created_at: "", updated_at: "", status: "draft", basis: [], allowed_targets: [], allow_new_pattern: false,
-    revisions: [revision(1)], approval: null, rejection: null, superseded_by: null, supersedes: null, staleness, integrity: { ok: true, revisions: [] }, targets: [], ai_available: false, ...overrides };
+    revisions: [revision(1)], approval: null, rejection: null, superseded_by: null, supersedes: null, staleness, integrity: { ok: true, revisions: [], current_ok: true }, targets: [], ai_available: false, ...overrides };
 }
 function gap(overrides: Partial<Gap> = {}): Gap {
   return { version: 1, id: "g1", created_at: "2026-09-09T10:00:00Z", image: null, report: { problem: "Cards", context: "", expected: "", notes: "", original_query: "", delivered_guidance: "", usages: [] },
@@ -78,10 +78,15 @@ describe("Proposal review surfaces", () => {
     expect(stale).toContain("component:button");
     expect(stale).toContain("diagnosis or human review changed");
     expect(render(<StalenessNotice staleness={{ ...staleness, stale: true, gap_missing: true }} />)).toContain("can be rejected but not revised");
-    expect(render(<IntegrityNotice integrity={{ ok: true, revisions: [] }} />)).toBe("");
-    const broken = render(<IntegrityNotice integrity={{ ok: false, revisions: [2] }} />);
+    expect(render(<IntegrityNotice integrity={{ ok: true, revisions: [], current_ok: true }} />)).toBe("");
+    const broken = render(<IntegrityNotice integrity={{ ok: false, revisions: [2], current_ok: false }} />);
     expect(broken).toContain('role="alert"');
     expect(broken).toContain("Revision 2 no longer matches its hash");
+    expect(broken).toContain("cannot be approved");
+    const historical = render(<IntegrityNotice integrity={{ ok: false, revisions: [1], current_ok: true }} />);
+    expect(historical).toContain('role="status"');
+    expect(historical).toContain("Earlier revision 1 no longer matches its hash");
+    expect(historical).toContain("current revision is intact");
   });
 
   it("matches the server's closure rules: reject survives a deleted Gap, supersede does not, refresh only when re-snapshotting helps", () => {
@@ -91,7 +96,9 @@ describe("Proposal review surfaces", () => {
     expect(proposalActions(view({ staleness: { ...staleness, stale: true, changed_targets: ["component:button"] } }), false)).toMatchObject({ refresh: true, approve: false });
     expect(proposalActions(view({ staleness: { ...staleness, knowledge_changed: true } }), false)).toMatchObject({ refresh: true, approve: true });
     expect(proposalActions(view({ staleness: { ...staleness, stale: true, diagnosis_changed: true } }), false)).toMatchObject({ refresh: false, supersede: true, approve: false });
-    expect(proposalActions(view({ integrity: { ok: false, revisions: [1] } }), false).approve).toBe(false);
+    expect(proposalActions(view({ integrity: { ok: false, revisions: [1], current_ok: false } }), false).approve).toBe(false);
+    // Corruption in an earlier revision is kept as evidence but does not block a clean current revision.
+    expect(proposalActions(view({ integrity: { ok: false, revisions: [1], current_ok: true } }), false).approve).toBe(true);
     expect(proposalActions(view({ status: "rejected" }), false)).toEqual({ reject: false, supersede: false, refresh: false, approve: false });
     expect(proposalActions(view({ status: "approved" }), false).approve).toBe(false);
     expect(proposalActions(view({ revisions: [] }), false)).toMatchObject({ refresh: false, approve: false });
