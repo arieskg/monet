@@ -184,10 +184,12 @@ diagnose without a provider, retry with a failing provider, then a compatible fi
 provider. Also submit a non-visual report and inspect narrow/light/dark layouts.
 Fixture providers test the transport and UI; they do not evaluate model quality.
 
-## What Proposal V2 can build on
+## Proposal V2
 
-Build separately persisted, editable typed change sets linked to a Gap diagnosis
-and workspace fingerprint. Approval must bind to an exact revision. Before apply,
-add prospective validation, stale-review protection, and recoverable multi-record
-application. V1 stores recommendations as prose only and supplies none of those
-authorizations or write mechanisms.
+Phase 1 (proposal drafting, review, and approval) is documented in
+[PROPOSALS.md](PROPOSALS.md). It builds on this release exactly as planned:
+separately persisted, editable typed change sets linked to a Gap diagnosis and
+workspace fingerprint, approval bound to an exact revision, prospective
+validation, and stale-review protection. Apply, journaling, and recoverable
+multi-record application remain unbuilt; V1 and Phase 1 together still write no
+canonical record from a Gap.
