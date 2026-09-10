@@ -5,9 +5,10 @@ import { z } from "zod";
 import { surfaceImportSchema, surfaceRevisionSchema, surfaceSelectionSchema, storedSurfaceInputSchema, surfaceGapSchema, SURFACE_LIMITS, compatibleToken, equalStyleValue, type SurfaceSnapshot, type SurfaceRun, type SurfaceRecord, type SurfacePreview, type SurfaceSummary, type SurfaceIssue } from "../shared/surfaces.js";
 import { createMonetService } from "../shared/service.js";
 import type { Workspace } from "../shared/model.js";
+import type { Gap } from "../shared/gaps.js";
 import { atomicWrite, durableRemove } from "./durableFiles.js";
 import { loadWorkspace, readDirectoryOrEmpty, cleanId, createGap } from "./fileStore.js";
-import { workspaceRoot } from "./workspace.js";
+import { workspaceRoot, profileOwnership, assertProfileOwnership, assertProjectBinding, workspaceScope } from "./workspace.js";
 import { withWorkspaceRead, withWorkspaceWrite } from "./writeLock.js";
 import { gapKnowledge, knowledgeFingerprint } from "./gapDiagnosis.js";
 import { sanitizeSurface, renderSurface, safeValue, surfaceHash, SurfaceError } from "./surfaceSanitizer.js";
@@ -31,10 +32,11 @@ const reviewSchema = z.object({
   scope: z.string().max(10000), warnings: z.array(short).max(1000),
   findings: z.array(z.object({ level: z.enum(["error", "warning", "info"]), check: short, basis: z.enum(["monet_rule", "wcag_floor"]).optional(), usage_id: short.optional(), location: short.optional(), observed: short, expected: short, why: short, replacement: short.optional(), related: z.array(short).max(100) })).max(2000),
 });
-const storedRecordSchema = z.object({ version: z.literal(1), id: z.string().uuid(), created_at: z.string().datetime(),
+const ownershipSchema = { profile_id: z.string().uuid().optional(), scope_version: z.literal(2).optional() };
+const storedRecordSchema = z.object({ ...ownershipSchema, version: z.literal(1), id: z.string().uuid(), created_at: z.string().datetime(),
   snapshot: z.object({ version: z.literal(1), hash: hashSchema, input: storedSurfaceInputSchema, issues: z.array(issueSchema).max(160) }).strict(),
-  runs: z.array(z.object({ revision: z.number().int().min(1), created_at: z.string().datetime(), run_hash: hashSchema, snapshot_hash: hashSchema, workspace_fingerprint: hashSchema,
-    theme_id: z.string().max(80), mode: z.enum(["light", "dark"]), requested_mode: z.enum(["light", "dark"]),
+  runs: z.array(z.object({ ...ownershipSchema, revision: z.number().int().min(1), created_at: z.string().datetime(), run_hash: hashSchema, snapshot_hash: hashSchema, workspace_fingerprint: hashSchema,
+    project: surfaceSelectionSchema.shape.project, theme_id: z.string().max(80).optional(), mode: z.enum(["light", "dark"]), requested_mode: z.enum(["light", "dark"]),
     mappings: surfaceSelectionSchema.shape.mappings, bindings: z.array(z.object({ declaration_id: z.string().max(300), token: z.string().max(300), value: z.string().max(500) }).strict()).max(SURFACE_LIMITS.declarations),
     issues: z.array(issueSchema).max(SURFACE_LIMITS.declarations + 1), review: reviewSchema,
   }).strict()).min(1).max(SURFACE_LIMITS.revisions),
@@ -44,18 +46,28 @@ async function readRecord(id: string): Promise<SurfaceRecord> {
   const file = recordFile(id);
   if ((await stat(file)).size > 24 * 1024 * 1024) throw new SurfaceError("Saved Surface exceeds its storage limit.");
   const record = JSON.parse(await readFile(file, "utf8")) as SurfaceRecord;
+  assertProfileOwnership(record);
   storedRecordSchema.parse(record); // Validate without rewriting key order or captured values.
   if (record.snapshot.input.assets.length || record.snapshot.input.screenshot && !/^data:image\/webp;base64,[A-Za-z0-9+/]+={0,2}$/.test(record.snapshot.input.screenshot.data_url)) throw new SurfaceError("Invalid saved raster evidence.");
   if (record.version !== 1 || record.id !== id || !record.snapshot || record.snapshot.version !== 1 || !Array.isArray(record.runs) || record.runs.length < 1 || record.runs.length > SURFACE_LIMITS.revisions) throw new SurfaceError("Invalid saved Surface.");
   storedSurfaceInputSchema.parse(record.snapshot.input);
   if (record.snapshot.hash !== surfaceHash(record.snapshot.input)) throw new SurfaceError("Surface snapshot integrity check failed.");
   for (const [index, run] of record.runs.entries()) {
+    assertProfileOwnership(run);
     surfaceSelectionSchema.parse({ mappings: run.mappings, theme_id: run.theme_id, mode: run.mode });
     if (run.run_hash !== surfaceHash({ ...run, run_hash: undefined }) || run.revision !== index + 1 || run.snapshot_hash !== record.snapshot.hash || !Array.isArray(run.bindings) || !Array.isArray(run.issues) || !run.review || !run.workspace_fingerprint) throw new SurfaceError("Invalid Surface revision.");
     for (const binding of run.bindings) if (typeof binding.value !== "string" || binding.value.length > 500 || !run.mappings.some((m) => m.declaration_id === binding.declaration_id && m.token === binding.token)) throw new SurfaceError("Invalid saved mapping binding.");
   }
   return record;
 }
+
+/** Check copied provenance at handoff time; retained Gaps remain readable after Surface deletion. */
+export const assertSurfaceProvenance = (provenance: NonNullable<Gap["report"]["provenance"]>): Promise<void> => withWorkspaceRead(async () => {
+  if (provenance.profile_id !== workspaceScope().identity?.id) throw new SurfaceError("Gap provenance belongs to another Profile.", 409);
+  const record = await readRecord(provenance.surface_id);
+  const run = record.runs.find((candidate) => candidate.revision === provenance.revision);
+  if (!run || run.run_hash !== provenance.run_hash || record.snapshot.hash !== provenance.snapshot_hash) throw new SurfaceError("Gap provenance does not match saved Surface evidence.", 409);
+});
 async function writeRecord(record: SurfaceRecord): Promise<void> {
   const json = JSON.stringify(record, null, 2);
   if (Buffer.byteLength(json) > 24 * 1024 * 1024) throw new SurfaceError("Saved Surface exceeds 24 MB; reduce the snapshot or mapping history.");
@@ -64,6 +76,8 @@ async function writeRecord(record: SurfaceRecord): Promise<void> {
 
 async function compile(snapshot: SurfaceSnapshot, rawSelection: unknown, workspace: Workspace, revision: number): Promise<SurfaceRun> {
   const selection = surfaceSelectionSchema.parse(rawSelection);
+  assertProjectBinding(selection.project);
+  if (selection.profile_id && selection.profile_id !== workspaceScope().identity?.id) throw new SurfaceError("Comparison target belongs to a different Profile.", 409);
   const declarations = renderSurface(snapshot).declarations;
   const issues: SurfaceIssue[] = [], bindings: SurfaceRun["bindings"] = [];
   const seen = new Set<string>();
@@ -88,7 +102,7 @@ async function compile(snapshot: SurfaceSnapshot, rawSelection: unknown, workspa
   const usages = declarations.filter((d) => d.mappable && !d.property.startsWith("--")).slice(0, 200).map((d) => ({ id: d.id, kind: "style" as const, location: d.location, property: d.property, value: bindings.find((b) => b.declaration_id === d.id)?.value ?? d.value }));
   const review = await service.reviewDesignUsage({ themeId: workspace.activeThemeId, mode: workspace.activeMode, usages });
   review.scope = `Applied snapshot authored declarations only (first 200 supported declarations). These are not computed styles; variable references, cascade, interactions and rendered contrast are not established. ${review.scope}`;
-  const run: SurfaceRun = { revision, run_hash: "", created_at: new Date().toISOString(), snapshot_hash: snapshot.hash, workspace_fingerprint: fingerprint(workspace), theme_id: workspace.activeThemeId, mode: workspace.activeMode, requested_mode: selection.mode, mappings: selection.mappings, bindings, issues, review };
+  const run: SurfaceRun = { ...profileOwnership(), revision, run_hash: "", created_at: new Date().toISOString(), snapshot_hash: snapshot.hash, workspace_fingerprint: fingerprint(workspace), ...(selection.project ? { project: selection.project } : {}), ...(workspace.themes.length ? { theme_id: workspace.activeThemeId } : {}), mode: workspace.activeMode, requested_mode: selection.mode, mappings: selection.mappings, bindings, issues, review };
   run.run_hash = surfaceHash({ ...run, run_hash: undefined });
   return run;
 }
@@ -114,7 +128,7 @@ export async function saveSurface(input: unknown): Promise<SurfacePreview> {
   return withWorkspaceWrite(async () => {
     const workspace = await loadWorkspace(parsed.selection.theme_id, parsed.selection.mode);
     const run = await compile(snapshot, parsed.selection, workspace, 1);
-    const record: SurfaceRecord = { version: 1, id: randomUUID(), created_at: new Date().toISOString(), snapshot, runs: [run] };
+    const record: SurfaceRecord = { version: 1, ...profileOwnership(), id: randomUUID(), created_at: new Date().toISOString(), snapshot, runs: [run] };
     await writeRecord(record);
     return view(snapshot, run, workspace, record);
   });
@@ -139,7 +153,7 @@ export const reviseSurface = (id: string, raw: unknown, persist = true): Promise
   if (persist && record.runs.length >= SURFACE_LIMITS.revisions) throw new SurfaceError("Surface has reached its 20-revision limit.");
   const workspace = await loadWorkspace(selection.theme_id, selection.mode);
   const run = await compile(record.snapshot, selection, workspace, record.runs.length + 1);
-  if (persist) { record.runs.push(run); await writeRecord(record); }
+  if (persist) { Object.assign(record, profileOwnership()); record.runs.push(run); await writeRecord(record); }
   return view(record.snapshot, run, workspace, record);
 });
 export const deleteSurface = (id: string): Promise<void> => withWorkspaceWrite(async () => { await readRecord(id); await durableRemove(recordFile(id)); });
@@ -150,9 +164,9 @@ export const surfaceToGap = (id: string, raw: unknown) => withWorkspaceWrite(asy
   if (!run) throw new SurfaceError("Save this comparison revision before reporting a Gap.");
   const all = [...record.snapshot.issues, ...run.issues];
   const issues = [...new Set(input.issue_ids)].map((key) => { const issue = all.find((i) => i.id === key); if (!issue) throw new SurfaceError("Unknown Surface evidence selection."); return issue; });
-  return createGap({ problem: input.problem, expected: input.expected, context: record.snapshot.input.context,
+  return createGap({ ...(workspaceScope().identity ? { provenance: { profile_id: workspaceScope().identity!.id, surface_id: record.id, revision: run.revision, run_hash: run.run_hash, snapshot_hash: record.snapshot.hash } } : {}), problem: input.problem, expected: input.expected, context: record.snapshot.input.context,
     notes: `Surface ${record.snapshot.input.title}\nID ${record.id}; snapshot ${record.snapshot.hash}; revision ${run.revision}; run ${run.run_hash}\nKnowledge ${run.workspace_fingerprint}; theme ${run.theme_id}; mode ${run.mode}\nCopied static evidence; no rendered measurements or missing-decision claim.\n${issues.map((i) => `${i.id} [${i.kind}] ${i.location}: ${i.detail}`.slice(0, 560) + (i.location.length + i.detail.length > 500 ? " [excerpt; full evidence retained in Surface]" : "")).join("\n")}`,
-    theme_id: run.theme_id, mode: run.mode, image: input.include_screenshot ? record.snapshot.input.screenshot : undefined });
+    project: run.project, theme_id: run.theme_id, mode: run.mode, image: input.include_screenshot ? record.snapshot.input.screenshot : undefined });
 });
 
 // Untrusted HTTP revision query parameters must never become NaN/Infinity or select an unintended run.

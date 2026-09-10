@@ -14,7 +14,7 @@ import { gapKnowledge, knowledgeFingerprint, type GapKnowledgeRecord } from "./g
 import { normalizeTokens } from "../shared/tokens.js";
 import { draftProposal } from "./proposalDrafting.js";
 import { validateWorkspace } from "./validate.js";
-import { workspaceRoot } from "./workspace.js";
+import { workspaceRoot, workspaceScope, profileOwnership, assertProfileOwnership } from "./workspace.js";
 import { withWorkspaceRead } from "./writeLock.js";
 
 /**
@@ -43,8 +43,8 @@ function targetFingerprint(workspace: Workspace, key: string): string | null {
   return values === null ? null : createHash("sha256").update(canonicalJson(values)).digest("hex");
 }
 
-function revisionHash(revision: Pick<ProposalRevision, "summary" | "rationale" | "changes">): string {
-  return createHash("sha256").update(canonicalJson({ summary: revision.summary, rationale: revision.rationale, changes: revision.changes })).digest("hex");
+function revisionHash(revision: Pick<ProposalRevision, "summary" | "rationale" | "changes" | "profile_id" | "scope_version" | "hash_schema">): string {
+  return createHash("sha256").update(canonicalJson({ ...(revision.hash_schema === 2 ? { hash_schema: 2, profile_id: revision.profile_id, scope_version: revision.scope_version } : {}), summary: revision.summary, rationale: revision.rationale, changes: revision.changes })).digest("hex");
 }
 
 /** Revisions whose stored content no longer matches their hash. The list is permanent evidence; approval looks only at the current one. */
@@ -57,6 +57,12 @@ function integrity(proposal: Proposal): ProposalIntegrity {
 async function readProposal(id: string): Promise<Proposal> {
   const proposal = await readJson<Proposal>(path.join(root(), "proposals", `${cleanId(id)}.json`));
   if (proposal.version !== 1 || proposal.id !== id || !Array.isArray(proposal.revisions) || !Array.isArray(proposal.allowed_targets)) throw new Error("Invalid Proposal record.");
+  assertProfileOwnership(proposal);
+  for (const revision of proposal.revisions) {
+    assertProfileOwnership(revision);
+    if (revision.profile_id && revision.hash_schema !== 2 || !revision.profile_id && revision.hash_schema !== undefined) throw new Error("Invalid revision hash schema.");
+  }
+  if (proposal.approval) assertProfileOwnership(proposal.approval);
   // Records saved before Apply existed carry no application; an applied status without one is a hand edit.
   const application = proposal.application && typeof proposal.application === "object" && typeof proposal.application.id === "string" ? proposal.application : null;
   if (proposal.status === "applied" && !application) throw new Error("Invalid Proposal record: applied without an application receipt.");
@@ -176,7 +182,7 @@ function computeChecks(ctx: Context, changes: ProposalChange[], gap: Gap, propos
   const projected = validateWorkspace(projectProposal(ctx.workspace, changes));
   const before = new Set(baseline.map((finding) => `${finding.level} ${describe(finding)}`));
   const after = new Set(projected.map((finding) => `${finding.level} ${describe(finding)}`));
-  const knownTerms = ctx.knowledge.flatMap((record) => [record.title, record.key.slice(record.key.indexOf(":") + 1)]);
+  const knownTerms = [workspaceScope().identity?.name ?? "", ...(workspaceScope().identity?.name.split(/\s+/) ?? []), ...ctx.knowledge.flatMap((record) => [record.title, record.key.slice(record.key.indexOf(":") + 1)])];
   const lint = lintProposal(changes, gap.report, knownTerms, new Set(proposal.allowed_targets.map((target) => target.key)));
   // A transition that would also need a field proposals cannot change is refused here, never applied implicitly.
   for (const change of changes) {
@@ -196,18 +202,19 @@ function computeChecks(ctx: Context, changes: ProposalChange[], gap: Gap, propos
 }
 
 async function withLock<T>(id: string, work: () => Promise<T>): Promise<T> {
-  if (locks.has(id)) throw new ProposalStateError("This proposal is already being updated. Reload in a moment.");
-  locks.add(id);
-  try { return await withWorkspaceRead(work); } finally { locks.delete(id); }
+  const key = `${root()}:${id}`;
+  if (locks.has(key)) throw new ProposalStateError("This proposal is already being updated. Reload in a moment.");
+  locks.add(key);
+  try { return await withWorkspaceRead(work); } finally { locks.delete(key); }
 }
 
-export async function listProposals(gapId?: string): Promise<ProposalSummary[]> {
+async function listProposalsInScope(gapId?: string): Promise<ProposalSummary[]> {
   const files = await readDirectoryOrEmpty(path.join(root(), "proposals"));
   const proposals = await Promise.all(files.filter((file) => file.endsWith(".json")).map((file) => readProposal(file.slice(0, -5))));
   return proposals.filter((proposal) => !gapId || proposal.gap_id === gapId).sort((a, b) => b.updated_at.localeCompare(a.updated_at)).map(summary);
 }
 
-export async function gapProposalOverview(gapId: string): Promise<GapProposalOverview> {
+async function gapProposalOverviewInScope(gapId: string): Promise<GapProposalOverview> {
   const gap = await getGap(gapId);
   const ctx = await context();
   return { eligibility: proposalEligibility(gap, ctx.fingerprint, ctx.knowledge), proposals: await listProposals(gap.id) };
@@ -219,11 +226,11 @@ async function newProposal(gap: Gap, ctx: Context, supersedes: string | null): P
   const eligibility = proposalEligibility(gap, ctx.fingerprint, ctx.knowledge);
   if (!eligibility.eligible) throw new ProposalStateError(eligibility.reasons.join(" "));
   const now = new Date().toISOString();
-  return { version: 1, id: randomUUID(), gap_id: gap.id, diagnosis_created_at: gap.diagnosis!.created_at, review_created_at: eligibility.basis.some((item) => item.source === "human") ? gap.review?.created_at ?? null : null, created_at: now, updated_at: now, status: "draft",
+  return { version: 1, ...profileOwnership(), id: randomUUID(), gap_id: gap.id, diagnosis_created_at: gap.diagnosis!.created_at, review_created_at: eligibility.basis.some((item) => item.source === "human") ? gap.review?.created_at ?? null : null, created_at: now, updated_at: now, status: "draft",
     basis: eligibility.basis, allowed_targets: eligibility.targets, allow_new_pattern: eligibility.allow_new_pattern, revisions: [], approval: null, rejection: null, superseded_by: null, supersedes };
 }
 
-export async function createProposal(input: unknown): Promise<ProposalView> {
+async function createProposalInScope(input: unknown): Promise<ProposalView> {
   const { gap_id } = createSchema.parse(input);
   const gap = await getGap(gap_id);
   const ctx = await context();
@@ -255,10 +262,10 @@ async function appendRevision(proposal: Proposal, input: ProposalRevisionInput, 
   const changes = normalizeChanges(proposal, parsed.changes, ctx.workspace, author, authors);
   const checks = computeChecks(ctx, changes, gap, proposal);
   const target_fingerprints = Object.fromEntries(changes.filter((change) => change.operation === "amend").map((change) => [change.target, targetFingerprint(ctx.workspace, change.target)!]));
-  const content = { summary: parsed.summary, rationale: parsed.rationale, changes };
+  const content = { ...profileOwnership(), ...(workspaceScope().identity ? { hash_schema: 2 as const } : {}), summary: parsed.summary, rationale: parsed.rationale, changes };
   const revision: ProposalRevision = { number: (latest(proposal)?.number ?? 0) + 1, created_at: new Date().toISOString(), author, ...content, hash: revisionHash(content), knowledge_fingerprint: ctx.fingerprint, target_fingerprints, checks };
   // Approval binds to one exact revision; a new revision always clears it, even if it changes nothing but a note.
-  const next: Proposal = { ...proposal, revisions: [...proposal.revisions, revision], approval: null, status: "draft", updated_at: revision.created_at };
+  const next: Proposal = { ...proposal, ...profileOwnership(), revisions: [...proposal.revisions, revision], approval: null, status: "draft", updated_at: revision.created_at };
   await writeProposal(next);
   return view(next, gap, ctx);
 }
@@ -302,6 +309,7 @@ export async function approveProposal(id: string, input: unknown): Promise<Propo
     if (blockers.length) throw new ProposalStateError(blockers[0]!);
     const current = latest(proposal);
     if (!current) throw new ProposalStateError("Save a revision before approving.");
+    if (workspaceScope().identity && !current.profile_id) throw new ProposalStateError("Save a new Profile-bound revision and review it before approving. Historical approval hashes remain unchanged.");
     if (current.number !== revision || current.hash !== hash) throw new ProposalStateError(`Approval must name the current revision ${current.number} and its hash. Reload the proposal and review it again.`);
     const drifted = current.changes.find((change) => change.operation === "amend" && !valuesEqual(change.before, recordFieldValues(ctx.workspace, change.target)?.[change.field] ?? null));
     if (drifted) throw new ProposalStateError(`${drifted.target}.${drifted.field} no longer matches the value this revision was written against. Refresh the proposal against the current records.`);
@@ -309,7 +317,7 @@ export async function approveProposal(id: string, input: unknown): Promise<Propo
     const checks = computeChecks(ctx, current.changes, gap!, proposal);
     if (!checks.ok) throw new ProposalStateError("This revision has validation or lint errors against the current workspace. Fix them in a new revision before approving.");
     const approved_at = new Date().toISOString();
-    const next: Proposal = { ...proposal, status: "approved", approval: { revision, hash, approved_at, note }, updated_at: approved_at };
+    const next: Proposal = { ...proposal, status: "approved", approval: { ...profileOwnership(), revision, hash, approved_at, note }, updated_at: approved_at };
     await writeProposal(next);
     return view(next, gap, ctx);
   });
@@ -386,3 +394,9 @@ export async function supersedeProposal(id: string): Promise<ProposalView> {
  * as approval rather than reimplementing them.
  */
 export const proposalInternals = { context, readProposal, writeProposal, gapOrNull, latest, view, staleness, integrity, targetFingerprint, revisionHash, computeChecks, withLock };
+
+export const listProposals = (...args: Parameters<typeof listProposalsInScope>): ReturnType<typeof listProposalsInScope> => withWorkspaceRead(() => listProposalsInScope(...args));
+
+export const gapProposalOverview = (...args: Parameters<typeof gapProposalOverviewInScope>): ReturnType<typeof gapProposalOverviewInScope> => withWorkspaceRead(() => gapProposalOverviewInScope(...args));
+
+export const createProposal = (...args: Parameters<typeof createProposalInScope>): ReturnType<typeof createProposalInScope> => withWorkspaceRead(() => createProposalInScope(...args));

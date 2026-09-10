@@ -8,7 +8,7 @@ import { expect, it } from "vitest";
 
 it("guards Surface HTTP imports, mutations, revisions and deletion with local-origin and JSON boundaries", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "monet-surface-http-"));
-  const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: path.resolve(import.meta.dirname, ".."), env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0", MONET_AI_COMMAND: "" }, stdio: ["ignore", "pipe", "pipe"] });
+  const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: path.resolve(import.meta.dirname, ".."), env: { ...process.env, MONET_ROOT: directory, MONET_LIBRARY: path.join(directory, "../" + path.basename(directory) + "-library"), MONET_PORT: "0", MONET_AI_COMMAND: "" }, stdio: ["ignore", "pipe", "pipe"] });
   try {
     const url = await new Promise<string>((resolve, reject) => {
       const timeout = setTimeout(() => reject(new Error("Surface service timed out")), 10000); let output = "", stderr = "";

@@ -1,3 +1,4 @@
+import { projectEvidenceSchema, type ProjectEvidenceBinding, type ProfileOwned } from "./profiles.js";
 import { z } from "zod";
 import type { DesignReview, ResolvedThemeToken, ThemeMode, TokenType } from "./model.js";
 import { normalizeColour, normalizeDimension } from "./review.js";
@@ -20,6 +21,7 @@ export type NormalizedSurfaceInput = z.output<typeof surfaceInputSchema>;
 export const surfaceMappingSchema = z.object({ declaration_id: text.min(1), token: text.min(1) }).strict();
 export type SurfaceMapping = z.infer<typeof surfaceMappingSchema>;
 export const surfaceSelectionSchema = z.object({
+  profile_id: z.string().uuid().optional(), project: projectEvidenceSchema.optional(),
   mappings: z.array(surfaceMappingSchema).max(SURFACE_LIMITS.declarations).default([]),
   theme_id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,79}$/).optional(), mode: z.enum(["light", "dark"]).default("light"),
 }).strict();
@@ -30,12 +32,13 @@ export interface SurfaceIssue { id: string; kind: "removed" | "unsupported" | "m
 export interface SurfaceDeclaration { id: string; location: string; property: string; value: string; important: boolean; mappable: boolean }
 export interface SurfaceSnapshot { version: 1; hash: string; input: NormalizedSurfaceInput; issues: SurfaceIssue[] }
 export interface SurfaceBinding extends SurfaceMapping { value: string }
-export interface SurfaceRun {
+export interface SurfaceRun extends ProfileOwned {
   revision: number; created_at: string; run_hash: string; snapshot_hash: string; workspace_fingerprint: string;
-  theme_id: string; mode: ThemeMode; requested_mode: ThemeMode; mappings: SurfaceMapping[]; bindings: SurfaceBinding[];
+  project?: ProjectEvidenceBinding;
+  theme_id?: string; mode: ThemeMode; requested_mode: ThemeMode; mappings: SurfaceMapping[]; bindings: SurfaceBinding[];
   issues: SurfaceIssue[]; review: DesignReview;
 }
-export interface SurfaceRecord { version: 1; id: string; created_at: string; snapshot: SurfaceSnapshot; runs: SurfaceRun[] }
+export interface SurfaceRecord extends ProfileOwned { version: 1; id: string; created_at: string; snapshot: SurfaceSnapshot; runs: SurfaceRun[] }
 export interface SurfacePreview {
   snapshot: SurfaceSnapshot; run: SurfaceRun; original: string; applied: string;
   declarations: SurfaceDeclaration[]; candidates: Record<string, string[]>;

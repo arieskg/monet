@@ -68,7 +68,7 @@ function workspaceMarkdown(workspace: Workspace): string {
   const names = new Map(taxonomyEntries(workspace).map((item) => [item.id, item.name]));
   const primitiveNames = new Map(primitiveEntries(workspace).map((item) => [item.id, item.name]));
   return [
-    "# Monet Design System", "", `Resolved theme: ${workspace.themes.find((theme) => theme.id === workspace.activeThemeId)?.name ?? workspace.activeThemeId}, ${modeLabels[workspace.activeMode].toLowerCase()} mode. Theme values are Base Monet plus override-only theme data, resolved in one mode.`, "", "## Principles", "",
+    "# Monet Design System", "", ...(workspace.profile ? [`Profile: ${workspace.profile.name} (${workspace.profile.id})`, `Knowledge: ${workspace.knowledgeFingerprint ?? "unavailable"}`, ""] : []), `Resolved theme: ${workspace.themes.find((theme) => theme.id === workspace.activeThemeId)?.name ?? workspace.activeThemeId}, ${modeLabels[workspace.activeMode].toLowerCase()} mode. Theme values are Base Monet plus override-only theme data, resolved in one mode.`, "", "## Principles", "",
     ...workspace.principles.flatMap((item) => [`### ${item.title}`, "", withoutLeadingTitle(item.body), ""]),
     "## Foundations", "", ...workspace.foundations.flatMap((item) => [`### ${item.name}`, "", item.description, "", item.guidance, ""]),
     "## Tokens", "", ...workspace.resolvedTokens.map((item) => `- \`${item.name}\` = \`${String(item.resolved_value ?? item.value)}\``), "",
@@ -85,7 +85,7 @@ export function buildExportCollections(workspace: Workspace): ExportCollection[]
   const primitiveData = { taxonomy: workspace.primitiveTaxonomy, decisions: workspace.primitives };
   const componentData = { taxonomy: workspace.taxonomy, decisions: workspace.components };
   const themeData = workspace.themes.map((theme) => ({ id: theme.id, name: theme.name, overrides: theme.overrides, ...(theme.modes ? { modes: theme.modes } : {}) }));
-  return [
+  const collections: ExportCollection[] = [
     { id: "principles", label: "Principles", description: "The beliefs that guide every design choice.", count: workspace.principles.length, data: workspace.principles, markdown: principleMarkdown(workspace.principles) },
     { id: "foundations", label: "Foundations", description: "System-wide rationale, guidance, and token definitions.", count: workspace.foundations.length, data: workspace.foundations, markdown: ["# Monet Foundations", "", ...workspace.foundations.flatMap((item) => [`## ${item.name}`, "", item.description, "", item.rationale, "", item.guidance, ""])].join("\n").trimEnd() + "\n" },
     { id: "tokens", label: "Tokens", description: "Resolved canonical values for the selected theme and mode, and any reference issues.", count: workspace.resolvedTokens.length, data: { theme: workspace.activeThemeId, mode: workspace.activeMode, tokens: workspace.resolvedTokens, issues: workspace.tokenIssues }, markdown: ["# Monet Tokens", "", `Resolved for the ${workspace.activeThemeId} theme in ${workspace.activeMode} mode.`, "", ...workspace.resolvedTokens.map((item) => `- \`${item.name}\` = \`${String(item.resolved_value ?? item.value)}\`${item.description ? ` — ${item.description}` : ""}`), ""].join("\n") },
@@ -97,6 +97,10 @@ export function buildExportCollections(workspace: Workspace): ExportCollection[]
     { id: "references", label: "References", description: "Saved visual preference examples, user annotations, and AI retrieval metadata.", count: workspace.references.length, data: { references: workspace.references, analysis: workspace.referenceAnalysis }, markdown: ["# Monet References", "", ...workspace.references.flatMap((item) => [`## ${item.title}`, "", item.annotation, "", `- Type: ${item.type}`, `- Source: ${item.source_url || item.original_filename || "Local"}`, `- AI tags: ${item.ai_tags.join(", ") || "Not analyzed"}`, item.ai?.retrieval_text ? `- Retrieval context: ${item.ai.retrieval_text}` : "", ""]).filter(Boolean), workspace.referenceAnalysis.summary ? "## Collection analysis" : "", workspace.referenceAnalysis.summary, ""].filter(Boolean).join("\n") },
     { id: "decisions", label: "Decision log", description: "Human-readable history of changed selections.", count: workspace.decisionLog.length, data: workspace.decisionLog, markdown: documentMarkdown("Decision Log", workspace.decisionLog) },
   ];
+  return workspace.profile ? collections.map((collection) => ({ ...collection,
+    data: { profile: workspace.profile, knowledgeFingerprint: workspace.knowledgeFingerprint, mode: workspace.activeMode, records: collection.data },
+    markdown: `Profile: ${workspace.profile!.name} (${workspace.profile!.id})\nKnowledge: ${workspace.knowledgeFingerprint}\n\n${collection.markdown}`,
+  })) : collections;
 }
 
 /** The same workspace resolved for another theme or mode, computed in the browser from the base tokens it already holds. */

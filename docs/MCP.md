@@ -489,3 +489,7 @@ Run every build, lint, test, and validation check:
 ```bash
 pnpm check
 ```
+
+## Profile bindings
+
+Build With It now generates `MONET_ROOT` plus `MONET_PROFILE_ID`. Each process stays bound to that root/identity; editor selection cannot retarget it. A mismatched ID fails. Qualified `monet://profiles/<uuid>/...` resources coexist with fixed unqualified compatibility aliases, and `monet://profiles/<uuid>/tokens/<mode>` does not require a Theme. Tool `profileId` arguments assert the connection identity. See [Profiles V1](PROFILES.md) for migration and delivery fingerprints.

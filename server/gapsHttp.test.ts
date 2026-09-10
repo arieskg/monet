@@ -9,7 +9,7 @@ it("deletes Gap evidence through HTTP and returns 404 on subsequent report and i
   const directory = await mkdtemp(path.join(tmpdir(), "monet-gap-http-"));
   const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], {
     cwd: path.resolve(import.meta.dirname, ".."),
-    env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0", MONET_AI_COMMAND: "", MONET_CODEX_EXECUTABLE: "" },
+    env: { ...process.env, MONET_ROOT: directory, MONET_LIBRARY: path.join(directory, "../" + path.basename(directory) + "-library"), MONET_PORT: "0", MONET_AI_COMMAND: "", MONET_CODEX_EXECUTABLE: "" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   try {

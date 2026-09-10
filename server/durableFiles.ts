@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, open, rename, unlink } from "node:fs/promises";
 import path from "node:path";
+import { workspaceScope } from "./workspace.js";
 
 export async function syncDirectory(directory: string): Promise<void> {
   const handle = await open(directory, "r");
@@ -9,6 +10,11 @@ export async function syncDirectory(directory: string): Promise<void> {
 
 /** Never acknowledge a rename as durable until both the file and its directory are synced. */
 export async function atomicWrite(file: string, contents: string | Uint8Array): Promise<void> {
+  const scope = workspaceScope();
+  if (scope.verify) {
+    if (!path.resolve(file).startsWith(scope.root + path.sep)) throw new Error("Write escaped its Profile root.");
+    await scope.verify();
+  }
   const directory = path.dirname(file);
   const created = await mkdir(directory, { recursive: true });
   if (created) {
@@ -31,6 +37,11 @@ export async function atomicWrite(file: string, contents: string | Uint8Array): 
 }
 
 export async function durableRemove(file: string): Promise<void> {
+  const scope = workspaceScope();
+  if (scope.verify) {
+    if (!path.resolve(file).startsWith(scope.root + path.sep)) throw new Error("Removal escaped its Profile root.");
+    await scope.verify();
+  }
   await unlink(file).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT") throw error; });
   await syncDirectory(path.dirname(file));
 }

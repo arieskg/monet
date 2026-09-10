@@ -5,9 +5,16 @@ import { afterAll, describe, expect, it } from "vitest";
 import { providerCommand, providerConfigured, providerUnavailableMessage, runProvider } from "./aiProvider.js";
 import { initializeStore, loadWorkspace, regenerateExports, saveTheme } from "./fileStore.js";
 import { formatReport, isEmptyWorkspace, validateWorkspace } from "./validate.js";
-import { BUNDLED_WORKSPACE, isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
+import { BUNDLED_WORKSPACE, isBundledWorkspace, resolveWorkspaceRoot, resolveExpectedProfileId, setWorkspaceRoot } from "./workspace.js";
 
 describe("Monet workspace resolution", () => {
+  it("rejects incomplete bindings without silently selecting another Profile", () => {
+    expect(() => resolveWorkspaceRoot(["--root"], {})).toThrow(/no fallback/);
+    expect(() => resolveWorkspaceRoot(["--root="], {})).toThrow(/no fallback/);
+    expect(() => resolveExpectedProfileId(["--profile"], {})).toThrow(/no fallback/);
+    expect(() => resolveExpectedProfileId(["--profile="], {})).toThrow(/no fallback/);
+    expect(() => resolveExpectedProfileId([], { MONET_PROFILE_ID: "wrong" })).toThrow(/no fallback/);
+  });
   it("falls back to the bundled starter workspace", () => {
     expect(resolveWorkspaceRoot([], {})).toBe(BUNDLED_WORKSPACE);
     expect(isBundledWorkspace(BUNDLED_WORKSPACE)).toBe(true);

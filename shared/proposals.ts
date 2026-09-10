@@ -1,3 +1,4 @@
+import type { ProfileOwned } from "./profiles.js";
 import { z } from "zod";
 import type { Gap, GapFinding, GapRecordLink } from "./gaps.js";
 import type { ComponentDecision, PrimitiveDecision, Status, TaxonomyEntry, Theme, Token, Workspace } from "./model.js";
@@ -121,7 +122,8 @@ export interface ProposalChecks {
   /** No new validation errors and no lint errors. Warnings never block. */
   ok: boolean;
 }
-export interface ProposalRevision {
+export interface ProposalRevision extends ProfileOwned {
+  hash_schema?: 2;
   number: number; created_at: string; author: ProposalAuthor; summary: string; rationale: string; changes: ProposalChange[];
   /** sha256 of the canonical revision content. Approval binds to this exact value. */
   hash: string;
@@ -132,7 +134,7 @@ export interface ProposalRevision {
 }
 /** `finding_index` is -1 when the basis is the Gap's human review rather than a diagnosis finding. */
 export interface ProposalBasis { finding_index: number; classification: ProposalEligibleClassification; conclusion: string; record_keys: string[]; source: GapFinding["source"] | "human" }
-export interface Proposal {
+export interface Proposal extends ProfileOwned {
   version: 1; id: string; gap_id: string; diagnosis_created_at: string; created_at: string; updated_at: string;
   status: ProposalStatus;
   basis: ProposalBasis[];
@@ -141,7 +143,7 @@ export interface Proposal {
   allowed_targets: GapRecordLink[];
   allow_new_pattern: boolean;
   revisions: ProposalRevision[];
-  approval: { revision: number; hash: string; approved_at: string; note: string } | null;
+  approval: (ProfileOwned & { revision: number; hash: string; approved_at: string; note: string }) | null;
   rejection: { rejected_at: string; reason: string } | null;
   superseded_by: string | null;
   supersedes: string | null;
@@ -231,7 +233,7 @@ export interface ApplicationValidation { ok: boolean; errors: number; warnings: 
  * and the final validation succeeded; `rolled_back` means writing started and every before-byte was
  * restored, either in the same request or by recovery at the next start (`recovered`).
  */
-export interface ApplicationReceipt {
+export interface ApplicationReceipt extends ProfileOwned {
   version: 1; id: string; proposal_id: string; gap_id: string; revision: number; hash: string;
   outcome: "applied" | "rolled_back"; started_at: string; finished_at: string; recovered: boolean;
   /** Bounded failure message for a rollback; null when applied. */

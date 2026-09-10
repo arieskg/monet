@@ -1,11 +1,11 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import { readFile, readdir } from "node:fs/promises";
 import path from "node:path";
-import { workspaceRoot } from "./workspace.js";
+import { workspaceRoot, workspaceScope, withProfile, type ProfileScope } from "./workspace.js";
 
 /** One editing process per workspace. This is coordination, not an interprocess write lock. */
-let chain: Promise<unknown> = Promise.resolve();
-const access = new AsyncLocalStorage<"read" | "write" | "recovery">();
+const chains = new Map<string, Promise<unknown>>();
+const access = new AsyncLocalStorage<{ mode: "read" | "write" | "recovery"; scope: ProfileScope }>();
 const blocked = new Map<string, string>();
 
 export function blockWorkspace(reason: string): void { blocked.set(workspaceRoot(), reason); }
@@ -38,13 +38,16 @@ async function applicationState(): Promise<string> {
 }
 
 function exclusive<T>(mode: "read" | "write" | "recovery", work: () => Promise<T>): Promise<T> {
-  const run = chain.then(() => access.run(mode, work));
-  chain = run.catch(() => undefined);
+  const scope = workspaceScope();
+  const run = (chains.get(scope.root) ?? Promise.resolve()).then(() => withProfile(scope, async () => { await scope.verify?.(); return access.run({ mode, scope }, work); }));
+  const tail = run.catch(() => undefined);
+  chains.set(scope.root, tail);
+  void tail.then(() => { if (chains.get(scope.root) === tail) chains.delete(scope.root); });
   return run;
 }
 
 export function assertWorkspaceWrite(): void {
-  if (access.getStore() !== "write" && access.getStore() !== "recovery") throw new Error("Canonical writers require the workspace write boundary.");
+  if (!ownedAccess() || (access.getStore()?.mode !== "write" && access.getStore()?.mode !== "recovery")) throw new Error("Canonical writers require the workspace write boundary.");
 }
 
 export function withWorkspaceWrite<T>(work: () => Promise<T>): Promise<T> {
@@ -55,7 +58,7 @@ export function withWorkspaceWrite<T>(work: () => Promise<T>): Promise<T> {
 export function withWorkspaceRead<T>(work: () => Promise<T>): Promise<T> {
   // Only the current transaction/recovery may read its own intermediate files. Other callers
   // wait on the queue; a leftover journal makes them explicitly unavailable instead.
-  if (access.getStore()) return work();
+  if (access.getStore()) { if (!ownedAccess()) throw new Error("Cross-profile access inside a transaction is forbidden."); return work(); }
   return exclusive("read", async () => {
     const before = await applicationState();
     const result = await work();
@@ -68,4 +71,9 @@ export function withWorkspaceRead<T>(work: () => Promise<T>): Promise<T> {
 export function withWorkspaceRecovery<T>(work: () => Promise<T>): Promise<T> {
   if (access.getStore()) throw new Error("Do not nest workspace recovery.");
   return exclusive("recovery", work);
+}
+
+function ownedAccess(): boolean {
+  const owner = access.getStore()?.scope, scope = workspaceScope();
+  return Boolean(owner && owner.root === scope.root && owner.identity?.id === scope.identity?.id);
 }
