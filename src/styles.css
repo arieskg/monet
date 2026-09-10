@@ -1371,7 +1371,7 @@ html { color: var(--ink); background: var(--canvas); }
 .gap-proposal-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--line); color: inherit; text-decoration: none; }
 .gap-proposal-row:hover span:nth-child(2) { color: var(--accent); }
 .gap-proposal-row small { color: var(--muted); white-space: nowrap; }
-.status-pill.proposal-approved { color: #285446; background: #dfece6; } .status-pill.proposal-rejected { color: #86382f; background: #f4dfdc; } .status-pill.proposal-superseded { opacity: .7; }
+.status-pill.proposal-approved { color: #285446; background: #dfece6; } .status-pill.proposal-rejected { color: #86382f; background: #f4dfdc; } .status-pill.proposal-superseded { opacity: .7; } .status-pill.proposal-applied { color: #1f3d6b; background: #dde8f6; }
 .proposal-layout { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: var(--space-8); align-items: start; }
 .proposal-basis { padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); font-size: var(--font-sm); display: grid; gap: var(--space-4); }
 .proposal-basis-item { padding-bottom: var(--space-3); border-bottom: 1px solid var(--line); }
@@ -1426,3 +1426,19 @@ html { color: var(--ink); background: var(--canvas); }
 .gap-review select[multiple] { min-height: 180px; font-size: var(--font-xs); }
 .gap-review-check { display: flex !important; gap: var(--space-2); align-items: start; font-weight: 400 !important; line-height: 1.5; }
 .gap-review-check input { width: auto; margin-top: 3px; }
+/* Apply: the one canonical write a proposal can lead to, and its receipt. */
+.proposal-apply, .proposal-applied { margin-top: var(--space-6); padding: var(--space-5); border: 1px solid var(--line); border-radius: var(--radius-lg); font-size: var(--font-sm); line-height: 1.6; }
+.proposal-apply { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.proposal-applied { border-color: #9fbfe0; background: color-mix(in srgb, #dde8f6 35%, transparent); }
+.proposal-apply h3, .proposal-applied h3 { margin: var(--space-2) 0 var(--space-3); font-size: var(--font-lg); }
+.proposal-apply-warning { padding: var(--space-3) var(--space-4); border-left: 3px solid var(--danger, #a42e32); background: color-mix(in srgb, #a42e32 7%, transparent); }
+.proposal-apply-blockers { margin: var(--space-3) 0; padding-left: var(--space-5); }
+.proposal-apply-records, .proposal-apply-files, .proposal-apply-state, .proposal-apply-attempts { padding-left: var(--space-5); margin: var(--space-2) 0; }
+.proposal-apply-records code, .proposal-apply-files code { font-size: var(--font-xs); }
+.proposal-apply-attempts li { overflow-wrap: anywhere; }
+.decision-applications { margin-top: var(--space-8); }
+.decision-applications h2 { font-size: var(--font-xl); margin: var(--space-2) 0; }
+.decision-applications ul { list-style: none; padding: 0; margin: var(--space-4) 0 0; display: grid; gap: var(--space-3); font-size: var(--font-sm); }
+.decision-applications li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--line); }
+.decision-applications li > span:last-child { grid-column: 1 / -1; color: var(--muted); }
+.decision-applications time { color: var(--muted); white-space: nowrap; }

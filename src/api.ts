@@ -1,6 +1,6 @@
 import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
 import type { Gap, GapDiagnosisResponse, GapInput, GapReviewInput, GapSummary } from "../shared/gaps";
-import type { GapProposalOverview, ProposalDraftResponse, ProposalRevisionInput, ProposalSummary, ProposalView } from "../shared/proposals";
+import type { ApplicationReceipt, ApplyErrorKind, ApplyPlan, ApplyResult, GapProposalOverview, ProposalDraftResponse, ProposalRevisionInput, ProposalSummary, ProposalView } from "../shared/proposals";
 
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
@@ -9,10 +9,15 @@ export interface SourceRefreshResult { source: Source; discovered: number; mappe
 /** Facts about the running installation that the workspace records themselves do not carry. */
 export interface Environment { root: string; appRoot: string; bundled: boolean; aiConfigured: boolean; aiVariable: string; aiImages?: boolean }
 
+/** A failed request. An Apply refusal or rollback also says which gate refused it and carries the receipt, when writing had started. */
+export class ApiError extends Error {
+  constructor(message: string, public status: number, public kind?: ApplyErrorKind, public receipt: ApplicationReceipt | null = null) { super(message); }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, { ...init, headers: { "content-type": "application/json", ...init?.headers } });
-  const value = await response.json() as { error?: string };
-  if (!response.ok) throw new Error(value.error ?? `Request failed (${response.status}).`);
+  const value = await response.json() as { error?: string; kind?: ApplyErrorKind; receipt?: ApplicationReceipt | null };
+  if (!response.ok) throw new ApiError(value.error ?? `Request failed (${response.status}).`, response.status, value.kind, value.receipt ?? null);
   return value as T;
 }
 
@@ -35,6 +40,10 @@ export const api = {
   rejectProposal: (id: string, reason: string) => request<ProposalView>("/api/proposal-rejections/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify({ reason }) }),
   supersedeProposal: (id: string) => request<ProposalView>("/api/proposal-supersessions/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
   rebaseProposal: (id: string) => request<ProposalView>("/api/proposal-rebases/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
+  // Apply is the one route that writes canonical records: only an approved revision named by number and hash, through a journaled transaction.
+  applyPlan: (id: string) => request<ApplyPlan>("/api/proposal-applications/" + encodeURIComponent(id)),
+  applyProposal: (id: string, value: { revision: number; hash: string }) => request<ApplyResult>("/api/proposal-applications/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
+  applications: () => request<ApplicationReceipt[]>("/api/applications"),
   environment: () => request<Environment>("/api/environment"),
   workspace: (themeId?: string, mode?: ThemeMode) => {
     const params = new URLSearchParams();

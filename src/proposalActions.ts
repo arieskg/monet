@@ -1,8 +1,8 @@
 import { approvalBlockers, type ProposalView } from "../shared/proposals";
 
-/** Which closure and refresh actions the server would accept, so the buttons match its rules. */
+/** Which closure and refresh actions the server would accept, so the buttons match its rules. Applied is terminal: nothing here applies to it. */
 export function proposalActions(proposal: ProposalView, dirty: boolean): { reject: boolean; supersede: boolean; refresh: boolean; approve: boolean } {
-  const closed = proposal.status === "rejected" || proposal.status === "superseded";
+  const closed = proposal.status === "rejected" || proposal.status === "superseded" || proposal.status === "applied";
   const latest = proposal.revisions[proposal.revisions.length - 1];
   const { staleness } = proposal;
   return {

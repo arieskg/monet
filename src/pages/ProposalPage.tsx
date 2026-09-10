@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { lineDiff } from "../../shared/diff";
 import { gapClassificationLabels } from "../../shared/gaps";
-import { PROPOSAL_FIELDS, fieldEditorText, fieldValueText, parseFieldText, parseRecordKey, proposalStatusLabels, valuesEqual, type ProposalChecks, type ProposalFieldType, type ProposalIntegrity, type ProposalRevision, type ProposalRevisionInput, type ProposalStaleness, type ProposalView } from "../../shared/proposals";
-import { api } from "../api";
+import { PROPOSAL_FIELDS, fieldEditorText, fieldValueText, parseFieldText, parseRecordKey, proposalStatusLabels, valuesEqual, type ApplicationReceipt, type ApplyErrorKind, type ApplyPlan, type ProposalChecks, type ProposalFieldType, type ProposalIntegrity, type ProposalRevision, type ProposalRevisionInput, type ProposalStaleness, type ProposalView } from "../../shared/proposals";
+import { ApiError, api } from "../api";
 import { PageHeader, formatDate } from "../components/Common";
 import { statusLabels, statuses } from "../domain";
 import { proposalActions } from "../proposalActions";
@@ -71,6 +71,78 @@ export function IntegrityNotice({ integrity }: { integrity: ProposalIntegrity })
     : <div className="gap-error" role="alert"><p><b>Revision {list} no longer matches its hash.</b> The proposal file was edited outside Monet. The current revision cannot be approved; save a new revision from this page to continue. Earlier corruption stays on record.</p></div>;
 }
 
+const short = (hash: string) => `${hash.slice(0, 12)}…`;
+const APPLY_BLOCKER_LABELS: Record<ApplyErrorKind, string> = { state: "State", integrity: "Integrity", stale: "Stale", unsupported: "Unsupported target", validation: "Validation", write_failed: "Write failed", busy: "Busy" };
+
+function RecordLinks({ records }: { records: ApplyPlan["records"] }) {
+  return <ul className="proposal-apply-records">{records.map((record) => <li key={record.key}>{record.route ? <Link to={record.route}>{record.title}</Link> : record.title} <code>{record.key}</code> · {record.operation === "create" ? "new record" : "amend"} · {record.fields.join(", ")}</li>)}</ul>;
+}
+
+/** One earlier attempt, from its receipt. Rolled-back attempts stay listed: they are audit history, not clutter. */
+function AttemptLine({ receipt }: { receipt: ApplicationReceipt }) {
+  const label = receipt.outcome === "applied" ? "Applied" : receipt.recovered ? (receipt.restored ? "Recovery completed at startup: rolled back, every file restored" : "Recovery ran at startup but could not verify the restore") : receipt.restored ? "Write failed and was rolled back: every file restored" : "Write failed and the restore could not be verified";
+  return <li><b>{label}</b> · {formatDate(receipt.finished_at)} · receipt <code className="gap-hash">{receipt.id}</code>{receipt.failure ? <> · {receipt.failure}</> : null}</li>;
+}
+
+/**
+ * Approved → Apply approved changes. Everything a person needs before the one write this workflow
+ * allows: the exact records and files, the live validation, integrity and staleness state, and a
+ * plain statement that canonical Monet changes. The button follows the server's plan exactly.
+ */
+export function ApplyPanel({ plan, busy, onApply }: { plan: ApplyPlan; busy: boolean; onApply: () => void }) {
+  const attempts = plan.applications.filter((receipt) => receipt.outcome !== "applied");
+  const checks = plan.checks;
+  return <section className="proposal-apply" aria-label="Apply">
+    <span className="eyebrow">Approved → Apply approved changes</span>
+    <h3 className={plan.ready ? "proposal-checks-ok" : "proposal-checks-blocked"}>{plan.ready ? "Ready to apply to canonical Monet" : "Apply is blocked"}</h3>
+    <p className="proposal-apply-warning" role="note"><b>This modifies canonical Monet records.</b> Apply writes approved revision {plan.revision ?? "?"}{plan.hash ? ` (hash ${short(plan.hash)})` : ""} to the files below, regenerates the exports once, and records a receipt. Every check is rerun under the write lock immediately before writing; if anything fails after writing starts, every file is restored byte for byte. No AI is involved.</p>
+    {plan.blockers.length > 0 && <ul className="proposal-check-errors proposal-apply-blockers" aria-label="Blockers">{plan.blockers.map((blocker, index) => <li key={index}><b>{APPLY_BLOCKER_LABELS[blocker.kind]}:</b> {blocker.message}</li>)}</ul>}
+    {plan.unsupported.length > 0 && <div className="proposal-check-group"><b>Approved changes Apply cannot write yet</b><ul className="proposal-check-errors">{plan.unsupported.map((item) => <li key={`${item.target}.${item.field}`}><code>{item.target}.{item.field}</code> {item.reason}</li>)}</ul><p className="muted">Nothing is applied partially. Make these changes in their editors, or supersede the proposal without them.</p></div>}
+    <div className="proposal-check-group"><b>Records to be changed</b>{plan.records.length ? <RecordLinks records={plan.records} /> : <p>None.</p>}</div>
+    <div className="proposal-check-group"><b>Files written</b><ul className="proposal-apply-files">{plan.files.map((file) => <li key={file.path}><code>{file.path}</code> · {file.action}</li>)}</ul><p className="muted">Derived exports regenerated once: {plan.derived.join(", ")}.</p></div>
+    <div className="proposal-check-group"><b>Current state</b><ul className="proposal-apply-state">
+      <li>Integrity: {plan.integrity.current_ok ? "the approved revision matches its hash" : "the approved revision does not match its hash"}{plan.integrity.revisions.length && plan.integrity.current_ok ? ` (earlier revision ${plan.integrity.revisions.join(", ")} flagged)` : ""}.</li>
+      <li>Staleness: {plan.staleness.stale ? `stale (${[...plan.staleness.changed_targets, ...plan.staleness.missing_targets].join(", ") || (plan.staleness.gap_missing ? "Gap deleted" : "diagnosis changed")})` : plan.staleness.knowledge_changed ? "targets unchanged; other records changed since the revision" : "current"}.</li>
+      <li>Validation and lint against the live workspace: {checks ? (checks.ok ? `no new errors${checks.validation.new_warnings.length ? `, ${checks.validation.new_warnings.length} new warning${checks.validation.new_warnings.length === 1 ? "" : "s"}` : ""}${checks.validation.baseline_errors ? ` (${checks.validation.baseline_errors} pre-existing)` : ""}` : `blocked: ${[...checks.validation.new_errors, ...checks.lint.filter((finding) => finding.level === "error").map((finding) => `${finding.target}.${finding.field} ${finding.message}`)].join("; ")}`) : "not run (see blockers)"}.</li>
+    </ul></div>
+    {attempts.length > 0 && <div className="proposal-check-group"><b>Earlier attempts</b><ul className="proposal-apply-attempts">{attempts.map((receipt) => <AttemptLine key={receipt.id} receipt={receipt} />)}</ul></div>}
+    <div className="gap-actions"><button className="button primary" disabled={busy || !plan.ready} onClick={onApply} title={plan.ready ? undefined : plan.blockers[0]?.message}>{busy ? "Applying…" : "Apply approved changes"}</button></div>
+  </section>;
+}
+
+/** The receipt of an applied proposal: what changed, whether validation passed, and how to verify it in the product that reported the Gap. */
+export function ApplicationPanel({ receipt, plan }: { receipt: ApplicationReceipt; plan: ApplyPlan | null }) {
+  const validation = receipt.validation;
+  return <section className="proposal-applied" aria-label="Applied" role="status">
+    <span className="eyebrow">Applied · {formatDate(receipt.finished_at)}{receipt.recovered ? " · bookkeeping completed by recovery" : ""}</span>
+    <h3 className="proposal-checks-ok">Applied to canonical Monet</h3>
+    <p>Receipt <code className="gap-hash">{receipt.id}</code> · revision {receipt.revision} · hash <code className="gap-hash">{receipt.hash}</code>.</p>
+    <div className="proposal-check-group"><b>Affected records</b><RecordLinks records={receipt.records} /></div>
+    <div className="proposal-check-group"><b>Validation after writing</b><p>{validation ? (validation.ok ? `Passed: no new errors${validation.errors ? ` (${validation.errors} pre-existing)` : ""}, ${validation.warnings} warning${validation.warnings === 1 ? "" : "s"}.` : `Failed: ${validation.new_errors.join("; ")}`) : "Not recorded."}</p></div>
+    <div className="proposal-check-group"><b>Files</b><ul className="proposal-apply-files">{receipt.files.map((file) => <li key={file.path}><code>{file.path}</code> · {file.action} · {file.before_hash ? short(file.before_hash) : "absent"} → {file.after_hash ? short(file.after_hash) : "absent"}</li>)}</ul><p className="muted">Exports regenerated: {receipt.derived.join(", ")}.</p></div>
+    <div className="proposal-check-group"><b>Verify it in the product</b><p>Run the original task again against the updated guidance: ask your coding agent for the same design context the Gap reported (the MCP server now reads the changed records), confirm the new guidance is retrieved and applied, then check the reported screen. If the outcome did not improve, report a new Gap; it will cite the records as they are now.</p></div>
+    {plan && plan.applications.some((item) => item.outcome !== "applied") && <div className="proposal-check-group"><b>Earlier attempts</b><ul className="proposal-apply-attempts">{plan.applications.filter((item) => item.outcome !== "applied").map((item) => <AttemptLine key={item.id} receipt={item} />)}</ul></div>}
+  </section>;
+}
+
+export interface ApplyOutcome { kind: ApplyErrorKind | "applied" | "already_applied"; message: string; receipt: ApplicationReceipt | null }
+
+/** The result of one Apply request, worded so stale, validation, rollback, unverified restore, and already-applied never read alike. */
+export function ApplyOutcomeNotice({ outcome }: { outcome: ApplyOutcome }) {
+  const receipt = outcome.receipt;
+  const rolledBack = receipt?.outcome === "rolled_back";
+  const success = outcome.kind === "applied" || outcome.kind === "already_applied";
+  const title = outcome.kind === "applied" ? "Applied."
+    : outcome.kind === "already_applied" ? "Already applied."
+    : outcome.kind === "stale" ? "Not applied: the records changed after approval. Nothing was written."
+    : outcome.kind === "integrity" ? "Not applied: the approved revision failed its integrity check. Nothing was written."
+    : outcome.kind === "unsupported" ? "Not applied: the proposal contains changes Apply cannot write. Nothing was written."
+    : outcome.kind === "validation" ? (rolledBack ? (receipt?.restored ? "Rolled back: the written records failed validation, and every file was restored." : "Rolled back, but the restore could not be verified.") : "Not applied: validation failed against the current workspace. Nothing was written.")
+    : outcome.kind === "write_failed" ? (rolledBack ? (receipt?.restored ? "Write failed and was rolled back: every file was restored to its previous bytes." : "Write failed, and the restore could not be verified. Restart Monet to run recovery.") : receipt?.outcome === "applied" ? "Applied, but the proposal record could not be updated. Restart Monet to finish the bookkeeping." : "Write failed.")
+    : outcome.kind === "busy" ? "Apply is busy. Reload in a moment." : "Not applied.";
+  return <div className={success ? "proposal-note" : "gap-error"} role={success ? "status" : "alert"}><p><b>{title}</b> {outcome.message}{receipt ? <> Receipt <code className="gap-hash">{receipt.id}</code>.</> : null}</p></div>;
+}
+
 function fromRevision(revision: ProposalRevision | undefined): { summary: string; rationale: string; changes: DraftChange[] } {
   return { summary: revision?.summary ?? "", rationale: revision?.rationale ?? "", changes: (revision?.changes ?? []).map((change) => ({ target: change.target, operation: change.operation, field: change.field, type: change.type, before: change.before, text: fieldEditorText(change.type, change.after), note: change.note, error: "" })) };
 }
@@ -113,11 +185,24 @@ function ProposalDetail({ id }: { id: string }) {
   const [addTarget, setAddTarget] = useState("");
   const [addField, setAddField] = useState("");
   const [newPatternId, setNewPatternId] = useState("");
+  const [plan, setPlan] = useState<ApplyPlan | null>(null);
+  const [planError, setPlanError] = useState("");
+  const [applyOutcome, setApplyOutcome] = useState<ApplyOutcome | null>(null);
 
   useEffect(() => { let active = true; api.proposal(id).then((value) => { if (active) { setProposal(value); setEditor(fromRevision(value.revisions[value.revisions.length - 1])); setError(""); } }).catch((caught) => { if (active) setError(message(caught)); }); return () => { active = false; }; }, [id, attempt]);
+  // The plan is the server's live answer to "what would Apply do now"; it is fetched only when there is something to apply or a receipt to show.
+  const planWanted = proposal?.status === "approved" || proposal?.status === "applied";
+  const planVersion = `${proposal?.status ?? ""}:${proposal?.updated_at ?? ""}:${attempt}`;
+  useEffect(() => {
+    if (!planWanted) { setPlan(null); return; }
+    let active = true;
+    setPlanError("");
+    api.applyPlan(id).then((value) => { if (active) setPlan(value); }).catch((caught) => { if (active) setPlanError(message(caught)); });
+    return () => { active = false; };
+  }, [id, planWanted, planVersion]);
 
   const latest = proposal?.revisions[proposal.revisions.length - 1];
-  const closed = proposal?.status === "rejected" || proposal?.status === "superseded";
+  const closed = proposal?.status === "rejected" || proposal?.status === "superseded" || proposal?.status === "applied";
   const editable = Boolean(proposal) && !closed && !proposal!.staleness.gap_missing;
   const dirty = useMemo(() => {
     const saved = fromRevision(latest);
@@ -191,6 +276,20 @@ function ProposalDetail({ id }: { id: string }) {
   async function refresh() {
     await run(() => api.rebaseProposal(id), "Refreshed: the same proposed values were saved as a new revision against the current records.");
   }
+  async function apply() {
+    if (!proposal?.approval || !plan?.ready) return;
+    const { revision, hash } = proposal.approval;
+    if (!window.confirm(`Apply approved revision ${revision} (hash ${short(hash)}) to canonical Monet?\n\nThis modifies ${plan.records.length} record${plan.records.length === 1 ? "" : "s"}: ${plan.records.map((record) => record.key).join(", ")}. Exports are regenerated and a receipt is written. Every check is rerun first; a failure after writing starts restores every file.`)) return;
+    setBusy(true); setError(""); setNotice(""); setApplyOutcome(null);
+    try {
+      const result = await api.applyProposal(id, { revision, hash });
+      setProposal(result.proposal); setEditor(fromRevision(result.proposal.revisions[result.proposal.revisions.length - 1]));
+      setApplyOutcome({ kind: result.outcome, message: result.outcome === "applied" ? `Revision ${revision} was written to canonical Monet, the exports were regenerated, and the workspace validated.` : "This revision had already been applied; nothing was written again.", receipt: result.receipt });
+    } catch (caught) {
+      setApplyOutcome({ kind: caught instanceof ApiError && caught.kind ? caught.kind : "write_failed", message: message(caught), receipt: caught instanceof ApiError ? caught.receipt : null });
+      setAttempt((count) => count + 1);
+    } finally { setBusy(false); }
+  }
   async function supersede() {
     if (!window.confirm("Supersede this proposal? A new draft is derived from the Gap’s current diagnosis and eligible changes are carried forward with their authorship.")) return;
     setBusy(true); setError("");
@@ -207,13 +306,17 @@ function ProposalDetail({ id }: { id: string }) {
       {actions.refresh && <button className="button" disabled={busy} onClick={() => void refresh()} title="Re-snapshot the same proposed values against the current records.">Refresh against current records</button>}
       <button className="button primary" disabled={busy || !actions.approve} onClick={() => void approve()} title={actions.approve ? undefined : "Save a revision that passes checks, with no unsaved edits, on current records."}>Approve revision {latest?.number ?? ""}</button>
     </div>} />
-    <p className="gap-provider-note">A proposal describes how Monet records would change. Reviewing, editing, and approving it changes nothing: no canonical Monet record is modified in this phase, and Apply is not available.</p>
+    <p className="gap-provider-note">A proposal describes how Monet records would change. Reviewing, editing, and approving it changes nothing. Only <b>Apply approved changes</b>, offered on an approved proposal, writes canonical records, through a journaled transaction that leaves a receipt.</p>
     {error && <div className="gap-error" role="alert">{error} <button className="button ghost micro" onClick={() => setAttempt((count) => count + 1)}>Reload</button></div>}
     {notice && <p className="proposal-note" role="status">{notice}</p>}
     {proposal && <>
       <IntegrityNotice integrity={proposal.integrity} />
-      <StalenessNotice staleness={proposal.staleness} />
+      {proposal.status !== "applied" && <StalenessNotice staleness={proposal.staleness} />}
+      {applyOutcome && <ApplyOutcomeNotice outcome={applyOutcome} />}
       {proposal.status === "approved" && proposal.approval && <p className="proposal-note" role="status"><b>Approved revision {proposal.approval.revision}</b> · {formatDate(proposal.approval.approved_at)} · hash <code className="gap-hash">{proposal.approval.hash}</code>. Saving a new revision clears this approval.</p>}
+      {planError && <div className="gap-error" role="alert">Could not compute the apply plan: {planError} <button className="button ghost micro" onClick={() => setAttempt((count) => count + 1)}>Retry</button></div>}
+      {proposal.status === "approved" && (plan ? <ApplyPanel plan={plan} busy={busy} onApply={() => void apply()} /> : !planError && <p role="status">Checking what Apply would change…</p>)}
+      {proposal.status === "applied" && proposal.application && (() => { const receipt = plan?.applications.find((item) => item.id === proposal.application!.id) ?? applyOutcome?.receipt ?? null; return receipt ? <ApplicationPanel receipt={receipt} plan={plan} /> : <p className="proposal-note" role="status"><b>Applied</b> {formatDate(proposal.application.applied_at)} · receipt <code className="gap-hash">{proposal.application.id}</code>{planError ? "" : " · loading the receipt…"}</p>; })()}
       {proposal.status === "rejected" && <p className="proposal-note" role="status"><b>Rejected</b> {proposal.rejection?.rejected_at ? formatDate(proposal.rejection.rejected_at) : ""}{proposal.rejection?.reason ? ` · ${proposal.rejection.reason}` : ""}. Create a new proposal from the Gap if the idea returns.</p>}
       {proposal.status === "superseded" && proposal.superseded_by && <p className="proposal-note" role="status"><b>Superseded</b> by <Link to={`/proposals/${proposal.superseded_by}`}>the newer proposal</Link>.</p>}
       {proposal.supersedes && <p className="gap-evidence-line">Supersedes <Link to={`/proposals/${proposal.supersedes}`}>an earlier proposal</Link>.</p>}
