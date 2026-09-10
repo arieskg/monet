@@ -9,6 +9,7 @@ import { analyzeReference, analyzeReferenceCollection } from "./referenceAnalysi
 import { generateSourceMappings, type MappingRefreshResult } from "./sourceMapping.js";
 import { normalizeFoundation, normalizeTokens, resolveThemeTokens, resolveTokens, themeModes } from "./tokens.js";
 import { workspaceRoot } from "./workspace.js";
+import { withWorkspaceWrite } from "./writeLock.js";
 
 const STATUSES: Status[] = ["undecided", "selected", "needs_review", "experimental", "do_not_use"];
 const MAPPING_STATUSES: MappingStatus[] = ["mapped", "needs_review", "unmapped", "ignored", "no_equivalent"];
@@ -19,6 +20,14 @@ const MAPPING_MATCH_TYPES: MappingMatchType[] = ["exact", "equivalent", "variant
  * import time, so `MONET_ROOT` or `--root` can point Monet at any workspace before it starts.
  */
 const root = workspaceRoot;
+/**
+ * Every exported canonical write runs behind the workspace write lock, so two saves, or a save and a
+ * Proposal apply, never interleave their read-modify-write steps. The `write…Record` helpers below
+ * are the unlocked, export-free halves that Apply composes inside its own locked transaction.
+ */
+function serialized<A extends unknown[], R>(work: (...args: A) => Promise<R>): (...args: A) => Promise<R> {
+  return (...args) => withWorkspaceWrite(() => work(...args));
+}
 const EMPTY_REFERENCE_ANALYSIS: ReferenceCollectionAnalysis = { summary: "", recurring_preferences: [], suggestions: [], analyzed_at: "" };
 const REFERENCE_TYPES: ReferenceType[] = ["image", "url", "html", "svg", "pdf", "file"];
 const REFERENCE_SUGGESTION_STATUSES: ReferenceSuggestionStatus[] = ["pending", "approved", "dismissed"];
@@ -322,7 +331,8 @@ export async function loadWorkspace(requestedThemeId?: string, requestedMode?: T
   };
 }
 
-export async function regenerateExports(): Promise<void> {
+/** Rewrites every derived file from the canonical records. Unlocked; callers hold the write lock or run before the service listens. */
+export async function writeExports(): Promise<void> {
   const workspace = await loadWorkspace();
   const activeTheme = workspace.themes.find((theme) => theme.id === workspace.activeThemeId) ?? null;
   const darkResolution = workspace.modes.includes("dark")
@@ -396,7 +406,10 @@ export async function regenerateExports(): Promise<void> {
   await writeJson(path.join(root(), "design-system.json"), { ...workspace, filesRoot: undefined, decisionLog: undefined });
 }
 
-export async function savePrinciple(id: string, input: Principle): Promise<void> {
+export const regenerateExports = serialized(writeExports);
+
+/** Writes one principle file without regenerating exports. The file path is `principles/<id>.md`. */
+export async function writePrincipleRecord(id: string, input: Principle): Promise<void> {
   const safeId = cleanId(id);
   const existing = await readPrinciplesDirectory(path.join(root(), "principles"));
   const prior = existing.find((item) => item.id === safeId);
@@ -408,28 +421,37 @@ export async function savePrinciple(id: string, input: Principle): Promise<void>
     updated_at: new Date().toISOString(),
   };
   await atomicWrite(path.join(root(), "principles", `${safeId}.md`), renderPrinciple(principle));
-  await regenerateExports();
 }
 
-export async function saveMarkdown(kind: "patterns", id: string, input: MarkdownDocument): Promise<void> {
+export const savePrinciple = serialized(async (id: string, input: Principle): Promise<void> => {
+  await writePrincipleRecord(id, input);
+  await writeExports();
+});
+
+/** Writes one pattern file without regenerating exports. The file path is `patterns/<id>.md`. */
+export async function writePatternRecord(id: string, input: MarkdownDocument): Promise<void> {
   const safeId = cleanId(id);
-  const existing = await readMarkdownDirectory(path.join(root(), kind));
+  const existing = await readMarkdownDirectory(path.join(root(), "patterns"));
   const prior = existing.find((item) => item.id === safeId);
   const document: MarkdownDocument = {
     id: safeId, title: text(input.title, safeId), summary: text(input.summary), body: text(input.body), status: status(input.status),
     tags: list(input.tags), order: Number.isFinite(input.order) ? input.order : prior?.order ?? existing.length,
     updated_at: new Date().toISOString(), components: list(input.components), foundations: list(input.foundations),
   };
-  await atomicWrite(path.join(root(), kind, `${safeId}.md`), renderFrontmatter(document));
-  await regenerateExports();
+  await atomicWrite(path.join(root(), "patterns", `${safeId}.md`), renderFrontmatter(document));
 }
 
-export async function deleteMarkdown(kind: "principles" | "patterns", id: string): Promise<void> {
+export const saveMarkdown = serialized(async (_kind: "patterns", id: string, input: MarkdownDocument): Promise<void> => {
+  await writePatternRecord(id, input);
+  await writeExports();
+});
+
+export const deleteMarkdown = serialized(async (kind: "principles" | "patterns", id: string): Promise<void> => {
   await unlink(path.join(root(), kind, `${cleanId(id)}.md`));
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function saveFoundation(id: string, input: Foundation): Promise<void> {
+export const saveFoundation = serialized(async (id: string, input: Foundation): Promise<void> => {
   const safeId = cleanId(id);
   const tokens = normalizeTokens(safeId, input.tokens);
   const names = tokens.map((token) => token.name);
@@ -444,10 +466,10 @@ export async function saveFoundation(id: string, input: Foundation): Promise<voi
   const darkCircular = themeModes(prospective, null).includes("dark") ? resolveThemeTokens(prospective, null, "dark").issues.find((issue) => issue.type === "circular_reference") : undefined;
   if (darkCircular) throw new Error(`In dark mode, ${darkCircular.message}`);
   await writeJson(path.join(root(), "foundations", `${safeId}.json`), record);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function saveTheme(id: string, input: Theme): Promise<Theme> {
+async function writeTheme(id: string, input: Theme): Promise<Theme> {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const knownTokens = new Set(workspace.baseResolvedTokens.map((token) => token.name));
@@ -460,11 +482,13 @@ export async function saveTheme(id: string, input: Theme): Promise<Theme> {
     if (resolution.issues.length) throw new Error(resolution.issues[0]!.message);
   }
   await writeJson(path.join(root(), "themes", `${safeId}.json`), theme);
-  await regenerateExports();
+  await writeExports();
   return theme;
 }
 
-export async function duplicateTheme(id: string, requestedName?: string): Promise<Theme> {
+export const saveTheme = serialized(writeTheme);
+
+export const duplicateTheme = serialized(async (id: string, requestedName?: string): Promise<Theme> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const source = workspace.themes.find((theme) => theme.id === safeId);
@@ -474,18 +498,18 @@ export async function duplicateTheme(id: string, requestedName?: string): Promis
   let nextId = base;
   let suffix = 2;
   while (workspace.themes.some((theme) => theme.id === nextId)) nextId = `${base}-${suffix++}`;
-  return saveTheme(nextId, { ...source, id: nextId, name });
-}
+  return writeTheme(nextId, { ...source, id: nextId, name });
+});
 
-export async function setDefaultTheme(id: string): Promise<void> {
+export const setDefaultTheme = serialized(async (id: string): Promise<void> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   if (!workspace.themes.some((theme) => theme.id === safeId)) throw new Error("Theme not found.");
   await writeJson(path.join(root(), "themes", "config.json"), { default_theme: safeId });
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function deleteTheme(id: string): Promise<void> {
+export const deleteTheme = serialized(async (id: string): Promise<void> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   if (!workspace.themes.some((theme) => theme.id === safeId)) throw new Error("Theme not found.");
@@ -495,10 +519,15 @@ export async function deleteTheme(id: string): Promise<void> {
     const fallback = workspace.themes.find((theme) => theme.id !== safeId)!;
     await writeJson(path.join(root(), "themes", "config.json"), { default_theme: fallback.id });
   }
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function saveComponents(id: string, input: ComponentDecision): Promise<void> {
+/**
+ * Writes one component decision into `components/decisions.json` without regenerating exports. A
+ * changed inspiration also appends the readable `decisions/` entry; an unchanged one writes nothing
+ * but the decision file.
+ */
+export async function writeComponentDecision(id: string, input: ComponentDecision): Promise<void> {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const index = workspace.components.findIndex((item) => item.id === safeId);
@@ -525,10 +554,14 @@ export async function saveComponents(id: string, input: ComponentDecision): Prom
   }
   if (index >= 0) workspace.components[index] = next; else workspace.components.push(next);
   await writeJson(path.join(root(), "components", "decisions.json"), workspace.components);
-  await regenerateExports();
 }
 
-export async function savePrimitive(id: string, input: PrimitiveDecision): Promise<void> {
+export const saveComponents = serialized(async (id: string, input: ComponentDecision): Promise<void> => {
+  await writeComponentDecision(id, input);
+  await writeExports();
+});
+
+export const savePrimitive = serialized(async (id: string, input: PrimitiveDecision): Promise<void> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const index = workspace.primitives.findIndex((item) => item.id === safeId);
@@ -538,10 +571,10 @@ export async function savePrimitive(id: string, input: PrimitiveDecision): Promi
   };
   if (index >= 0) workspace.primitives[index] = next; else workspace.primitives.push(next);
   await writeJson(path.join(root(), "primitives", "decisions.json"), workspace.primitives);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function savePrimitiveTaxonomy(input: TaxonomyCategory[]): Promise<void> {
+export const savePrimitiveTaxonomy = serialized(async (input: TaxonomyCategory[]): Promise<void> => {
   if (!Array.isArray(input)) throw new Error("Primitive taxonomy must be an array.");
   const seen = new Set<string>();
   const taxonomy = input.map((category) => ({
@@ -563,10 +596,10 @@ export async function savePrimitiveTaxonomy(input: TaxonomyCategory[]): Promise<
     }),
   }));
   await writeJson(path.join(root(), "taxonomy", "primitives.json"), taxonomy);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function mergePrimitive(sourceId: string, targetId: string): Promise<void> {
+export const mergePrimitive = serialized(async (sourceId: string, targetId: string): Promise<void> => {
   const source = cleanId(sourceId);
   const target = cleanId(targetId);
   if (source === target) throw new Error("A primitive cannot be merged into itself.");
@@ -611,30 +644,37 @@ export async function mergePrimitive(sourceId: string, targetId: string): Promis
   await writeJson(path.join(root(), "primitives", "decisions.json"), primitives);
   await writeJson(path.join(root(), "components", "decisions.json"), components);
   await writeJson(path.join(root(), "sources", "registry.json"), sources);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function saveSource(id: string, input: Source): Promise<void> {
+export const saveSource = serialized(async (id: string, input: Source): Promise<void> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const index = workspace.sources.findIndex((item) => item.id === safeId);
   const next: Source = { ...input, id: safeId, name: text(input.name, safeId), mappings: (Array.isArray(input.mappings) ? input.mappings : []).map((mapping) => ({ ...sourceMapping(mapping), mapped_by: mapping.mapped_by ?? "manual" })), updated_at: new Date().toISOString() };
   if (index >= 0) workspace.sources[index] = next; else workspace.sources.push(next);
   await writeJson(path.join(root(), "sources", "registry.json"), workspace.sources);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
+// The provider-backed operations hold the lock only while writing: an AI call can take minutes and
+// must not block every other save. Their prompt reads a snapshot; the write re-reads under the lock.
 export async function refreshSourceMappings(id: string): Promise<MappingRefreshResult> {
   const safeId = cleanId(id);
-  const workspace = await loadWorkspace();
-  const index = workspace.sources.findIndex((item) => item.id === safeId);
-  if (index < 0) throw new Error("Source not found.");
-  const source = workspace.sources[index]!;
-  const mappings = await generateSourceMappings(workspace, source);
-  const next: Source = { ...source, mappings, updated_at: new Date().toISOString() };
-  workspace.sources[index] = next;
-  await writeJson(path.join(root(), "sources", "registry.json"), workspace.sources);
-  await regenerateExports();
+  const snapshot = await loadWorkspace();
+  const source = snapshot.sources.find((item) => item.id === safeId);
+  if (!source) throw new Error("Source not found.");
+  const mappings = await generateSourceMappings(snapshot, source);
+  const next = await withWorkspaceWrite(async () => {
+    const workspace = await loadWorkspace();
+    const index = workspace.sources.findIndex((item) => item.id === safeId);
+    if (index < 0) throw new Error("Source not found.");
+    const updated: Source = { ...workspace.sources[index]!, mappings, updated_at: new Date().toISOString() };
+    workspace.sources[index] = updated;
+    await writeJson(path.join(root(), "sources", "registry.json"), workspace.sources);
+    await writeExports();
+    return updated;
+  });
   const discovered = new Set(mappings.map((mapping) => mapping.upstream.trim().toLocaleLowerCase())).size;
   return {
     source: next,
@@ -677,17 +717,17 @@ export function removeSourceReferences(workspace: Pick<Workspace, "sources" | "c
   };
 }
 
-export async function deleteSource(id: string): Promise<void> {
+export const deleteSource = serialized(async (id: string): Promise<void> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const { sources, components, primitives, componentsChanged, primitivesChanged } = removeSourceReferences(workspace, safeId, new Date().toISOString());
   await writeJson(path.join(root(), "sources", "registry.json"), sources);
   if (componentsChanged) await writeJson(path.join(root(), "components", "decisions.json"), components);
   if (primitivesChanged) await writeJson(path.join(root(), "primitives", "decisions.json"), primitives);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
-export async function saveReference(id: string, input: ReferenceSaveInput): Promise<Reference> {
+export const saveReference = serialized(async (id: string, input: ReferenceSaveInput): Promise<Reference> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const index = workspace.references.findIndex((item) => item.id === safeId);
@@ -706,25 +746,30 @@ export async function saveReference(id: string, input: ReferenceSaveInput): Prom
   }
   if (index >= 0) workspace.references[index] = next; else workspace.references.unshift(next);
   await writeJson(path.join(root(), "references", "registry.json"), workspace.references);
-  await regenerateExports();
+  await writeExports();
   return next;
-}
+});
 
 export async function analyzeSavedReference(id: string): Promise<Reference> {
   const safeId = cleanId(id);
-  const workspace = await loadWorkspace();
-  const index = workspace.references.findIndex((item) => item.id === safeId);
-  if (index < 0) throw new Error("Reference not found.");
-  const current = workspace.references[index]!;
+  const snapshot = await loadWorkspace();
+  const current = snapshot.references.find((item) => item.id === safeId);
+  if (!current) throw new Error("Reference not found.");
   const result = await analyzeReference(current, path.join(root(), "references", "assets"));
-  const next = { ...current, ...result, preview_url: result.preview_url || current.preview_url, updated_at: new Date().toISOString() };
-  workspace.references[index] = next;
-  await writeJson(path.join(root(), "references", "registry.json"), workspace.references);
-  await regenerateExports();
-  return next;
+  return withWorkspaceWrite(async () => {
+    const workspace = await loadWorkspace();
+    const index = workspace.references.findIndex((item) => item.id === safeId);
+    if (index < 0) throw new Error("Reference not found.");
+    const latest = workspace.references[index]!;
+    const next = { ...latest, ...result, preview_url: result.preview_url || latest.preview_url, updated_at: new Date().toISOString() };
+    workspace.references[index] = next;
+    await writeJson(path.join(root(), "references", "registry.json"), workspace.references);
+    await writeExports();
+    return next;
+  });
 }
 
-export async function deleteReference(id: string): Promise<void> {
+export const deleteReference = serialized(async (id: string): Promise<void> => {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const reference = workspace.references.find((item) => item.id === safeId);
@@ -738,27 +783,29 @@ export async function deleteReference(id: string): Promise<void> {
   await writeJson(path.join(root(), "references", "registry.json"), references);
   await writeJson(path.join(root(), "references", "analysis.json"), analysis);
   if (reference.asset_path) await unlink(path.join(root(), "references", reference.asset_path)).catch(() => undefined);
-  await regenerateExports();
-}
+  await writeExports();
+});
 
 export async function analyzeReferences(): Promise<ReferenceCollectionAnalysis> {
   const workspace = await loadWorkspace();
   if (!workspace.references.length) throw new Error("Add at least one reference before analyzing the collection.");
   const analysis = await analyzeReferenceCollection(workspace);
-  await writeJson(path.join(root(), "references", "analysis.json"), analysis);
-  await regenerateExports();
+  await withWorkspaceWrite(async () => {
+    await writeJson(path.join(root(), "references", "analysis.json"), analysis);
+    await writeExports();
+  });
   return analysis;
 }
 
-export async function saveReferenceAnalysis(input: ReferenceCollectionAnalysis): Promise<ReferenceCollectionAnalysis> {
+export const saveReferenceAnalysis = serialized(async (input: ReferenceCollectionAnalysis): Promise<ReferenceCollectionAnalysis> => {
   const workspace = await loadWorkspace();
   const knownIds = new Set(workspace.referenceAnalysis.suggestions.map((item) => item.id));
   const statuses = new Map((Array.isArray(input.suggestions) ? input.suggestions : []).filter((item) => knownIds.has(item.id) && REFERENCE_SUGGESTION_STATUSES.includes(item.status)).map((item) => [item.id, item.status]));
   const next = { ...workspace.referenceAnalysis, suggestions: workspace.referenceAnalysis.suggestions.map((item) => ({ ...item, status: statuses.get(item.id) ?? item.status })) };
   await writeJson(path.join(root(), "references", "analysis.json"), next);
-  await regenerateExports();
+  await writeExports();
   return next;
-}
+});
 
 export async function readReferenceAsset(id: string): Promise<{ contents: Buffer; mediaType: string; filename: string }> {
   const safeId = cleanId(id);
@@ -892,7 +939,7 @@ export async function readGapImage(id: string): Promise<{ contents: Buffer; medi
  * touched; only what is absent is created.
  */
 export async function initializeStore(): Promise<void> {
-  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals"];
+  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals", "applications"];
   await Promise.all([
     ...directories.map((name) => mkdir(path.join(root(), name), { recursive: true })),
     mkdir(path.join(root(), "references", "assets"), { recursive: true }),
@@ -933,4 +980,4 @@ export async function initializeStore(): Promise<void> {
   }
 }
 
-export { cleanId, isMissing, parseFrontmatter, parsePrinciple, readDirectoryOrEmpty, readJson, renderFrontmatter, renderPrinciple, writeJson };
+export { atomicWrite, cleanId, isMissing, parseFrontmatter, parsePrinciple, readDirectoryOrEmpty, readJson, renderFrontmatter, renderPrinciple, writeJson };
