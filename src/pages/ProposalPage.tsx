@@ -7,6 +7,7 @@ import { ApiError, api } from "../api";
 import { PageHeader, formatDate } from "../components/Common";
 import { statusLabels, statuses } from "../domain";
 import { proposalActions } from "../proposalActions";
+import { useWorkspace } from "../WorkspaceContext";
 
 function message(error: unknown): string { return error instanceof Error ? error.message : "Something went wrong. Try again."; }
 
@@ -175,6 +176,7 @@ export function ProposalPage() {
 }
 
 function ProposalDetail({ id }: { id: string }) {
+  const { applyApprovedProposal } = useWorkspace();
   const navigate = useNavigate();
   const [proposal, setProposal] = useState<ProposalView | null>(null);
   const [error, setError] = useState("");
@@ -282,7 +284,7 @@ function ProposalDetail({ id }: { id: string }) {
     if (!window.confirm(`Apply approved revision ${revision} (hash ${short(hash)}) to canonical Monet?\n\nThis modifies ${plan.records.length} record${plan.records.length === 1 ? "" : "s"}: ${plan.records.map((record) => record.key).join(", ")}. Exports are regenerated and a receipt is written. Every check is rerun first; a failure after writing starts restores every file.`)) return;
     setBusy(true); setError(""); setNotice(""); setApplyOutcome(null);
     try {
-      const result = await api.applyProposal(id, { revision, hash });
+      const result = await applyApprovedProposal(id, { revision, hash });
       setProposal(result.proposal); setEditor(fromRevision(result.proposal.revisions[result.proposal.revisions.length - 1]));
       setApplyOutcome({ kind: result.outcome, message: result.outcome === "applied" ? `Revision ${revision} was written to canonical Monet, the exports were regenerated, and the workspace validated.` : "This revision had already been applied; nothing was written again.", receipt: result.receipt });
     } catch (caught) {
@@ -387,4 +389,3 @@ function ProposalDetail({ id }: { id: string }) {
     </>}
   </div>;
 }
-

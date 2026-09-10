@@ -39,7 +39,7 @@ function SidebarFooter() {
 }
 
 export function Layout() {
-  const { workspace, environment } = useWorkspace();
+  const { workspace, environment, editingBlocked, loading, error, reload } = useWorkspace();
   const navigate = useNavigate();
   const location = useLocation();
   const [query, setQuery] = useState("");
@@ -71,7 +71,10 @@ export function Layout() {
       <SidebarNavigation reviewCount={reviewCount} />
       <SidebarFooter />
     </aside>
-    <main className="main-shell"><div className="mobile-bar"><button className="mobile-menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(true)}>Menu</button><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button type="button" onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}>Search</button></div><Outlet /></main>
+    <main className="main-shell"><div className="mobile-bar"><button className="mobile-menu-button" type="button" aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(true)}>Menu</button><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button type="button" onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}>Search</button></div>
+      {editingBlocked && <div className="state-panel" role={error ? "alert" : "status"}><h2>{loading ? "Applying and refreshing Monet…" : "Editing is paused"}</h2><p>{error || "Canonical editors will reopen when the current workspace has been loaded."}</p>{!loading && <button className="button" onClick={() => void reload()}>Reload workspace</button>}</div>}
+      {(!editingBlocked || location.pathname.startsWith("/proposals/")) && <Outlet />}
+    </main>
     {menuOpen && <Modal className="mobile-navigation-backdrop" label="Mobile navigation" onClose={() => setMenuOpen(false)}><aside className="mobile-navigation" id="mobile-navigation"><header><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button className="dialog-close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>×</button></header><SidebarNavigation reviewCount={reviewCount} /><SidebarFooter /></aside></Modal>}
     {open && <Modal className="search-backdrop" label="Search Monet" onClose={() => setOpen(false)}><section className="search-dialog"><div className="search-input-row"><span aria-hidden="true">⌕</span><input autoFocus ref={input} aria-label="Search the design system" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search principles, foundations, components…" /><button className="dialog-close" type="button" aria-label="Close search" onClick={() => setOpen(false)}>×</button></div><div className="search-results">{!query && <div className="search-hint"><b>Find design knowledge</b><p>Try “layout”, “button”, “menu”, or an upstream item name.</p></div>}{query && results.length === 0 && <div className="search-hint"><b>No matches</b><p>Try a broader concept or alias.</p></div>}{results.map((result) => <button key={`${result.type}-${result.id}`} onClick={() => { void navigate(result.route); }}><span><small>{result.type}</small><b>{result.title}</b><p>{result.description}</p></span><i aria-hidden="true">→</i></button>)}</div></section></Modal>}
   </div>;
