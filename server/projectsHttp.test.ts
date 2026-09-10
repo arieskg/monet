@@ -35,6 +35,8 @@ it("guards project connection, discovery, capture and folder browsing with the s
     const record = await created.json() as { id: string; inventory: { kind: string; screens: { id: string }[] } };
     expect(record.inventory.kind).toBe("static"); expect(created.headers.get("cache-control")).toBe("no-store");
     const screen = record.inventory.screens[0]!.id;
+    expect((await post(`/api/project-connections/${record.id}`, { base_url: url })).status).toBe(400);
+    expect((await post(`/api/project-captures/${record.id}`, { screen_id: screen, source: { kind: "dev_server", base_url: url } })).status).toBe(400);
     expect((await post(`/api/project-captures/${record.id}`, { screen_id: screen, source: { kind: "dev_server", base_url: "http://evil.test:3000" } })).status).toBe(400);
     expect((await post(`/api/project-captures/${record.id}`, { screen_id: screen, route: "/x/:id", source: { kind: "static", directory: "" } })).status).toBe(400);
     expect((await post(`/api/project-captures/${record.id}`, { screen_id: screen, source: { kind: "static", directory: "../" } })).status).toBe(400);

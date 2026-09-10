@@ -30,7 +30,7 @@ export const CAPTURE_SCRIPT = String.raw`async (options) => {
   }
   var clone = root.cloneNode(true);
   var cloneAll = [clone].concat(Array.prototype.slice.call(clone.querySelectorAll("[data-monet-capture]")));
-  var assets = new Map(), assetOrder = [], assetBytes = 0, pseudo = 0, shadow = 0, unsupportedColors = 0, pairs = new Map();
+  var assets = new Map(), assetOrder = [], assetBytes = 0, pseudo = 0, shadow = 0, unsupportedColors = 0, replacements = 0, pairs = new Map();
   function isContainer(display, ws) { return /block|flex|grid|table|list-item|flow-root/.test(display) && !/^inline$/.test(display) && !/^pre/.test(ws); }
   for (var k = 0; k < cloneAll.length; k++) {
     var c = cloneAll[k]; var index = Number(c.getAttribute("data-monet-capture")); c.removeAttribute("data-monet-capture");
@@ -40,6 +40,7 @@ export const CAPTURE_SCRIPT = String.raw`async (options) => {
     if (REMOVE[tag] || hidden.has(live)) { c.remove(); continue; }
     if (live.shadowRoot) shadow++;
     if (PLACEHOLDER[tag]) {
+      replacements++;
       var rect = live.getBoundingClientRect(); var span = doc.createElement("span");
       span.setAttribute("style", "display:inline-block;width:" + Math.round(rect.width) + "px;height:" + Math.round(rect.height) + "px;vertical-align:middle;background-color:" + (lcs && lcs.backgroundColor !== "rgba(0, 0, 0, 0)" ? lcs.backgroundColor : "rgba(127, 127, 127, 0.15)"));
       span.setAttribute("role", "img"); span.setAttribute("aria-label", live.getAttribute("aria-label") || tag + " placeholder");
@@ -71,7 +72,7 @@ export const CAPTURE_SCRIPT = String.raw`async (options) => {
     if (lcs && wantComputed) { try { if (getComputedStyle(live, "::before").content !== "none" || getComputedStyle(live, "::after").content !== "none") pseudo++; } catch (e) {} }
   }
   var stylesheetHtml = "<!DOCTYPE html>" + clone.outerHTML;
-  var css = "", styleRules = 0, cssTruncated = false, skippedRules = 0;
+  var css = "", styleRules = 0, cssTruncated = false, skippedRules = 0, stylesheetLossy = false;
   function emit(list, depth) {
     if (!list || depth > 8) return;
     for (var r = 0; r < list.length; r++) {
@@ -81,7 +82,7 @@ export const CAPTURE_SCRIPT = String.raw`async (options) => {
       else if (rule.type === 3) { try { if (rule.styleSheet) emit(rule.styleSheet.cssRules, depth + 1); } catch (e) { warnings.push("An imported stylesheet was not readable and was skipped."); } }
       else if (rule.type === 4) { var media = rule.media.mediaText; if (/print/.test(media) && !/screen|all/.test(media)) continue; css += "@media " + media + "{\n"; emit(rule.cssRules, depth + 1); css += "}\n"; }
       else if (rule.type === 12) { try { if (CSS.supports(rule.conditionText)) emit(rule.cssRules, depth + 1); } catch (e) {} }
-      else if (ctor === "CSSLayerBlockRule") emit(rule.cssRules, depth + 1);
+      else if (ctor === "CSSLayerBlockRule") { stylesheetLossy = true; emit(rule.cssRules, depth + 1); }
       else skippedRules++;
     }
   }
@@ -90,13 +91,15 @@ export const CAPTURE_SCRIPT = String.raw`async (options) => {
   for (var s = 0; s < sheets.length; s++) {
     var sheet = sheets[s]; if (sheet.disabled) continue;
     if (sheet.media && /^print$/i.test(sheet.media.mediaText || "")) continue;
-    try { emit(sheet.cssRules, 0); } catch (e) { warnings.push("A stylesheet was not readable (cross-origin or blocked) and was skipped: " + (sheet.href ? String(sheet.href).slice(0, 120) : "inline")); }
+    try { var mediaText = sheet.media && sheet.media.mediaText; if (mediaText) css += "@media " + mediaText + "{\n"; emit(sheet.cssRules, 0); if (mediaText) css += "}\n"; } catch (e) { warnings.push("A stylesheet was not readable (cross-origin or blocked) and was skipped: " + (sheet.href ? String(sheet.href).slice(0, 120) : "inline")); }
   }
+  if (stylesheetLossy) warnings.push("Cascade layers were flattened; stylesheet capture may change precedence. Automatic capture uses computed styles when available.");
+  if (replacements) warnings.push(replacements + " SVG, canvas or media elements were replaced by placeholders; compare with the screenshot.");
   if (cssTruncated) warnings.push("Stylesheets exceed the " + Math.round(limits.css / 1000) + " KB CSS limit; later rules were left out.");
   if (skippedRules) warnings.push(skippedRules + " font, keyframe, container, page or property rules are outside the static Surface boundary and were skipped.");
   var computedHtml = "";
   if (wantComputed) {
-    function skipValue(v) { return !v || v === "none" || v === "normal" || v === "auto" || v === "0px" || v === "rgba(0, 0, 0, 0)" || v.indexOf("url(") >= 0; }
+    function skipValue(v) { return !v || v === "rgba(0, 0, 0, 0)" || v.indexOf("url(") >= 0; }
     function color(v) { if (/^rgba?\(/.test(v)) return v; unsupportedColors++; return ""; }
     var mapClone = pairs;
     if (mapClone.size) {
@@ -170,5 +173,5 @@ export const CAPTURE_SCRIPT = String.raw`async (options) => {
   var out = [];
   assets.forEach(function (record) { if (record && record.data_url) out.push({ filename: record.filename, data_url: record.data_url }); });
   var count = 0, walker = doc.createTreeWalker(clone, 5); while (walker.nextNode()) count++;
-  return { title: String(doc.title || "").slice(0, 300), html: stylesheetHtml, computed_html: computedHtml, css: css, style_rules: styleRules, assets: out, warnings: warnings.slice(0, 50), node_count: count + 1 };
+  return { title: String(doc.title || "").slice(0, 300), html: stylesheetHtml, computed_html: computedHtml, css: css, stylesheet_lossy: stylesheetLossy, style_rules: styleRules, assets: out, warnings: warnings.slice(0, 50), node_count: count + 1 };
 }`;

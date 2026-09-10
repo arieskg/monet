@@ -82,6 +82,7 @@ export const disconnectProject = (id: string): Promise<void> => withWorkspaceWri
 export const rescanProject = (id: string): Promise<ProjectRecord> => withWorkspaceWrite(async () => {
   const record = await readRecord(id);
   await lstat(record.root).then((s) => { if (!s.isDirectory()) throw conflict("The project directory is no longer a directory.", 400); }, () => { throw conflict("The project directory no longer exists. Disconnect it or move it back.", 400); });
+  if (await canonicalProjectRoot(record.root) !== record.root) throw conflict("Project root moved or became a link.");
   const inventory = await scanProject(record.root);
   for (const screen of inventory.screens) { const previous = record.inventory.screens.find((s) => s.id === screen.id); if (previous?.ai_label) { screen.ai_label = previous.ai_label; screen.ai_summary = previous.ai_summary; } }
   if (record.inventory.ai && inventory.screens.some((s) => s.ai_label)) inventory.ai = record.inventory.ai;
@@ -104,7 +105,7 @@ export async function interpretProject(id: string, env: NodeJS.ProcessEnv = proc
   try {
     const raw = interpretationSchema.parse(await run({ label: "Screen interpretation", prompt, schema: z.toJSONSchema(interpretationSchema), modelVariable: "MONET_PROJECT_MODEL", effortVariable: "MONET_PROJECT_REASONING_EFFORT", timeoutVariable: "MONET_PROJECT_TIMEOUT_SECONDS" }, env));
     const known = new Set(record.inventory.screens.map((s) => s.id));
-    for (const entry of raw.screens) { if (!known.has(entry.screen_id)) throw new Error("Unknown screen id"); labels.set(entry.screen_id, { label: entry.label, summary: entry.summary }); }
+    for (const entry of raw.screens) { if (!known.has(entry.screen_id) || labels.has(entry.screen_id)) throw new Error("Unknown or duplicate screen id"); labels.set(entry.screen_id, { label: entry.label, summary: entry.summary }); }
     ai = { status: "complete", interpreted_at: new Date().toISOString(), message: `AI suggested labels for ${labels.size} of ${known.size} screens. Routes and files are unchanged.` };
   } catch { labels = new Map(); ai = { status: "failed", interpreted_at: new Date().toISOString(), message: "AI interpretation failed or returned screens outside this inventory. Deterministic labels remain." }; }
   return withWorkspaceWrite(async () => {
@@ -172,8 +173,9 @@ async function chooseInput(raw: RawCapture, request: z.output<typeof projectCapt
   if (stylesheet) {
     const snapshot = await sanitizeSurface(stylesheet);
     const removed = selectorRemovals(snapshot.issues);
-    if (!computed || raw.style_rules === 0 || removed / Math.max(raw.style_rules, 1) <= 0.35) return { input: stylesheet, strategy: "stylesheet", rules: raw.style_rules, rules_removed: removed, warnings };
-    warnings.push(`Stylesheet capture would drop ${removed} of ${raw.style_rules} style rules (framework or complex selectors); computed styles were inlined instead, so custom properties are not mappable in this Surface.`);
+    if (!computed || !raw.stylesheet_lossy && (raw.style_rules === 0 || removed / Math.max(raw.style_rules, 1) <= 0.35)) return { input: stylesheet, strategy: "stylesheet", rules: raw.style_rules, rules_removed: removed, warnings };
+    if (raw.stylesheet_lossy) warnings.push("Computed styles were selected because flattening cascade layers can change authored precedence.");
+    if (!raw.stylesheet_lossy) warnings.push(`Stylesheet capture would drop ${removed} of ${raw.style_rules} style rules (framework or complex selectors); computed styles were inlined instead, so custom properties are not mappable in this Surface.`);
     return { input: computed, strategy: "computed", rules: raw.style_rules, rules_removed: removed, warnings };
   }
   if (computed) { warnings.push("The authored stylesheets exceeded the Surface limits; computed styles were inlined instead."); return { input: computed, strategy: "computed", rules: raw.style_rules, rules_removed: 0, warnings }; }
@@ -183,6 +185,7 @@ async function chooseInput(raw: RawCapture, request: z.output<typeof projectCapt
 export async function captureProjectScreen(id: string, raw: unknown, env: NodeJS.ProcessEnv = process.env, capture: typeof captureScreen = captureScreen): Promise<ProjectCaptureResult> {
   const request = projectCaptureSchema.parse(raw);
   const project = await withWorkspaceRead(() => readRecord(id));
+  if (await canonicalProjectRoot(project.root) !== project.root) throw conflict("Project root moved or became a link.");
   const screen = project.inventory.screens.find((s) => s.id === request.screen_id);
   if (!screen) throw conflict("Unknown screen for this project. Rescan the project.", 404);
   let route = screen.route;
@@ -205,8 +208,10 @@ export async function captureProjectScreen(id: string, raw: unknown, env: NodeJS
   try { rawCapture = await capture({ url: base + route, port, width: request.width, height: request.height, mode: request.mode, strategy: request.strategy }, env); }
   finally { await close?.(); }
   const chosen = await chooseInput(rawCapture, request, screen, project);
-  const provenance: SurfaceCapture = { project_id: project.id, binding_revision: project.binding_revision, project_name: project.name, screen_id: screen.id, screen_label: screen.ai_label ?? screen.label, route, source: request.source.kind === "dev_server" ? { kind: "dev_server", base_url: base } : request.source,
-    strategy: chosen.strategy, captured_at: new Date().toISOString(), width: request.width, height: request.height, mode: request.mode, browser: rawCapture.browser, blocked: rawCapture.blocked, warnings: [...rawCapture.warnings, ...chosen.warnings].slice(0, 100) };
+  const capturedRoute = rawCapture.final_path;
+  if (!capturedRoute.startsWith("/") || capturedRoute.length > 500) throw new SurfaceError("The captured route is invalid or too long.", 502);
+  const provenance: SurfaceCapture = { project_id: project.id, binding_revision: project.binding_revision, project_name: project.name, screen_id: screen.id, screen_label: screen.label, route: capturedRoute, source: request.source.kind === "dev_server" ? { kind: "dev_server", base_url: base } : request.source,
+    strategy: chosen.strategy, captured_at: new Date().toISOString(), width: request.width, height: request.height, mode: request.mode, browser: rawCapture.browser, blocked: rawCapture.blocked, warnings: [...rawCapture.warnings, ...chosen.warnings, ...(capturedRoute !== route ? [`The selected path redirected from ${route.slice(0, 100)} to ${capturedRoute.slice(0, 100)}. The screen label identifies the selection, not the destination.`] : [])].slice(0, 100) };
   const entry = storeCapture(chosen.input, provenance);
   const preview = await previewSurface({ capture_id: entry.id, selection: { mode: request.mode, ...(workspaceScope().identity ? { profile_id: workspaceScope().identity!.id } : {}) } });
   await withWorkspaceWrite(async () => {

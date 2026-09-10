@@ -94,7 +94,14 @@ Monet static file server ┴─(loopback URL)──▶ isolated headless Chromiu
   true `@supports`), so custom properties remain mappable. **Computed strategy** inlines a curated
   set of computed declarations per element for framework/utility CSS the sanitizer cannot keep.
   **Auto** uses stylesheets unless more than 35% of style rules would be removed or the document
-  exceeds the 300 KB limits, then falls back to computed and says so.
+  exceeds the 300 KB limits, or cascade layers require flattening, then falls back to computed and says so.
+  Live CSSOM declarations may themselves be script-generated; they do not attest source authorship.
+  Forced stylesheet capture warns that flattening layers can change precedence. Stylesheet media
+  conditions are retained; computed capture retains zero values and inherited-value resets.
+  Computed declarations include browser defaults and inheritance at one viewport and appearance;
+  they do not attest authored intent, token usage, semantic roles or rendered conformance. Every
+  strategy is sanitized afterward. The screenshot records appearance separately from the static
+  approximation, and SVG/canvas/media replacements are reported.
 - `server/projectStore.ts`: records, binding, finder, connection probe, capture pipeline.
   `server/captureLedger.ts`: capture ids. `server/surfaceStore.ts` accepts `capture_id` beside
   `input` and stores attested provenance.
@@ -109,20 +116,30 @@ and editor-origin checks, body limits and Profile scoping. Added:
   regular files only.
 - **Capture isolation.** Headless browser with a throwaway profile, no storage state, service
   workers blocked, downloads refused, popups closed, dialogs dismissed, reduced motion, fixed
-  viewport, hard 60-second deadline, one capture at a time. Egress is denied twice: Chromium's host
-  resolver maps every name except loopback to NOTFOUND, and Playwright routing aborts any HTTP or
-  WebSocket request that is not the capture origin's own loopback port. Blocked hosts are counted
-  and shown. Only plain `http://` loopback URLs without credentials are accepted, never Monet's own
-  ports.
+  viewport, 60-second deadline including browser launch (plus bounded browser cleanup), one capture
+  at a time. A temporary HTTP forwarding proxy checks the exact selected hostname and port on every
+  hop, including redirects; it connects only to a literal loopback address. `localhost` is pinned
+  to IPv4 loopback; use `[::1]` for an IPv6-only app. Chromium's implicit loopback proxy bypass is
+  disabled. WebRTC non-proxied UDP and QUIC are disabled; WebSockets and CONNECT tunnels are refused
+  (including HMR). DNS denial and Playwright request interception are additional defenses, not the
+  network boundary. Blocked HTTP destinations are counted and shown. Only plain `http://` loopback
+  URLs without credentials are accepted, never Monet's own actual listening or editor ports.
 - **Untrusted page output.** The page's scripts can tamper with DOM APIs; the serializer's result is
   shape-validated (sizes, counts, asset names) and then fully sanitized like a pasted capture.
   Password, hidden and file inputs are dropped in-page and again by the sanitizer. Page-controlled
   exception text never reaches the editor.
 - **Attested provenance.** The editor never posts captured HTML or provenance; it posts a capture
-  id that resolves only within the capturing Profile and is consumed on save. Contradictory
-  `project` evidence is refused; stored provenance is re-validated on read.
+  id that resolves only within the capturing Profile and is consumed on save under the write lock.
+  Expiry and consumption are rechecked there. The final URL path/query is recorded; a redirect
+  notice explains when it differs from the selection. Screen labels are deterministic selection
+  labels, not provider attestations about destination content. Contradictory `project` evidence
+  is refused in Surface revisions and Gap handoffs; stored provenance is re-validated on read.
 - **Profile binding.** Project roots may not contain or live inside a Profile or the library, nor
-  be the home directory or filesystem root. Records outside their binding are refused.
+  be the home directory or filesystem root. Roots are rechecked before rescan and capture, including
+  replacement by a symlink. Records outside their binding are refused. Configuration/source reads
+  and static serving reject symlinks in every component and multiply linked files, use bounded
+  regular-file descriptors, and exclude hidden/generated dependency paths. Static serving permits
+  only its supported web-asset extensions and never lists directories.
 - **Privacy.** The capture shows whatever the app displays, including real data; the UI says so.
   Folder browsing lists directory names only. Neither project paths, inventories nor captures
   enter `Workspace`, retrieval, exports or MCP.
@@ -161,7 +178,19 @@ commit message for measured results. AriesKG was not available locally.
 - The static boundary is unchanged: fonts, keyframes, container queries, `:where`/`:is`/`:has`
   selectors, generated content and shadow DOM are outside it; computed strategy trades mappable
   custom properties for fidelity.
+- Hidden-content pruning removes `display:none` subtrees and password/hidden/file inputs. It is not
+  a general secrets scrubber: offscreen, transparent or `visibility:hidden` DOM text may remain
+  in a saved snapshot. Use test data and inspect the sanitized document, not only the screenshot.
 - Captures are not persisted before save; a service restart drops unsaved captures.
 - The capture browser is a local process boundary, not a sandbox against a hostile local machine.
+- The operator-selected dev server is trusted: Monet cannot prove that an arbitrary local port
+  serves the connected directory, prevent that server from proxying elsewhere, or hide non-hidden
+  application data deliberately served there. Static roots should contain only material intended
+  for the application; JSON/text assets are not automatically classified for secrets. Hostile local
+  processes racing filesystem replacement, browser exploits and OS-level memory exhaustion are
+  outside this boundary. Browser flags must be regression-tested when changing Chromium versions.
+- Network counters include browser background requests and are observations from HTTP interception/proxy handling, not a packet audit.
+  Switching Profiles leaves submitted work running in its original Profile; there is no user
+  cancellation endpoint. A hung capture is terminated by the deadline.
 - Deferred: Profile inheritance, presets, `DESIGN.md` importing, semantic redesign, automatic
   component replacement, Theme removal, capture of authenticated states, and additional browser engines.

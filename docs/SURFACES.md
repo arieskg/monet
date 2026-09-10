@@ -88,8 +88,11 @@ Unsupported target modes explicitly disclose the resolved fallback.
 The existing shared token/theme resolution is authoritative. No separate light or
 dark palette or Preview defaults are introduced. Conformance reuses the shared
 service, including its light-resolution comparison during a dark-mode review.
-Only the first 200 supported authored declarations are submitted. These are not
-computed styles: cascade, indirect variable consumers, contrast pairs, interaction,
+Only the first 200 supported declarations are submitted. Manual imports retain authored
+declaration evidence. Project stylesheet captures contain live CSSOM/inline declarations,
+which scripts may have generated; computed captures contain browser-resolved values from
+one viewport and appearance, including inheritance and defaults. Neither establishes source
+intent or token usage. Cascade, indirect variable consumers, contrast pairs, interaction,
 component identity and role correctness are not established. No source parsing is
 added to `shared/review.ts`, and no MCP tool changes are required.
 

@@ -21,7 +21,7 @@ function DirectoryBrowser({ start, onPick, onClose }: { start: string; onPick: (
       <div className="surface-toolbar"><code className="directory-path">{listing.path}</code></div>
       <div className="surface-toolbar"><button type="button" className="button ghost micro" disabled={!listing.parent} onClick={() => setTarget(listing.parent ?? "")}>↑ Up one level</button><button type="button" className="button ghost micro" onClick={() => setTarget(listing.home)}>Home</button></div>
       <ul className="directory-entries">{listing.entries.map((entry) => <li key={entry.path}><button type="button" onClick={() => setTarget(entry.path)}>{entry.name}/</button></li>)}{listing.entries.length === 0 && <li className="muted">No subfolders</li>}</ul>
-      {listing.truncated && <p className="muted">Only the first 300 folders are shown.</p>}
+      {listing.truncated && <p className="muted">Folder listing reached its scan or display limit.</p>}
       <div className="surface-toolbar"><button type="button" className="button" onClick={onClose}>Cancel</button><button type="button" className="button primary" onClick={() => onPick(listing.path)}>Use this folder</button></div>
     </>}
   </div></Modal>;
@@ -78,9 +78,10 @@ function ProjectDetail({ id }: { id: string }) {
   }, [id, attempt]);
   const screens = useMemo(() => project?.inventory.screens ?? [], [project]);
   const keywordMatches = useMemo(() => query.trim() ? matchScreens(screens, query) : null, [screens, query]);
-  const visible = keywordMatches ? keywordMatches.map((m) => screens.find((s) => s.id === m.screen_id)!).filter(Boolean) : screens;
+
   const current = screens.find((s) => s.id === selected);
   const aiMatches = finder?.query === query ? finder.ai.matches : [];
+  const visible = keywordMatches ? [...new Set([...aiMatches.map((m) => m.screen_id), ...keywordMatches.map((m) => m.screen_id)])].map((id) => screens.find((s) => s.id === id)!).filter(Boolean) : screens;
   async function act<T>(label: string, work: () => Promise<T>, then: (value: T) => void) {
     setBusy(label); setError("");
     try { then(await work()); } catch (caught) { setError(message(caught)); } finally { setBusy(""); }

@@ -266,6 +266,7 @@ const server = createServer(async (request, response) => {
 });
 server.listen(PORT, "127.0.0.1", () => {
   const address = server.address();
+  if (typeof address === "object" && address) process.env.MONET_PORT = String(address.port);
   console.log(`Monet file service: http://127.0.0.1:${typeof address === "object" && address ? address.port : PORT}`);
   console.log(`Original workspace: ${workspaceDirectory}`);
 });

@@ -1,4 +1,5 @@
-import { cp, mkdir, mkdtemp, readFile, realpath, rm, symlink, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, realpath, rename, rm, symlink, writeFile } from "node:fs/promises";
+import { createGap, getGap } from "./fileStore.js";
 import { request as httpRequest } from "node:http";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -9,7 +10,7 @@ import { clearCaptureLedger, readCapture, storeCapture } from "./captureLedger.j
 import { ProfileRegistry } from "./profileRegistry.js";
 import { BUNDLED_WORKSPACE, setWorkspaceRoot, withProfile, type ProfileScope } from "./workspace.js";
 import { captureProjectScreen, checkProjectConnection, connectProject, disconnectProject, findScreens, getProject, interpretProject, listProjects, rescanProject } from "./projectStore.js";
-import { getSurface, listSurfaces, previewSurface, reviseSurface, saveSurface } from "./surfaceStore.js";
+import { deleteSurface, getSurface, listSurfaces, previewSurface, reviseSurface, saveSurface, surfaceToGap } from "./surfaceStore.js";
 import type { RawCapture } from "./projectCapture.js";
 import type { SurfaceCapture } from "../shared/projects.js";
 import type { ProviderTask } from "./aiProvider.js";
@@ -38,7 +39,7 @@ describe("bounded deterministic discovery", () => {
   it("derives Next.js app and pages routes by convention, skipping parallel, private and API paths", async () => {
     const root = await tree(path.join(directory, "next"), { "package.json": pkg({ next: "15", react: "19" }, { dev: "next dev -p 3100" }), "app/page.tsx": "export default () => <h1>Dashboard overview</h1>", "app/(marketing)/pricing/page.tsx": "x", "app/blog/[slug]/page.tsx": "x", "app/@modal/page.tsx": "x", "app/_private/page.tsx": "x", "app/api/route.ts": "x", "pages/legacy.tsx": "x", "pages/api/hello.ts": "x", "pages/_app.tsx": "x", "pages/docs/[...parts].tsx": "x", "yarn.lock": "" });
     const inventory = await scanProject(root);
-    expect(inventory.kind).toBe("next"); expect(inventory.default_port).toBe(3100); expect(inventory.dev_command).toBe(`cd ${JSON.stringify(root)} && yarn run dev`);
+    expect(inventory.kind).toBe("next"); expect(inventory.default_port).toBe(3100); expect(inventory.dev_command).toBe(`cd '${root}' && yarn run dev`);
     expect(inventory.screens.map((s) => s.route)).toEqual(["/", "/blog/:slug", "/docs/:parts", "/legacy", "/pricing"]);
     expect(inventory.screens.find((s) => s.route === "/blog/:slug")).toMatchObject({ kind: "dynamic_route", parameters: ["slug"] });
     expect(inventory.notices.join(" ")).toMatch(/Dynamic routes need a real parameter/);
@@ -213,5 +214,49 @@ describe("Profile-bound project records and capture pipeline", () => {
     const hostile = raw({ html: '<!DOCTYPE html><html><head></head><body><script>parent.pwned=1</script><img src="https://evil.test/x" onerror="alert(1)"><p>Safe</p></body></html>' });
     const result = await withProfile(a, () => captureProjectScreen(record.id, { screen_id: home.id, source: { kind: "static", directory: "" } }, {}, async () => hostile));
     expect(result.preview.original).not.toMatch(/<script|onerror|evil\.test/); expect(result.preview.original).toContain("Safe");
+  });
+  it("does not redeem one capture twice concurrently and labels computed evidence accurately", async () => {
+    const record = await withProfile(a, () => connectProject({ root: project }));
+    const result = await withProfile(a, () => captureProjectScreen(record.id, { screen_id: record.inventory.screens[0]!.id, source: { kind: "static", directory: "" }, strategy: "computed" }, {}, async () => raw()));
+    const saves = await Promise.allSettled([1, 2].map(() => withProfile(a, () => saveSurface({ capture_id: result.capture_id, selection: {} }))));
+    expect(saves.filter((s) => s.status === "fulfilled")).toHaveLength(1);
+    expect(result.preview.run.review.scope).toContain("computed");
+    expect(result.preview.run.review.scope).not.toContain("authored declarations only");
+  });
+  it("records the final captured route after a same-app redirect", async () => {
+    const record = await withProfile(a, () => connectProject({ root: project }));
+    const result = await withProfile(a, () => captureProjectScreen(record.id, { screen_id: record.inventory.screens[0]!.id, source: { kind: "static", directory: "" } }, {}, async () => raw({ final_path: "/login" })));
+    expect(result.capture.route).toBe("/login");
+  });
+  it("keeps delayed AI, capture, save and Gap work in their original Profile", async () => {
+    const record = await withProfile(a, () => connectProject({ root: project }));
+    const screen = record.inventory.screens[0]!;
+    let release!: () => void, started!: () => void;
+    const gate = { promise: new Promise<void>((resolve) => { release = resolve; }), resolve: () => release() };
+    const begun = { promise: new Promise<void>((resolve) => { started = resolve; }), resolve: () => started() };
+    const capturing = withProfile(a, () => captureProjectScreen(record.id, { screen_id: screen.id, source: { kind: "static", directory: "" } }, {}, async () => { begun.resolve(); await gate.promise; return raw(); }));
+    const finding = withProfile(a, () => findScreens(record.id, { query: "welcome", ai: true }, { MONET_AI_COMMAND: "fake" }, async () => { await gate.promise; return { matches: [{ screen_id: screen.id, confidence: "high", reason: "Welcome" }] }; }));
+    await begun.promise;
+    expect(await withProfile(b, listProjects)).toEqual([]);
+    gate.resolve();
+    const result = await capturing;
+    expect((await finding).ai.matches[0]?.screen_id).toBe(screen.id);
+    await expect(withProfile(b, () => saveSurface({ capture_id: result.capture_id, selection: {} }))).rejects.toThrow(/not found/);
+    const saved = await withProfile(a, () => saveSurface({ capture_id: result.capture_id, selection: {} }));
+    const gap = await withProfile(a, () => surfaceToGap(saved.saved!.id, { revision: 1, problem: "Review this observation", expected: "Match the intended style", issue_ids: [saved.run.issues[0]!.id], include_screenshot: false }));
+    expect(gap.profile_id).toBe(a.identity!.id);
+    const other = await withProfile(a, () => connectProject({ root: project, name: "Another binding" }));
+    await expect(withProfile(a, () => createGap({ ...gap.report, project: { project_id: other.id, binding_revision: 1 } }))).rejects.toThrow(/does not match saved Surface/);
+    await expect(withProfile(b, () => getGap(gap.id))).rejects.toThrow();
+    await withProfile(a, () => deleteSurface(saved.saved!.id));
+    expect((await withProfile(a, () => getGap(gap.id))).report.provenance).toEqual(gap.report.provenance);
+  });
+  it("refuses a project root replaced with a Profile symlink before capture", async () => {
+    const record = await withProfile(a, () => connectProject({ root: project }));
+    await rename(project, project + "-moved"); await symlink(a.root, project);
+    const fake = vi.fn(async () => raw());
+    await expect(withProfile(a, () => captureProjectScreen(record.id, { screen_id: record.inventory.screens[0]!.id, source: { kind: "static", directory: "" } }, {}, fake))).rejects.toThrow(/Profile|moved|link/);
+    expect(fake).not.toHaveBeenCalled();
+    await expect(withProfile(a, () => rescanProject(record.id))).rejects.toThrow();
   });
 });

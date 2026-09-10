@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
-import { lstat, readFile, realpath } from "node:fs/promises";
+import { lstat, realpath } from "node:fs/promises";
 import path from "node:path";
+import { privateProjectSegment, readProjectFile } from "./projectFiles.js";
 
 /**
  * A throwaway loopback file server for capturing a static or built project without running any
@@ -16,14 +17,15 @@ export async function startStaticServer(projectRoot: string, directory: string):
   const root = await realpath(projectRoot);
   if (directory.split(/[\\/]/).some((p) => p === "..") || path.isAbsolute(directory)) throw Object.assign(new Error("Static directory must be relative to the project."), { status: 400 });
   const base = await realpath(path.join(root, directory));
+  if (base !== path.join(root, directory)) throw new Error("Static directory contains a link.");
   if (base !== root && !base.startsWith(root + path.sep)) throw Object.assign(new Error("Static directory escapes the project root."), { status: 400 });
   const index = path.join(base, "index.html");
   const spa = await lstat(index).then((s) => s.isFile(), () => false);
-  async function resolve(pathname: string): Promise<{ file: string; type: string } | null> {
+  async function resolve(pathname: string): Promise<{ contents: Buffer; type: string } | null> {
     let decoded: string;
     try { decoded = decodeURIComponent(pathname); } catch { return null; }
     // No traversal, and no dotfiles: `.env`, `.git` and similar never reach the capture browser.
-    if (decoded.includes("\0") || decoded.split("/").some((p) => p === ".." || p.startsWith(".") && p !== ".well-known")) return null;
+    if (decoded.includes("\0") || decoded.includes("\\") || decoded.split("/").some((p) => p === ".." || privateProjectSegment(p))) return null;
     const candidates = [decoded.endsWith("/") ? decoded + "index.html" : decoded];
     // Clean URLs for static pages (`/about` → about.html, `/docs` → docs/index.html), then the history
     // fallback for client-side routes: extension-less paths without a trailing slash only.
@@ -31,11 +33,11 @@ export async function startStaticServer(projectRoot: string, directory: string):
     for (const candidate of candidates) {
       const target = path.join(base, candidate);
       if (target !== base && !target.startsWith(base + path.sep)) continue;
-      let real: string; try { real = await realpath(target); } catch { continue; }
-      if (real !== base && !real.startsWith(base + path.sep)) continue;
-      const stat = await lstat(real).catch(() => null);
-      if (!stat?.isFile() || stat.size > MAX_FILE) continue;
-      return { file: real, type: TYPES[path.extname(real).toLowerCase()] ?? "application/octet-stream" };
+      if (!TYPES[path.extname(target).toLowerCase()]) continue;
+      try {
+        const contents = await readProjectFile(base, path.relative(base, target), MAX_FILE, true);
+        return { contents, type: TYPES[path.extname(target).toLowerCase()] ?? "application/octet-stream" };
+      } catch { continue; }
     }
     return null;
   }
@@ -46,7 +48,7 @@ export async function startStaticServer(projectRoot: string, directory: string):
       const url = new URL(request.url ?? "/", "http://127.0.0.1");
       const found = await resolve(url.pathname);
       if (!found) { response.writeHead(404, { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" }); response.end("Not found"); return; }
-      const contents = await readFile(found.file);
+      const contents = found.contents;
       response.writeHead(200, { "content-type": found.type, "content-length": contents.length, "cache-control": "no-store", "x-content-type-options": "nosniff" });
       response.end(request.method === "HEAD" ? undefined : contents);
     } catch { response.writeHead(500); response.end(); }

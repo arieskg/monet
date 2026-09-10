@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { lstat, open, readdir, realpath } from "node:fs/promises";
+import { lstat, opendir, realpath } from "node:fs/promises";
 import path from "node:path";
+import { PROJECT_IGNORED, readProjectFile } from "./projectFiles.js";
 import { PROJECT_LIMITS, humanizeRoute, type ProjectInventory, type ProjectKind, type ProjectScreen } from "../shared/projects.js";
 
 /**
@@ -10,14 +11,12 @@ import { PROJECT_LIMITS, humanizeRoute, type ProjectInventory, type ProjectKind,
  * layout; route derivation is by convention plus literal route strings. Anything it cannot
  * establish is reported as a notice, never guessed.
  */
-const IGNORED = new Set(["node_modules", ".git", ".next", ".nuxt", ".svelte-kit", ".astro", ".cache", ".turbo", ".vercel", ".claude", "coverage", "test-results", "playwright-report", "__pycache__", ".venv", "venv", "vendor", "target"]);
+const IGNORED = PROJECT_IGNORED;
 const BUILD_DIRS = ["dist", "build", "out", "_site", "site", "public"];
 const missing = (e: unknown) => (e as NodeJS.ErrnoException).code === "ENOENT";
 
-async function readPrefix(file: string, limit: number): Promise<string> {
-  const handle = await open(file, "r");
-  try { const { bytesRead, buffer } = await handle.read(Buffer.alloc(limit), 0, limit, 0); return buffer.toString("utf8", 0, bytesRead); }
-  finally { await handle.close(); }
+async function readPrefix(root: string, relative: string, limit: number): Promise<string> {
+  return (await readProjectFile(root, relative, limit)).toString("utf8");
 }
 /** Iterative walk with an entry budget; symlinks are recorded and never followed. */
 async function walk(root: string, notices: string[]): Promise<{ files: string[]; entries: number; truncated: boolean }> {
@@ -26,7 +25,10 @@ async function walk(root: string, notices: string[]): Promise<{ files: string[];
   while (queue.length) {
     const [relative, depth] = queue.shift()!;
     let names: string[];
-    try { names = (await readdir(path.join(root, relative))).sort(); } catch (e) { if (missing(e)) continue; notices.push(`Could not read ${relative || "."}: ${(e as Error).message}`); continue; }
+    try { names = [];
+      const dir = await opendir(path.join(root, relative));
+      for await (const entry of dir) { names.push(entry.name); if (names.length > PROJECT_LIMITS.entries - entries) { truncated = true; break; } }
+      names.sort(); } catch (e) { if (missing(e)) continue; notices.push(`Could not read ${relative || "."}: ${(e as Error).message}`); continue; }
     for (const name of names) {
       if (++entries > PROJECT_LIMITS.entries) { truncated = true; break; }
       if (name.startsWith(".") && name !== ".well-known" || IGNORED.has(name)) continue;
@@ -34,7 +36,7 @@ async function walk(root: string, notices: string[]): Promise<{ files: string[];
       let stat; try { stat = await lstat(path.join(root, child)); } catch { continue; }
       if (stat.isSymbolicLink()) { symlinks++; continue; }
       if (stat.isDirectory()) { if (depth < PROJECT_LIMITS.depth) queue.push([child, depth + 1]); continue; }
-      if (stat.isFile()) files.push(child);
+      if (stat.isFile() && stat.nlink === 1) files.push(child);
     }
     if (truncated) break;
   }
@@ -50,7 +52,7 @@ async function readPackage(root: string, notices: string[]): Promise<PackageInfo
   if (!stat.isFile()) return null;
   if (stat.size > PROJECT_LIMITS.packageBytes) { notices.push("package.json exceeds 256 KB and was not read."); return { deps: new Set(), scripts: {} }; }
   try {
-    const parsed = JSON.parse(await readPrefix(file, PROJECT_LIMITS.packageBytes)) as { name?: unknown; dependencies?: unknown; devDependencies?: unknown; scripts?: unknown };
+    const parsed = JSON.parse(await readPrefix(root, "package.json", PROJECT_LIMITS.packageBytes)) as { name?: unknown; dependencies?: unknown; devDependencies?: unknown; scripts?: unknown };
     const deps = new Set<string>();
     for (const group of [parsed.dependencies, parsed.devDependencies]) if (group && typeof group === "object") for (const key of Object.keys(group)) deps.add(key);
     const scripts: Record<string, string> = {};
@@ -71,18 +73,18 @@ function detectKind(pkg: PackageInfo | null, files: string[]): { kind: ProjectKi
 async function configuredPort(root: string, kind: ProjectKind, pkg: PackageInfo | null, fallback: number): Promise<number | undefined> {
   if (kind === "static") return undefined;
   for (const name of ["vite.config.ts", "vite.config.js", "vite.config.mts", "vite.config.mjs", "astro.config.mjs", "astro.config.ts", "nuxt.config.ts", "svelte.config.js"]) {
-    try { const source = await readPrefix(path.join(root, name), 32 * 1024); const match = /port\b[^\n;]{0,80}?(\d{4,5})\b/i.exec(source); if (match) return Number(match[1]); } catch (e) { if (!missing(e)) throw e; }
+    try { const source = await readPrefix(root, name, 32 * 1024); const match = /port\b[^\n;]{0,80}?(\d{4,5})\b/i.exec(source); if (match && Number(match[1]) <= 65535) return Number(match[1]); } catch { /* Missing, linked or non-regular configs are not inspected. */ }
   }
   const script = pkg?.scripts.dev ?? pkg?.scripts.start ?? "";
   const flag = /(?:--port|-p)[\s=]+(\d{2,5})\b/.exec(script);
-  return flag ? Number(flag[1]) : fallback;
+  return flag && Number(flag[1]) > 0 && Number(flag[1]) <= 65535 ? Number(flag[1]) : fallback;
 }
 function devCommand(root: string, pkg: PackageInfo | null, files: string[]): string | undefined {
   if (!pkg) return undefined;
   const script = ["dev", "start", "serve", "preview"].find((name) => pkg.scripts[name]);
   if (!script) return undefined;
   const manager = files.includes("pnpm-lock.yaml") ? "pnpm" : files.includes("yarn.lock") ? "yarn" : files.includes("bun.lockb") || files.includes("bun.lock") ? "bun" : "npm";
-  return `cd ${JSON.stringify(root)} && ${manager} run ${script}`;
+  return `cd ${("'" + root.replace(/'/g, "'\\''") + "'")} && ${manager} run ${script}`;
 }
 
 const dynamicSegment = /^\[{1,2}(?:\.\.\.)?([^\]]+)\]{1,2}$/;
@@ -112,7 +114,7 @@ async function literalRoutes(root: string, files: string[], screens: Map<string,
   if (files.length > PROJECT_LIMITS.sourceFiles && candidates.length === PROJECT_LIMITS.sourceFiles) notices.push(`Route literal search stopped after ${PROJECT_LIMITS.sourceFiles} source files.`);
   for (const file of candidates) {
     let source: string;
-    try { source = await readPrefix(path.join(root, file), PROJECT_LIMITS.sourceBytes); } catch { continue; }
+    try { source = await readPrefix(root, file, PROJECT_LIMITS.sourceBytes); } catch { continue; }
     if (!/<Route\b|createBrowserRouter|createHashRouter|createMemoryRouter|useRoutes\(|createRouter\(/.test(source)) continue;
     const imports = new Map<string, string>();
     for (const match of source.matchAll(/import\s+(?:\{[^}]*\}|\*\s+as\s+\w+|\w+)(?:\s*,\s*\{[^}]*\})?\s+from\s+["']([^"']+)["']/g)) for (const name of match[0].replace(/import|from|["'{}*]/g, " ").split(/[\s,]+/)) if (/^[A-Z]\w*$/.test(name)) imports.set(name, match[1]!);
@@ -175,6 +177,7 @@ export async function scanProject(rootInput: string): Promise<ProjectInventory> 
   const screens = new Map<string, ProjectScreen>();
   const staticBuilds = ["", ...BUILD_DIRS].filter((dir) => files.includes(dir ? `${dir}/index.html` : "index.html") && !(kind !== "static" && dir === ""));
   if (kind === "static") {
+    if (!staticBuilds.includes("") && files.some((f) => f.endsWith(".html"))) staticBuilds.unshift("");
     for (const file of files.filter((f) => f.endsWith(".html"))) {
       const withoutExt = file.replace(/\.html?$/, "");
       addScreen(screens, fileRoute(withoutExt), file, [], "static_file");
@@ -201,7 +204,7 @@ export async function scanProject(rootInput: string): Promise<ProjectInventory> 
   let reads = 0;
   for (const screen of screens.values()) {
     if (reads++ >= PROJECT_LIMITS.screens) break;
-    try { screen.hints = extractHints(await readPrefix(path.join(root, screen.source), PROJECT_LIMITS.sourceBytes)); } catch { /* unreadable source is not an error; the screen keeps its route */ }
+    try { screen.hints = extractHints(await readPrefix(root, screen.source, PROJECT_LIMITS.sourceBytes)); } catch { /* unreadable source is not an error; the screen keeps its route */ }
   }
   const ordered = [...screens.values()].sort((a, b) => a.route.localeCompare(b.route) || a.source.localeCompare(b.source));
   if (ordered.some((s) => s.kind === "dynamic_route")) notices.push("Dynamic routes need a real parameter value before capture; enter the exact path to capture.");

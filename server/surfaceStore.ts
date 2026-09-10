@@ -62,7 +62,9 @@ async function readRecord(id: string): Promise<SurfaceRecord> {
   if (record.version !== 1 || record.id !== id || !record.snapshot || record.snapshot.version !== 1 || !Array.isArray(record.runs) || record.runs.length < 1 || record.runs.length > SURFACE_LIMITS.revisions) throw new SurfaceError("Invalid saved Surface.");
   storedSurfaceInputSchema.parse(record.snapshot.input);
   if (record.snapshot.hash !== surfaceHash(record.snapshot.input)) throw new SurfaceError("Surface snapshot integrity check failed.");
+  if (record.capture) assertProjectBinding({ project_id: record.capture.project_id, binding_revision: record.capture.binding_revision });
   for (const [index, run] of record.runs.entries()) {
+    if (record.capture && (run.project?.project_id !== record.capture.project_id || run.project.binding_revision !== record.capture.binding_revision)) throw new SurfaceError("Surface capture and revision provenance disagree.");
     assertProfileOwnership(run);
     surfaceSelectionSchema.parse({ mappings: run.mappings, theme_id: run.theme_id, mode: run.mode });
     if (run.run_hash !== surfaceHash({ ...run, run_hash: undefined }) || run.revision !== index + 1 || run.snapshot_hash !== record.snapshot.hash || !Array.isArray(run.bindings) || !Array.isArray(run.issues) || !run.review || !run.workspace_fingerprint) throw new SurfaceError("Invalid Surface revision.");
@@ -72,10 +74,11 @@ async function readRecord(id: string): Promise<SurfaceRecord> {
 }
 
 /** Check copied provenance at handoff time; retained Gaps remain readable after Surface deletion. */
-export const assertSurfaceProvenance = (provenance: NonNullable<Gap["report"]["provenance"]>): Promise<void> => withWorkspaceRead(async () => {
+export const assertSurfaceProvenance = (provenance: NonNullable<Gap["report"]["provenance"]>, project?: Gap["report"]["project"]): Promise<void> => withWorkspaceRead(async () => {
   if (provenance.profile_id !== workspaceScope().identity?.id) throw new SurfaceError("Gap provenance belongs to another Profile.", 409);
   const record = await readRecord(provenance.surface_id);
   const run = record.runs.find((candidate) => candidate.revision === provenance.revision);
+  if (run && (run.project?.project_id !== project?.project_id || run.project?.binding_revision !== project?.binding_revision)) throw new SurfaceError("Gap project does not match saved Surface evidence.", 409);
   if (!run || run.run_hash !== provenance.run_hash || record.snapshot.hash !== provenance.snapshot_hash) throw new SurfaceError("Gap provenance does not match saved Surface evidence.", 409);
 });
 async function writeRecord(record: SurfaceRecord): Promise<void> {
@@ -110,11 +113,15 @@ async function compile(snapshot: SurfaceSnapshot, rawSelection: unknown, workspa
   }
   if (selection.theme_id && workspace.activeThemeId !== selection.theme_id) throw new SurfaceError("Selected theme no longer exists. Choose a current theme.");
   if (workspace.activeMode !== selection.mode) issues.push({ id: "mode-fallback", kind: "unsupported", location: "mode", detail: `Requested ${selection.mode}; this theme resolved ${workspace.activeMode}.` });
-  // Only authored declarations are submitted. No computed-style or contrast claims are fabricated.
+  // Check sanitized declarations, never infer authored intent or rendered contrast.
   const service = createMonetService({ loadWorkspace });
   const usages = declarations.filter((d) => d.mappable && !d.property.startsWith("--")).slice(0, 200).map((d) => ({ id: d.id, kind: "style" as const, location: d.location, property: d.property, value: bindings.find((b) => b.declaration_id === d.id)?.value ?? d.value }));
   const review = await service.reviewDesignUsage({ themeId: workspace.activeThemeId, mode: workspace.activeMode, usages });
-  review.scope = `Applied snapshot authored declarations only (first 200 supported declarations). These are not computed styles; variable references, cascade, interactions and rendered contrast are not established. ${review.scope}`;
+  review.scope = capture?.strategy === "computed"
+    ? `Sanitized computed declarations from one captured viewport and appearance (first 200 supported declarations), with approved substitutions. These are browser-resolved values, including inherited and default values, not authored design intent or proof of token usage. Sanitization and substitutions may change appearance; rendered contrast is not established. ${review.scope}`
+    : capture
+    ? `Sanitized stylesheet and inline declarations from the live page CSSOM (first 200 supported declarations), with approved substitutions. Page scripts may have generated or changed these declarations; this is not source-code or design-intent attestation. Cascade, token usage, interactions and rendered contrast are not established. ${review.scope}`
+    : `Applied snapshot authored declarations only (first 200 supported declarations). These are not computed styles; variable references, cascade, interactions and rendered contrast are not established. ${review.scope}`;
   const run: SurfaceRun = { ...profileOwnership(), revision, run_hash: "", created_at: new Date().toISOString(), snapshot_hash: snapshot.hash, workspace_fingerprint: fingerprint(workspace), ...(project ? { project } : {}), ...(workspace.themes.length ? { theme_id: workspace.activeThemeId } : {}), mode: workspace.activeMode, requested_mode: selection.mode, mappings: selection.mappings, bindings, issues, review };
   run.run_hash = surfaceHash({ ...run, run_hash: undefined });
   return run;
@@ -146,6 +153,7 @@ export async function saveSurface(raw: unknown): Promise<SurfacePreview> {
   const parsed = resolveImport(raw), selection = surfaceSelectionSchema.parse(parsed.selection);
   const snapshot = await importSnapshot(parsed.input);
   return withWorkspaceWrite(async () => {
+    if (parsed.captureId) readCapture(parsed.captureId); // Recheck expiry and single-use under the write lock.
     const workspace = await loadWorkspace(selection.theme_id, selection.mode);
     const run = await compile(snapshot, selection, workspace, 1, parsed.capture);
     const record: SurfaceRecord = { version: 1, ...profileOwnership(), id: randomUUID(), created_at: new Date().toISOString(), snapshot, ...(parsed.capture ? { capture: parsed.capture } : {}), runs: [run] };

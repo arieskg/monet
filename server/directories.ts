@@ -1,4 +1,4 @@
-import { readdir, realpath, lstat } from "node:fs/promises";
+import { opendir, realpath, lstat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { PROJECT_LIMITS, type DirectoryListing } from "../shared/projects.js";
@@ -15,10 +15,13 @@ export async function listDirectories(input?: string | null): Promise<DirectoryL
   catch { throw Object.assign(new Error("That folder does not exist or is not accessible."), { status: 400 }); }
   const entries: DirectoryListing["entries"] = [];
   let truncated = false;
-  for (const entry of (await readdir(current, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name))) {
+  let scanned = 0;
+  for await (const entry of await opendir(current)) {
+    if (++scanned > PROJECT_LIMITS.entries) { truncated = true; break; }
     if (!entry.isDirectory() || entry.name.startsWith(".") || entry.name === "node_modules") continue;
     if (entries.length >= PROJECT_LIMITS.directories) { truncated = true; break; }
     entries.push({ name: entry.name, path: path.join(current, entry.name) });
   }
+  entries.sort((a, b) => a.name.localeCompare(b.name));
   return { path: current, parent: path.dirname(current) === current ? null : path.dirname(current), home, entries, truncated };
 }
