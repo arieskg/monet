@@ -404,6 +404,7 @@ describe("Apply failure and recovery", () => {
     expect((await planApplication(proposal.id)).applications.map((receipt) => receipt.outcome)).toEqual(["applied", "rolled_back"]);
   });
 
+  // Multiple durable Apply/rollback/recovery cycles exceed 5s on shared CI runners.
   it("rolls back when export regeneration fails, and keeps the journal for startup recovery when the restore itself cannot be verified", async () => {
     const { proposal, revision, hash } = await approvedProposal(await multiRecordChanges());
     const before = await workspaceHashes();
@@ -435,7 +436,7 @@ describe("Apply failure and recovery", () => {
     await expectWorkspaceUnchanged(before);
     expect((await getProposal(proposal.id)).status).toBe("approved");
     expect((await applyProposal(proposal.id, { revision, hash })).outcome).toBe("applied");
-  });
+  }, 30000);
 
   it("rolls back when the written workspace fails its final validation", async () => {
     const { proposal, revision, hash } = await approvedProposal(await multiRecordChanges());

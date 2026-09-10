@@ -179,6 +179,7 @@ describe("theme-free Profiles", () => {
 });
 
 describe("verification cost", () => {
+  // Creating and verifying 3000 files measures work, not a 5s CI performance budget.
   it("reports how per-write full-tree verification scales with reference asset count", async () => {
     const store = createProfileStore(a);
     const time = async () => { const principle = (await store.files.loadWorkspace()).principles[0]!; const start = performance.now(); await store.files.savePrinciple(principle.id, { ...principle, title: `T ${Math.random()}` }); return Math.round(performance.now() - start); };
@@ -188,7 +189,7 @@ describe("verification cost", () => {
     const loaded = await time();
     console.log(`savePrinciple: ${baseline} ms with 3 assets, ${loaded} ms with 3003 assets`);
     expect(loaded).toBeGreaterThan(0);
-  });
+  }, 30000);
 });
 
 describe("central API guard", () => {

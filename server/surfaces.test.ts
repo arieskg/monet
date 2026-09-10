@@ -181,6 +181,7 @@ describe("Surface adversarial review regressions", () => {
     await deleteSurface(id); expect((await readGapImage(gap.id)).mediaType).toBe("image/webp");
     expect((await sharp((await readGapImage(gap.id)).contents).metadata()).width).toBe(4);
   });
+  // Re-encoding and sanitizing repeated large images needs headroom on CI runners.
   it("handles asset-expanded HTML larger than the raw HTML input limit on save and reload", async () => {
     const noise = Buffer.alloc(600 * 600 * 3); for (let i = 0; i < noise.length; i++) noise[i] = (i * 71 + Math.floor(i / 131)) % 256;
     const image = await sharp(noise, { raw: { width: 600, height: 600, channels: 3 } }).png().toBuffer();
@@ -188,7 +189,7 @@ describe("Surface adversarial review regressions", () => {
     const saved = await saveSurface({ input: { title: "Repeated raster", html: '<img src="a.png">'.repeat(12), assets: [{ filename: "a.png", data_url }] } });
     expect(saved.snapshot.input.html.length).toBeGreaterThan(300000);
     expect((await getSurface(saved.saved!.id)).snapshot.hash).toBe(saved.snapshot.hash);
-  });
+  }, 30000);
 });
 
 
