@@ -58,7 +58,8 @@ report, optional bounded screenshot, and latest diagnosis. Reviewed change sets
 live in `proposals/<id>.json`, and `applications/<id>.json` receipts record which
 canonical files an approved proposal changed, with before and after hashes; an
 `applications/<id>.journal.json` exists only while an application is in progress
-or awaiting recovery. None of these are canonical design decisions and none enter
+or awaiting recovery. `applications/.generation` lets separate read-only MCP
+processes detect completed applications during a read. None of these are canonical design decisions and none enter
 generated guidance, token exports, or MCP context. Missing directories read as
 empty. See [Gaps](GAPS.md) and [Proposals](PROPOSALS.md) for storage, provider, and
 privacy details.
@@ -127,3 +128,11 @@ The files are the source of truth, so editing them in an editor is expected and
 safe. Run `pnpm validate` afterwards, and regenerate the derived views by saving
 anything in the UI. Monet writes files atomically, so a crash mid-save cannot
 leave a half-written record.
+
+Run only one Monet editing service per workspace and do not edit canonical
+files by hand during Apply or recovery. Synchronization is single-process;
+multiple editing services are unsupported. Read-only MCP processes detect
+Apply journals and changing generations and return temporary unavailability
+instead of partial state. An unresolved journal blocks normal workspace access;
+recovery must succeed before the editing service starts. See
+[Proposals](PROPOSALS.md#recovery) for durability and reconciliation rules.

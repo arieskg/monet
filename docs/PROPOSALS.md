@@ -238,73 +238,106 @@ live checks. Refusals answer 409 with a `kind` (`state`, `integrity`, `stale`,
 
 ### Transaction
 
-Apply never leaves the workspace partially updated. The steps, in order:
+Apply holds the shared workspace boundary through the entire transaction. Its
+internal reads can see its own writes; normal reads and writes queue behind it.
+A leftover journal blocks canonical access with HTTP 503, including ordinary
+saves and proposal mutations. Only recovery can bypass this guard.
 
-1. Read every target file's current bytes (and confirm created files are
-   absent) and write `applications/<id>.journal.json` with those bytes, their
-   hashes, the records and derived files involved, and the validation errors
-   that already existed. The journal is fsynced and renamed into place before
-   any canonical write.
-2. Write the records through the existing writers (`writePrincipleRecord`,
-   `writePatternRecord`, `writeComponentDecision`), principles first, then
-   patterns, then component decisions, from the workspace read under the lock.
-3. Append a readable `decisions/<timestamp>-proposal-<id>.md` entry naming the
-   proposal, revision, hash, receipt, and the records and fields changed.
-4. Regenerate the derived exports once.
-5. Read the workspace back, verify that every changed field now reads as the
-   approved value (Markdown bodies are compared trimmed, as they are stored),
-   and run `validateWorkspace`; any new error fails the transaction.
-6. Write `applications/<id>.json`, the **receipt**. This is the commit point.
-7. Mark the proposal `applied`, then remove the journal.
+1. Read the target files and durably write `applications/<id>.journal.json`
+   with their exact before bytes, hashes, approved identity, affected records,
+   derived paths, and baseline validation errors. No canonical write precedes
+   the journal.
+2. Write principles, patterns, then component decisions through their existing
+   record writers. Writes use a temporary file, file fsync, atomic rename, and
+   directory fsync. Sync failures are errors, never silently ignored.
+3. Write a deterministic `decisions/<timestamp>-proposal-<id>.md` audit entry
+   containing identifiers, record keys, and changed field names only.
+4. Regenerate and durably write the exports.
+5. Read back the approved values and validate the resulting workspace. Capture
+   canonical before/after hashes, export after-hashes, and the knowledge
+   fingerprint in the receipt.
+6. Durably write `applications/<id>.json`. Successful receipt persistence is
+   the **commit point**, after all canonical and derived bytes are durable.
+7. Durably mark the exact proposal revision `applied`, publish a new opaque
+   `applications/.generation`, and durably remove the journal. Only then can
+   normal workspace access resume.
 
-Any failure between steps 2 and 6 restores every journaled file to its before
-bytes (created files are removed), regenerates the exports, verifies every
-file's hash and the restored workspace's validation, writes a `rolled_back`
-receipt, and answers with the receipt and a `kind` of `write_failed` or
-`validation`. If the restore cannot be verified, the journal is kept, the
-receipt says so, nothing can be applied until the next start, and the response
-says to restart Monet. A failure after step 6 leaves the canonical change in
-place and the journal on disk; recovery finishes the bookkeeping.
+A failure before receipt publication restores every journaled canonical file
+to its exact before bytes, durably removes created files, regenerates exports,
+verifies the restore, and writes a rollback receipt. An unverified restore
+keeps its journal and blocks all subsequent canonical access.
 
-Ordinary saves take the same workspace write lock, so a save queued during an
-application runs after it, and an application queued behind a save that
-changed a target is refused as stale. Saves themselves remain last-writer-wins
-whole-record writes, as before.
+A receipt rename can succeed before a later fsync fails. An existing receipt
+then represents a **possible commit**: Apply keeps it and the journal and
+blocks access. It never replaces possible commit evidence with a rollback
+receipt. Recovery must prove the outcome. Failures while marking the proposal
+or removing the journal likewise keep recovery evidence and block access.
+
+Principle, Pattern, and Component full-record saves compare the submitted
+`updated_at` with the current record under the lock. A stale save returns 409;
+it must reload and review the current record. This includes saves queued
+before Apply finished. Writers advance the version even within one millisecond.
+
+### Read visibility and UI refresh
+
+HTTP/UI and shared service reads use the same process queue as canonical
+writes. They wait for a complete commit or rollback, or fail with a temporary
+unavailable/recovery error; they never return an intermediate Apply workspace.
+
+Read-only MCP processes also check the on-disk journal before and after loading
+canonical files. The durable generation changes before journal removal, so a
+reader that spans an entire transaction discards its result and asks the caller
+to retry. MCP never creates a lock file, performs recovery, or writes anything.
+This is read coordination, not interprocess write locking.
+
+The Apply UI clears its cached workspace and closes canonical editors until a
+fresh WorkspaceContext load succeeds. New Patterns and changed records then
+appear throughout the UI. Late responses from older workspace requests are
+discarded. If refresh fails, editing stays paused with a reload action; a
+successful Apply is not presented as a rollback because refresh failed.
 
 ### Recovery
 
-Before the file service listens it reads every `applications/*.journal.json`.
-A journal whose receipt says `applied` was committed: the proposal is marked
-`applied` if that was interrupted, and the journal is removed. Any other
-journal is rolled back from its before bytes, the exports are regenerated, the
-restore is verified, and a `rolled_back` receipt with `recovered: true` is
-written; a restore that cannot be verified keeps the journal for the next
-start. An unreadable journal stops startup, because the workspace may be
-inconsistent and the journal holds the bytes needed to fix it by hand.
+Recovery runs before initialization or listening. Journals are checked for
+valid identities, allowed file paths, and matching before-byte hashes. An
+unreadable or inconsistent journal stops startup without discarding it.
+
+An `applied` receipt is not sufficient proof of commit. Recovery verifies its
+identity against the journal; requires the proposal's latest revision and
+approval to match the receipt's exact revision/hash; verifies canonical and
+export after-hashes, knowledge fingerprint, and validation; and only then
+reconciles that proposal to `applied`. It preserves the original commit time
+and sets `recovered: true`. A later revision, mismatched receipt, missing file,
+or inconsistent bytes stops recovery with the evidence intact. Older receipts
+without export hashes cannot automatically finalize a leftover committed
+journal; already completed historical receipts remain readable.
+
+A journal with no receipt, or a matching rollback receipt, restores the
+validated before bytes, regenerates exports, and records a verified rollback
+with `recovered: true`. Failure to prove the restore keeps the journal and
+prevents startup. Clearing the underlying I/O fault does not itself enable
+writes: recovery must complete first.
 
 ### Receipts and history
 
-A receipt records the application id, proposal id, revision, hash, outcome,
-start and finish times, whether recovery produced it, the failure message for a
-rollback, whether the restore was verified, the records and fields changed,
-every written file with its before and after hash, the derived files
-regenerated, the final validation result, and the knowledge fingerprint before
-and after. Receipts are editor-only: absent from `Workspace`, exports, and MCP,
-listed by `GET /api/applications`, on the proposal page, and under **Applied
-Gap proposals** on the Decision log page. The bundled starter ignores
-`monet/applications/` in Git.
+Receipts record the approved identity, outcomes and times, recovery flag,
+validation, affected records, canonical before/after hashes, generated export
+hashes, and knowledge fingerprints. They remain editor-only. The Decision log
+page distinguishes a verified rollback from an unverified restore and shows
+receipt-loading failures with a retry action.
 
-The `decisions/` entry carries the proposal summary, the record keys and fields,
-and the identifiers. The Gap report, screenshot, proposal rationale, and basis
-never leave the editor-only records. The summary is reviewer-written text and
-is not linted; keep product names out of it.
+Canonical `decisions/` entries are generated only from the Gap and Proposal
+ids, approved revision/hash, affected canonical keys and field names, and
+application id. No free-form proposal summary, rationale, note, AI reasoning,
+Gap description, product context, or screenshot observation is copied into
+canonical history. Approved canonical field values remain subject to review
+and the generality lint; that lint is not a proof of privacy for arbitrary
+text deliberately approved as shared guidance.
 
-An applied proposal is terminal: it cannot be revised, approved, rejected,
-superseded, refreshed, or drafted. A duplicate Apply request for the same
-revision returns the same receipt with `already_applied` and writes nothing;
-concurrent duplicates queue behind each other. The proposal record keeps the
-approval and gains `application: { id, applied_at }`; an `applied` status
-without one is refused as corrupt.
+An applied proposal is terminal. While a possible commit awaits reconciliation,
+the journal guard also prevents revision, rejection, supersession, approval,
+refresh, or drafting. After recovery, duplicate Apply for the same approved
+revision returns its original receipt without writing again.
 
 ### Revert
 
@@ -321,6 +354,12 @@ and staleness rules do not model today; it is deferred rather than bolted on.
   gaps need them, but `taxonomy/components.json` has no editing-service write
   path; Foundations, themes, and primitives wait for the same proof.
 - One new pattern per proposal, no other record creation.
+- Exactly one Monet editing-service process may access a workspace. Multiple
+  editing services and hand edits racing Apply are unsupported. Synchronization
+  is single-process; there is no distributed or interprocess write lock.
+- Durability requires a filesystem supporting file and directory fsync. Sync
+  failures fail closed. Tests inject crash states and I/O failures; they cannot
+  prove storage hardware honors flush requests.
 - Receipts are per-workspace audit records; rolled-back attempts stay on
   record. Removing a receipt by hand makes an applied proposal report its
   receipt as missing.

@@ -188,7 +188,12 @@ only. Gaps never enters `Workspace`, design context, exports, or MCP. A reviewed
 can be applied to canonical records only through `server/applicationStore.ts`: an approved
 revision named by number and hash, rechecked under the workspace write lock, written
 through a journaled transaction that rolls back or is recovered at startup, and recorded
-in an editor-only receipt. See [Gaps](GAPS.md) for evidence boundaries and failure
+in an editor-only receipt. `server/writeLock.ts` coordinates reads and writes and refuses
+normal access over unresolved journals. Recovery runs before initialization/listening and
+verifies the exact approval plus canonical/export hashes before finalizing a possible commit.
+`server/durableFiles.ts` provides file and directory fsync ordering for writes and restores.
+Separate MCP readers use journal/generation checks; multiple editing services sharing a
+workspace are unsupported. See [Gaps](GAPS.md) for evidence boundaries and failure
 recovery and [Proposals](PROPOSALS.md) for the apply transaction.
 
 The abstraction is provider-neutral; the argument contract is not yet general. Monet

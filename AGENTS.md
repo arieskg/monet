@@ -53,9 +53,17 @@ No database, no hosted service, no model API. Files on disk, and MCP over stdio.
   through a journal that is rolled back or recovered at startup. Do not add another write behind
   approval, widen its target table without a proven save and restore path, or let anything a
   provider produced reach it.
-- **Canonical writes are serialized.** Every save in `server/fileStore.ts` runs behind
-  `server/writeLock.ts`; a new write path must too, and must not call a locked function from inside
-  another locked one.
+- **Canonical access is coordinated.** Every save and workspace read runs behind
+  `server/writeLock.ts`. Leftover journals block normal reads, saves, and proposal mutations;
+  only recovery may bypass the guard. Do not nest writes or promote reads to writes. Record
+  helpers require an owned write boundary. Separate read-only MCP processes also check the
+  journal and generation around their reads. Multiple editing services are unsupported.
+- **Receipts are possible commits until verified.** Recovery must match receipt, journal,
+  exact approved revision/hash, canonical/export hashes, and validation before finalizing.
+  Preserve inconsistent evidence and block startup. Canonical writes, rollback restores,
+  receipt/proposal writes, and journal removal must preserve durability ordering.
+- **Apply history contains safe metadata only.** Never copy free-form proposal summaries,
+  rationale, notes, diagnosis prose, or Gap evidence into canonical decision logs.
 - **Conformance measures evidence, never source.** `shared/review.ts` parses no code and knows no
   framework. A check either measures what the caller submitted or reports it unverifiable; it never
   infers a violation from missing information, and a concept Monet has no scale or decision for is
