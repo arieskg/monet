@@ -15,6 +15,7 @@ import { normalizeTokens } from "../shared/tokens.js";
 import { draftProposal } from "./proposalDrafting.js";
 import { validateWorkspace } from "./validate.js";
 import { workspaceRoot } from "./workspace.js";
+import { withWorkspaceRead } from "./writeLock.js";
 
 /**
  * Proposals are editor-only records under `proposals/` in the active workspace. Like Gaps they are
@@ -197,7 +198,7 @@ function computeChecks(ctx: Context, changes: ProposalChange[], gap: Gap, propos
 async function withLock<T>(id: string, work: () => Promise<T>): Promise<T> {
   if (locks.has(id)) throw new ProposalStateError("This proposal is already being updated. Reload in a moment.");
   locks.add(id);
-  try { return await work(); } finally { locks.delete(id); }
+  try { return await withWorkspaceRead(work); } finally { locks.delete(id); }
 }
 
 export async function listProposals(gapId?: string): Promise<ProposalSummary[]> {
@@ -232,8 +233,10 @@ export async function createProposal(input: unknown): Promise<ProposalView> {
 }
 
 export async function getProposal(id: string): Promise<ProposalView> {
-  const proposal = await readProposal(id);
-  return view(proposal, await gapOrNull(proposal.gap_id), await context());
+  return withWorkspaceRead(async () => {
+    const proposal = await readProposal(id);
+    return view(proposal, await gapOrNull(proposal.gap_id), await context());
+  });
 }
 
 function assertEditable(proposal: Proposal): void {

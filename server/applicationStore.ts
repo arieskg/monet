@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, open, readFile, rename, unlink } from "node:fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
 import type { Gap } from "../shared/gaps.js";
@@ -14,7 +14,8 @@ import { gapKnowledge, knowledgeFingerprint } from "./gapDiagnosis.js";
 import { proposalInternals as proposals } from "./proposalStore.js";
 import { validateWorkspace } from "./validate.js";
 import { workspaceRoot } from "./workspace.js";
-import { withWorkspaceWrite } from "./writeLock.js";
+import { blockWorkspace, clearRecoveryBlock, recoveryBlock, withWorkspaceRead, withWorkspaceRecovery, withWorkspaceWrite, WorkspaceUnavailableError } from "./writeLock.js";
+import { durableRemove } from "./durableFiles.js";
 
 /**
  * Apply: the one path from a Proposal to canonical Monet records.
@@ -56,17 +57,7 @@ const sha256 = (bytes: Buffer | string) => createHash("sha256").update(bytes).di
 const describe = (finding: { check: string; detail: string }) => `${finding.check}: ${finding.detail}`;
 const errorMessage = (error: unknown) => (error instanceof Error ? error.message : String(error)).slice(0, 2000);
 
-/** Written, fsynced, then renamed into place: the journal and the receipt must survive a crash, not just a process exit. */
-async function durableWrite(file: string, contents: string): Promise<void> {
-  await mkdir(path.dirname(file), { recursive: true });
-  const temp = `${file}.${randomUUID()}.tmp`;
-  try {
-    const handle = await open(temp, "w", 0o600);
-    try { await handle.writeFile(contents); await handle.sync(); } finally { await handle.close(); }
-    await rename(temp, file);
-  } finally { await unlink(temp).catch(() => undefined); }
-  try { const directory = await open(path.dirname(file), "r"); try { await directory.sync(); } finally { await directory.close(); } } catch { /* Directory fsync is best effort; not every platform allows it. */ }
-}
+const durableWrite = atomicWrite;
 
 async function readBytes(relative: string): Promise<Buffer | null> {
   try { return await readFile(path.join(root(), relative)); }
@@ -110,12 +101,9 @@ function groupRecords(proposal: Proposal, changes: readonly ProposalChange[]): A
   return [...groups.values()];
 }
 
-/** Journals of applications this process is running right now; a plan read mid-transaction must not mistake them for leftovers. */
-const inFlight = new Set<string>();
-
 /** Journals left behind by an interrupted or unrecovered application. Nothing may be applied over them. */
 async function pendingJournals(): Promise<string[]> {
-  return (await readDirectoryOrEmpty(path.join(root(), APPLICATIONS))).filter((name) => name.endsWith(".journal.json") && !inFlight.has(name.slice(0, -".journal.json".length))).sort();
+  return (await readDirectoryOrEmpty(path.join(root(), APPLICATIONS))).filter((name) => name.endsWith(".journal.json")).sort();
 }
 
 type Context = Awaited<ReturnType<typeof proposals.context>>;
@@ -129,11 +117,6 @@ async function buildPlan(proposal: Proposal, gap: Gap | null, ctx: Context, appl
   const staleness = proposals.staleness(proposal, gap, ctx);
   const integrity = proposals.integrity(proposal);
   const blockers: ApplyBlocker[] = applyBlockers({ ...proposal, staleness, integrity });
-  if (proposal.status === "approved") {
-    // A leftover journal outranks every other reason: the workspace may not be what any check reads.
-    const pending = await pendingJournals();
-    if (pending.length) blockers.unshift({ kind: "state", message: `An earlier application left a journal (${pending.join(", ")}) that has not been recovered. Restart Monet to run recovery before applying anything.` });
-  }
   const revision = proposal.approval ? proposal.revisions.find((item) => item.number === proposal.approval!.revision) ?? null : proposals.latest(proposal) ?? null;
   const changes = revision?.changes ?? [];
   const unsupported = changes.flatMap((change) => { const support = applySupport(change); return support.supported ? [] : [{ target: change.target, field: change.field, reason: support.reason }]; });
@@ -159,10 +142,12 @@ async function buildPlan(proposal: Proposal, gap: Gap | null, ctx: Context, appl
 }
 
 export async function planApplication(id: string): Promise<ApplyPlan> {
-  const proposal = await proposals.readProposal(id);
-  const gap = await proposals.gapOrNull(proposal.gap_id);
-  const ctx = await proposals.context();
-  return buildPlan(proposal, gap, ctx, await listApplications(proposal.id));
+  return withWorkspaceRead(async () => {
+    const proposal = await proposals.readProposal(id);
+    const gap = await proposals.gapOrNull(proposal.gap_id);
+    const ctx = await proposals.context();
+    return buildPlan(proposal, gap, ctx, await listApplications(proposal.id));
+  });
 }
 
 export async function listApplications(proposalId?: string): Promise<ApplicationReceipt[]> {
@@ -219,11 +204,12 @@ async function writeRecords(changes: readonly ProposalChange[], workspace: Works
  * report, screenshot, and rationale stay in the editor-only records and are never copied here.
  */
 function decisionEntry(id: string, proposal: Proposal, revision: ProposalRevision, records: ApplicationRecord[], applicationId: string, now: string): string {
-  const title = `Applied Gap proposal: ${revision.summary}`;
+  const title = `Applied Gap proposal ${proposal.id}, revision ${revision.number}`;
+  const summary = `Application ${applicationId}; approved revision ${revision.number}.`;
   const body = [`# ${title}`, "", "Records changed:", ...records.map((record) => `- ${record.key}${record.operation === "create" ? " (new)" : ""}: ${record.fields.join(", ")}`), "",
-    `Proposal ${proposal.id}, revision ${revision.number} (hash ${revision.hash}), application ${applicationId}. The proposal's basis, rationale, and product evidence stay in the editor-only proposal and Gap records.`].join("\n");
+    `Gap ${proposal.gap_id}; proposal ${proposal.id}, revision ${revision.number} (hash ${revision.hash}), application ${applicationId}.`].join("\n");
   const tags = [...new Set(["gap", "proposal", ...records.flatMap((record) => { const parsed = parseRecordKey(record.key); return parsed ? [parsed.id] : []; })])];
-  return renderFrontmatter({ id, title, summary: revision.summary, body, status: "selected", tags, order: 0, updated_at: now });
+  return renderFrontmatter({ id, title, summary, body, status: "selected", tags, order: 0, updated_at: now });
 }
 
 async function hashFiles(files: readonly JournalFile[]): Promise<ApplicationFile[]> {
@@ -247,7 +233,7 @@ async function restore(journal: Journal): Promise<{ restored: boolean; files: Ap
   for (const file of journal.files) {
     const absolute = path.join(root(), file.path);
     try {
-      if (file.before === null) await unlink(absolute).catch((error: NodeJS.ErrnoException) => { if (!isMissing(error)) throw error; });
+      if (file.before === null) await durableRemove(absolute);
       else await atomicWrite(absolute, Buffer.from(file.before, "base64"));
     } catch (error) { problems.push(`${file.path}: ${errorMessage(error)}`); }
   }
@@ -272,7 +258,7 @@ async function rollback(journal: Journal, kind: ApplyErrorKind, failure: string,
   const receipt = receiptFrom(journal, "rolled_back", { recovered, failure: restored ? failure : `${failure} Recovery problems: ${problems.join("; ")}`, restored, files, validation: result });
   await durableWrite(receiptPath(journal.application_id), `${JSON.stringify(receipt, null, 2)}\n`);
   // The journal outlives a restore that could not be verified, so the next start tries again.
-  if (restored) await unlink(journalPath(journal.application_id));
+  if (restored) await removeJournal(journal);
   if (!recovered) throw new ApplyError(kind, `${kind === "validation" ? "The written records did not pass validation, so" : "Writing failed, so"} the application was rolled back. ${restored ? "Every record was restored to its previous bytes and the exports were regenerated; nothing changed." : `Restore could not be verified: ${problems.join("; ")}. The journal is kept and Monet will retry recovery at the next start.`} Cause: ${failure}`, receipt);
   return receipt;
 }
@@ -288,7 +274,7 @@ const applying = new Map<string, Promise<unknown>>();
  */
 export async function applyProposal(id: string, input: unknown): Promise<ApplyResult> {
   const { revision, hash } = applySchema.parse(input);
-  const run = (applying.get(id) ?? Promise.resolve()).catch(() => undefined).then(() => proposals.withLock(id, () => withWorkspaceWrite(() => applyLocked(id, revision, hash))));
+  const run = (applying.get(id) ?? Promise.resolve()).catch(() => undefined).then(() => withWorkspaceWrite(() => proposals.withLock(id, () => applyLocked(id, revision, hash))));
   applying.set(id, run);
   try { return await run; } finally { if (applying.get(id) === run) applying.delete(id); }
 }
@@ -332,14 +318,13 @@ async function transaction(proposal: Proposal, approved: ProposalRevision, gap: 
   const journal: Journal = { version: 1, application_id, proposal_id: proposal.id, gap_id: proposal.gap_id, revision: approved.number, hash: approved.hash, started_at, records: plan.records, files, derived: plan.derived, baseline_errors: baseline, knowledge_fingerprint_before: ctx.fingerprint };
   // Before the first canonical write, the before bytes are on disk. A failure here changes nothing.
   await durableWrite(journalPath(application_id), `${JSON.stringify(journal, null, 2)}\n`);
-  inFlight.add(application_id);
-  try { return await commit(proposal, approved, gap, ctx, journal, plan, entry); }
-  finally { inFlight.delete(application_id); }
+  return commit(proposal, approved, gap, ctx, journal, plan, entry);
 }
 
 async function commit(proposal: Proposal, approved: ProposalRevision, gap: Gap, ctx: Context, journal: Journal, plan: ApplyPlan, entry: string): Promise<ApplyResult> {
   const { application_id, started_at, files, baseline_errors: baseline } = journal;
   let receipt: ApplicationReceipt;
+  let publishingReceipt = false;
   try {
     await writeRecords(approved.changes, ctx.workspace);
     await atomicWrite(path.join(root(), entry), decisionEntry(path.basename(entry, ".md"), proposal, approved, plan.records, application_id, started_at));
@@ -353,46 +338,155 @@ async function commit(proposal: Proposal, approved: ProposalRevision, gap: Gap, 
     }
     const result = validation(after, new Set(baseline));
     if (!result.ok) throw new ApplyError("validation", `Validation failed after writing: ${result.new_errors.join("; ")}`);
-    receipt = receiptFrom(journal, "applied", { files: await hashFiles(files), validation: result, knowledge_fingerprint_after: knowledgeFingerprint(gapKnowledge(after)) });
+    const derived_hashes = await Promise.all(journal.derived.map(async (relative) => {
+      const bytes = await readBytes(relative);
+      if (bytes === null) throw new Error(`Missing generated export ${relative}.`);
+      return { path: relative, hash: sha256(bytes) };
+    }));
+    receipt = receiptFrom(journal, "applied", { files: await hashFiles(files), derived_hashes, validation: result, knowledge_fingerprint_after: knowledgeFingerprint(gapKnowledge(after)) });
     // The receipt is the commit point: once it is on disk the canonical change is complete.
+    publishingReceipt = true;
     await durableWrite(receiptPath(application_id), `${JSON.stringify(receipt, null, 2)}\n`);
   } catch (error) {
+    if (publishingReceipt) {
+      // A rename may have succeeded before directory fsync failed. Never undo a possible commit
+      // or overwrite its evidence with a rollback receipt. Recovery must prove what happened.
+      let bytes: Buffer | null;
+      try { bytes = await readBytes(`${APPLICATIONS}/${application_id}.json`); }
+      catch { throw new ApplyError("write_failed", "The receipt write could not be verified. The journal is kept and all workspace access is blocked until recovery."); }
+      if (bytes !== null) throw new ApplyError("write_failed", `The receipt may have committed, but its durability could not be verified (${errorMessage(error)}). The journal is kept; restart Monet for verified recovery.`);
+    }
     await rollback(journal, error instanceof ApplyError ? error.kind : "write_failed", errorMessage(error), false);
     throw new ApplyError("write_failed", "The application was rolled back."); // Unreachable: an in-request rollback always throws with its receipt.
   }
   try {
     const next: Proposal = { ...proposal, status: "applied", application: { id: application_id, applied_at: receipt.finished_at }, updated_at: receipt.finished_at };
     await proposals.writeProposal(next);
-    await unlink(journalPath(application_id));
+    await removeJournal(journal);
     return { outcome: "applied", receipt, proposal: proposals.view(next, gap, await proposals.context()) };
   } catch (error) {
     throw new ApplyError("write_failed", `The changes were applied and receipt ${application_id} was written, but the proposal record could not be updated (${errorMessage(error)}). The journal is kept; Monet will finish the bookkeeping at the next start.`, receipt);
   }
 }
 
-/**
- * Startup recovery. A journal whose receipt says `applied` was committed and only needs its
- * bookkeeping finished; any other journal is rolled back from its before bytes. Runs before the
- * service listens, so no edit can land on a half-applied workspace.
- */
-export async function recoverApplications(): Promise<RecoveryResult[]> {
-  const results: RecoveryResult[] = [];
-  for (const name of await pendingJournals()) {
-    await withWorkspaceWrite(async () => {
-      const journal = await readJson<Journal>(path.join(root(), APPLICATIONS, name));
-      if (journal.version !== 1 || typeof journal.application_id !== "string" || !Array.isArray(journal.files) || `${journal.application_id}.journal.json` !== name) throw new Error(`Unreadable application journal ${name}. Restore the workspace from backup or Git before continuing.`);
-      const receipt = await receiptOrNull(journal.application_id);
-      if (receipt?.outcome === "applied") {
-        let proposal: Proposal | null = null;
-        try { proposal = await proposals.readProposal(journal.proposal_id); } catch (error) { if (!isMissing(error)) throw error; }
-        if (proposal && proposal.status !== "applied") await proposals.writeProposal({ ...proposal, status: "applied", application: { id: journal.application_id, applied_at: receipt.finished_at }, updated_at: receipt.finished_at });
-        await unlink(journalPath(journal.application_id));
-        results.push({ application_id: journal.application_id, proposal_id: journal.proposal_id, outcome: "completed", restored: true, failure: null });
-        return;
-      }
-      const rolledBack = await rollback(journal, "write_failed", receipt?.failure ?? "Monet stopped before this application finished.", true);
-      results.push({ application_id: journal.application_id, proposal_id: journal.proposal_id, outcome: "rolled_back", restored: rolledBack.restored, failure: rolledBack.failure });
-    });
+async function removeJournal(journal: Journal): Promise<void> {
+  // Separate MCP processes detect an entire transaction between their before/after read checks.
+  // Publish only after canonical state and receipt are durable, while the journal still guards it.
+  await durableWrite(path.join(root(), APPLICATIONS, ".generation"), randomUUID());
+  try { await durableRemove(journalPath(journal.application_id)); }
+  catch (error) {
+    // If unlink succeeded but syncing the deletion failed, put the guard/evidence back. Do not
+    // make the running service writable just because the directory entry disappeared in memory.
+    blockWorkspace("Journal removal could not be made durable. Workspace access is blocked until recovery can be verified.");
+    await durableWrite(journalPath(journal.application_id), `${JSON.stringify(journal, null, 2)}\n`);
+    throw error;
   }
-  return results;
+}
+
+const idSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,79}$/);
+const hashSchema = z.string().regex(/^[a-f0-9]{64}$/);
+const canonicalPath = z.string().regex(/^(?:(?:principles|patterns)\/[a-z0-9][a-z0-9-]{0,79}\.md|components\/decisions\.json|decisions\/[a-z0-9][a-z0-9-]*-proposal-[a-z0-9-]+\.md)$/);
+const derivedPath = z.string().regex(/^(?:DESIGN_SYSTEM\.md|design-system\.json|tokens\/(?:themes\/)?[a-z0-9][a-z0-9.-]*\.json)$/);
+const journalSchema = z.object({
+  version: z.literal(1), application_id: idSchema, proposal_id: idSchema, gap_id: idSchema,
+  revision: z.number().int().positive(), hash: hashSchema, started_at: z.string(),
+  records: z.array(z.object({ key: z.string(), operation: z.enum(["amend", "create"]), title: z.string(), route: z.string(), fields: z.array(z.string()) })),
+  files: z.array(z.object({ path: canonicalPath, action: z.enum(["update", "create"]), before: z.string().nullable(), before_hash: hashSchema.nullable() })).min(1),
+  derived: z.array(derivedPath), baseline_errors: z.array(z.string()), knowledge_fingerprint_before: z.string(),
+}).strict();
+
+function verifyJournal(raw: unknown, name: string): Journal {
+  const journal = journalSchema.parse(raw);
+  if (`${journal.application_id}.journal.json` !== name || new Set(journal.files.map((file) => file.path)).size !== journal.files.length) throw new Error("Journal identity or file list is inconsistent.");
+  for (const file of journal.files) {
+    if (file.before === null) {
+      if (file.before_hash !== null || file.action !== "create") throw new Error(`Invalid absent-file snapshot: ${file.path}.`);
+    } else {
+      const bytes = Buffer.from(file.before, "base64");
+      if (bytes.toString("base64") !== file.before || sha256(bytes) !== file.before_hash || file.action !== "update") throw new Error(`Invalid before bytes: ${file.path}.`);
+    }
+  }
+  return journal;
+}
+
+function verifyReceiptIdentity(journal: Journal, receipt: ApplicationReceipt): void {
+  if (receipt.version !== 1 || receipt.id !== journal.application_id || receipt.proposal_id !== journal.proposal_id || receipt.gap_id !== journal.gap_id || receipt.revision !== journal.revision || receipt.hash !== journal.hash
+    || receipt.started_at !== journal.started_at || receipt.knowledge_fingerprint_before !== journal.knowledge_fingerprint_before || typeof receipt.recovered !== "boolean" || !Number.isFinite(Date.parse(receipt.finished_at))
+    || !valuesEqual(receipt.records, journal.records) || !valuesEqual(receipt.derived, journal.derived)
+    || !Array.isArray(receipt.files) || receipt.files.length !== journal.files.length || new Set(receipt.files.map((file) => file.path)).size !== receipt.files.length) throw new Error("Receipt and journal disagree.");
+  for (const before of journal.files) {
+    const file = receipt.files.find((item) => item.path === before.path);
+    if (!file || file.before_hash !== before.before_hash || file.action !== before.action) throw new Error(`Receipt and journal disagree about ${before.path}.`);
+  }
+}
+
+function verifyProposalIdentity(journal: Journal, proposal: Proposal, receipt?: ApplicationReceipt): void {
+  const approved = proposals.latest(proposal);
+  if (!approved || approved.number !== journal.revision || approved.hash !== journal.hash || proposals.revisionHash(approved) !== journal.hash
+    || proposal.gap_id !== journal.gap_id || proposal.approval?.revision !== journal.revision || proposal.approval.hash !== journal.hash
+    || (proposal.status !== "approved" && !(receipt?.outcome === "applied" && proposal.status === "applied"))
+    || (proposal.status === "applied" ? proposal.application?.id !== receipt?.id || proposal.application?.applied_at !== receipt?.finished_at : Boolean(proposal.application))
+    || !valuesEqual(groupRecords(proposal, approved.changes), journal.records)) throw new Error("Proposal does not identify the exact committed approval; recovery will not mark a different revision applied.");
+  const expectedTargets = [...new Set(approved.changes.map((change) => targetPath(change.target)))].sort();
+  const actualTargets = journal.files.filter((file) => !file.path.startsWith("decisions/")).map((file) => file.path).sort();
+  if (approved.changes.some((change) => !applySupport(change).supported) || !valuesEqual(expectedTargets, actualTargets) || journal.files.filter((file) => file.path.startsWith("decisions/")).length !== 1) throw new Error("The journal does not match the approved write targets.");
+}
+
+async function verifyCommit(journal: Journal, receipt: ApplicationReceipt): Promise<Proposal> {
+  verifyReceiptIdentity(journal, receipt);
+  const proposal = await proposals.readProposal(journal.proposal_id);
+  verifyProposalIdentity(journal, proposal, receipt);
+  for (const file of await hashFiles(journal.files)) {
+    const expected = receipt.files.find((item) => item.path === file.path)!.after_hash;
+    if (!hashSchema.safeParse(expected).success || file.after_hash !== expected) throw new Error(`Canonical after-hash does not match the receipt: ${file.path}.`);
+  }
+  const workspace = await loadWorkspace();
+  if (!receipt.restored || !receipt.validation?.ok || !valuesEqual(validation(workspace, new Set(journal.baseline_errors)), receipt.validation)
+    || knowledgeFingerprint(gapKnowledge(workspace)) !== receipt.knowledge_fingerprint_after) throw new Error("Canonical validation or knowledge fingerprint disagrees with the receipt.");
+  if (!valuesEqual(derivedPaths(workspace), journal.derived) || !Array.isArray(receipt.derived_hashes) || receipt.derived_hashes.length !== journal.derived.length
+    || new Set(receipt.derived_hashes.map((file) => file.path)).size !== journal.derived.length) throw new Error("The receipt cannot prove the generated exports. Recovery evidence is retained.");
+  for (const relative of journal.derived) {
+    const bytes = await readBytes(relative);
+    if (bytes === null || sha256(bytes) !== receipt.derived_hashes.find((file) => file.path === relative)?.hash) throw new Error(`Export after-hash does not match the receipt: ${relative}.`);
+  }
+  return proposal;
+}
+
+/** Recovery is the only write-boundary exception. Any unproven state stops startup with evidence intact. */
+export async function recoverApplications(): Promise<RecoveryResult[]> {
+  return withWorkspaceRecovery(async () => {
+    const results: RecoveryResult[] = [];
+    const names = await pendingJournals();
+    if (!names.length && recoveryBlock()) throw new WorkspaceUnavailableError("Recovery evidence could not be retained. Restart Monet or restore the journal before continuing.");
+    for (const name of names) {
+      try {
+        const journal = verifyJournal(await readJson<unknown>(path.join(root(), APPLICATIONS, name)), name);
+        const receipt = await receiptOrNull(journal.application_id);
+        if (receipt) verifyReceiptIdentity(journal, receipt);
+        if (receipt?.outcome === "applied") {
+          const proposal = await verifyCommit(journal, receipt);
+          // Rewriting also establishes durability after a receipt rename whose directory sync failed.
+          await durableWrite(receiptPath(receipt.id), `${JSON.stringify({ ...receipt, recovered: true }, null, 2)}\n`);
+          await proposals.writeProposal({ ...proposal, status: "applied", application: { id: receipt.id, applied_at: receipt.finished_at }, updated_at: receipt.finished_at });
+          await removeJournal(journal);
+          results.push({ application_id: journal.application_id, proposal_id: journal.proposal_id, outcome: "completed", restored: true, failure: null });
+        } else {
+          if (receipt && receipt.outcome !== "rolled_back") throw new Error("Unknown receipt outcome.");
+          // An applied proposal with a missing/rollback receipt is contradictory commit evidence,
+          // not permission to undo it. A deleted, uncommitted proposal does not prevent restoring
+          // a valid journal's before bytes.
+          let proposal: Proposal | null = null;
+          try { proposal = await proposals.readProposal(journal.proposal_id); } catch (error) { if (!isMissing(error)) throw error; }
+          if (proposal) verifyProposalIdentity(journal, proposal, receipt ?? undefined);
+          const rolledBack = await rollback(journal, "write_failed", receipt?.failure ?? "Monet stopped before this application finished.", true);
+          if (!rolledBack.restored) throw new Error(rolledBack.failure ?? "Restore could not be verified.");
+          results.push({ application_id: journal.application_id, proposal_id: journal.proposal_id, outcome: "rolled_back", restored: true, failure: rolledBack.failure });
+        }
+      } catch (error) {
+        throw new WorkspaceUnavailableError(`Recovery of ${name} could not be verified. Workspace access is blocked and recovery evidence is retained. ${errorMessage(error)}`);
+      }
+    }
+    clearRecoveryBlock();
+    return results;
+  });
 }

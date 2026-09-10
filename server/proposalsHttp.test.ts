@@ -1,6 +1,6 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
-import { chmod, cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -135,6 +135,7 @@ it("drives a proposal from diagnosis through approval and Apply over HTTP, and r
     expect(result.receipt).toMatchObject({ outcome: "applied", proposal_id: proposal.id, revision: 2, hash: edited.revisions[1]!.hash, restored: true, validation: { ok: true } });
     expect(result.proposal).toMatchObject({ status: "applied", application: { id: result.receipt!.id } });
     expect(await readFile(path.join(directory, "components", "decisions.json"), "utf8")).toContain("Secondary means visibly a button");
+
     expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"), "utf8")).toContain("Secondary means visibly a button");
     expect((await (await fetch(`${url}/api/workspace`)).text())).toContain("Secondary means visibly a button");
     expect(await (await fetch(`${url}/api/applications`)).json()).toEqual([expect.objectContaining({ id: result.receipt!.id, outcome: "applied" })]);
@@ -154,11 +155,11 @@ it("drives a proposal from diagnosis through approval and Apply over HTTP, and r
     const principleFile = path.join(directory, "principles", "keep-primary-actions-obvious.md");
     const original = await readFile(principleFile);
     const applicationId = "22222222-3333-4444-8555-666666666666";
-    await writeFile(path.join(directory, "applications", `${applicationId}.journal.json`), JSON.stringify({ version: 1, application_id: applicationId, proposal_id: proposal.id, gap_id: gap.id, revision: 2, hash: edited.revisions[1]!.hash, started_at: "2026-09-09T12:00:00.000Z",
+    await writeFile(path.join(directory, "applications", `${applicationId}.journal.json`), JSON.stringify({ version: 1, application_id: applicationId, proposal_id: "interrupted-recovery", gap_id: gap.id, revision: 2, hash: edited.revisions[1]!.hash, started_at: "2026-09-09T12:00:00.000Z",
       records: [], files: [{ path: "principles/keep-primary-actions-obvious.md", action: "update", before: original.toString("base64"), before_hash: createHash("sha256").update(original).digest("hex") }], derived: [], baseline_errors: [], knowledge_fingerprint_before: "f" }));
     await writeFile(principleFile, "---\ntitle: \"Half written\"\norder: 0\nupdated_at: \"\"\n---\n\nGARBAGE FROM A CRASH\n");
     service = await startService(directory, wrapper);
-    expect(service.output()).toContain(`Recovered application ${applicationId} for proposal ${proposal.id}: rolled back, every record restored`);
+    expect(service.output()).toContain(`Recovered application ${applicationId} for proposal interrupted-recovery: rolled back, every record restored`);
     await expectBytesUnchanged(principleFile, original);
     expect((await readdir(path.join(directory, "applications"))).filter((name) => name.endsWith(".journal.json"))).toEqual([]);
     const recovered = await (await fetch(`${service.url}/api/applications/${applicationId}`)).json() as ApplicationReceipt;
@@ -167,8 +168,47 @@ it("drives a proposal from diagnosis through approval and Apply over HTTP, and r
     // The applied proposal is untouched by the unrelated recovery, and its record still carries the change.
     expect(await (await fetch(`${service.url}/api/proposals/${proposal.id}`)).json()).toMatchObject({ status: "applied" });
     expect(await readFile(path.join(directory, "components", "decisions.json"), "utf8")).toContain("Secondary means visibly a button");
+
+    // An unresolved journal makes live HTTP reads and all ordinary saves explicitly unavailable.
+    const committedDecisions = await readFile(path.join(directory, "components", "decisions.json"));
+    await writeFile(path.join(directory, "applications", `${applicationId}.journal.json`), "{}");
+    const unavailable = await fetch(`${service.url}/api/workspace`);
+    expect(unavailable.status).toBe(503);
+    expect(await unavailable.json()).toMatchObject({ kind: "state", error: expect.stringContaining("recovery") });
+    expect((await fetch(`${service.url}/api/components/button`, { method: "PUT", headers: json, body: JSON.stringify({ notes: "Blocked save" }) })).status).toBe(503);
+    expect((await fetch(`${service.url}/api/proposal-rejections/${proposal.id}`, { method: "POST", headers: json, body: "{}" })).status).toBe(503);
+    await expectBytesUnchanged(path.join(directory, "components", "decisions.json"), committedDecisions);
   } finally {
     await stop(service.child);
     await rm(directory, { recursive: true, force: true });
   }
 }, 60000);
+
+it("refuses to listen when startup recovery cannot regenerate exports", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "monet-startup-recovery-"));
+  let child: ChildProcess | undefined;
+  try {
+    await cp(BUNDLED_WORKSPACE, directory, { recursive: true, filter: (file) => !/\/(gaps|proposals|applications)(\/|$)/.test(file) });
+    await mkdir(path.join(directory, "applications"), { recursive: true });
+    const relative = "principles/keep-primary-actions-obvious.md";
+    const original = await readFile(path.join(directory, relative));
+    const applicationId = "33333333-4444-4555-8666-777777777777";
+    const journal = path.join(directory, "applications", `${applicationId}.journal.json`);
+    await writeFile(journal, JSON.stringify({ version: 1, application_id: applicationId, proposal_id: "interrupted", gap_id: "gap", revision: 1, hash: "a".repeat(64), started_at: "2026-09-09T12:00:00.000Z", records: [], files: [{ path: relative, action: "update", before: original.toString("base64"), before_hash: createHash("sha256").update(original).digest("hex") }], derived: [], baseline_errors: [], knowledge_fingerprint_before: "before" }));
+    await writeFile(path.join(directory, relative), "Uncommitted bytes.\n");
+    await rm(path.join(directory, "DESIGN_SYSTEM.md"));
+    await mkdir(path.join(directory, "DESIGN_SYSTEM.md")); // Real filesystem failure, no mocked server.
+    child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: process.cwd(), env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0" }, stdio: ["ignore", "pipe", "pipe"] });
+    let output = ""; let error = "";
+    child.stdout!.on("data", (chunk) => { output += String(chunk); });
+    child.stderr!.on("data", (chunk) => { error += String(chunk); });
+    const [code] = await once(child, "exit");
+    expect(code).not.toBe(0);
+    expect(output).not.toContain("Monet file service:");
+    expect(error).toContain("Recovery of");
+    expect(error).toContain("could not be verified");
+    expect(await readFile(journal, "utf8")).toContain(applicationId);
+    expect(JSON.parse(await readFile(path.join(directory, "applications", `${applicationId}.json`), "utf8"))).toMatchObject({ outcome: "rolled_back", restored: false, recovered: true });
+    await expectBytesUnchanged(path.join(directory, relative), original);
+  } finally { if (child && child.exitCode === null) child.kill(); await rm(directory, { recursive: true, force: true }); }
+});

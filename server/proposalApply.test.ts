@@ -1,4 +1,7 @@
 import { cp, mkdtemp, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
+import { spawn } from "node:child_process";
+import { once } from "node:events";
+import { pathToFileURL } from "node:url";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -12,6 +15,10 @@ import { createGap, deleteGap, diagnoseSavedGap, initializeStore, loadWorkspace,
 import type { gapAnalysisSchema } from "./gapDiagnosis.js";
 import { approveProposal, createProposal, draftProposalWithAi, getProposal, listProposals, ProposalStateError, rebaseProposal, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
 import { BUNDLED_WORKSPACE, setWorkspaceRoot } from "./workspace.js";
+import { createMonetService } from "../shared/service.js";
+import { createMonetMcpServer } from "../mcp/server.js";
+import { Client, InMemoryTransport } from "@modelcontextprotocol/client";
+import { StdioClientTransport } from "@modelcontextprotocol/client/stdio";
 
 /**
  * Fault injection at the filesystem and validation seams the transaction crosses: `rename` is the
@@ -20,7 +27,8 @@ import { BUNDLED_WORKSPACE, setWorkspaceRoot } from "./workspace.js";
  * `decisions/` entry, which is how the validation fault targets only the final check.
  */
 const faults = vi.hoisted(() => ({
-  renameFail: "", renameFailTimes: 0, openFail: "",
+  renameFail: "", renameFailTimes: 0, openFail: "", receiptFailTimes: 0, receiptPublished: false, receiptSyncFailTimes: 0,
+  durabilityEvents: [] as string[],
   gate: null as null | { path: string; opened: Promise<void>; open: () => void; reached: Promise<void>; markReached: () => void },
   validation: false,
 }));
@@ -31,11 +39,22 @@ vi.mock("node:fs/promises", async (original) => {
     rename: async (from: string, to: string) => {
       if (faults.gate && to.includes(faults.gate.path)) { faults.gate.markReached(); await faults.gate.opened; }
       if (faults.renameFail && to.includes(faults.renameFail) && faults.renameFailTimes !== 0) { faults.renameFailTimes -= 1; throw new Error(`Simulated disk failure writing ${path.basename(to)}`); }
+      const receipt = /\/applications\/[^/]+\.json$/.test(to) && !to.endsWith(".journal.json");
+      if (receipt && faults.receiptFailTimes) { faults.receiptFailTimes--; throw new Error("Simulated receipt rename failure"); }
       await fs.rename(from, to);
+      if (receipt) faults.receiptPublished = true;
+      faults.durabilityEvents.push(`rename:${to}`);
     },
     open: async (file: string, flags?: string | number, mode?: number) => {
       if (faults.openFail && String(file).includes(faults.openFail)) throw new Error("Simulated disk failure creating the journal");
-      return fs.open(file, flags, mode);
+      const handle = await fs.open(file, flags, mode);
+      const sync = handle.sync.bind(handle);
+      handle.sync = async () => {
+        if (String(file).endsWith("/applications") && faults.receiptPublished && faults.receiptSyncFailTimes) { faults.receiptSyncFailTimes--; throw new Error("Simulated receipt directory sync failure"); }
+        await sync();
+        faults.durabilityEvents.push(`sync:${file}`);
+      };
+      return handle;
     },
   };
 });
@@ -133,7 +152,7 @@ async function multiRecordChanges(): Promise<ProposalChangeInput[]> {
     ...NEW_PATTERN,
   ];
 }
-const applicationFiles = async () => (await readdir(path.join(directory, "applications"))).sort();
+const applicationFiles = async () => (await readdir(path.join(directory, "applications"))).filter((name) => name.endsWith(".json")).sort();
 const proposalFile = (id: string) => path.join(directory, "proposals", `${id}.json`);
 
 beforeEach(async () => {
@@ -144,8 +163,9 @@ beforeEach(async () => {
   vi.stubEnv("MONET_AI_COMMAND", ""); vi.stubEnv("MONET_CODEX_EXECUTABLE", ""); vi.stubEnv("MONET_AI_IMAGES", "");
   vi.mocked(runProvider).mockReset();
   faults.renameFail = ""; faults.renameFailTimes = 0; faults.openFail = ""; faults.gate = null; faults.validation = false;
+  faults.receiptFailTimes = 0; faults.receiptPublished = false; faults.receiptSyncFailTimes = 0; faults.durabilityEvents = [];
 });
-afterEach(async () => { faults.renameFail = ""; faults.renameFailTimes = 0; faults.openFail = ""; faults.gate = null; faults.validation = false; vi.unstubAllEnvs(); setWorkspaceRoot(BUNDLED_WORKSPACE); await rm(directory, { recursive: true, force: true }); });
+afterEach(async () => { faults.renameFail = ""; faults.renameFailTimes = 0; faults.openFail = ""; faults.gate = null; faults.validation = false; faults.receiptFailTimes = 0; faults.receiptSyncFailTimes = 0; vi.unstubAllEnvs(); setWorkspaceRoot(BUNDLED_WORKSPACE); await rm(directory, { recursive: true, force: true }); });
 
 describe("Apply gates", () => {
   it("applies only a saved approved revision named by number and hash, and plans nothing for anything else", async () => {
@@ -287,10 +307,11 @@ describe("Apply transaction", () => {
     expect(workspace.principles.find((p) => `principle:${p.id}` === PRINCIPLE)?.body).toContain("Actions inside cards are still actions");
     expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"), "utf8")).toContain("**Card actions** (experimental)");
     const decision = await readFile(path.join(directory, entry), "utf8");
-    expect(decision).toContain("Applied Gap proposal: Make secondary actions recognizable");
+    expect(decision).toContain(`Applied Gap proposal ${proposal.id}, revision ${revision}`);
+    expect(decision).not.toContain("Make secondary actions recognizable");
     expect(decision).toContain("pattern:card-actions (new): title, summary, body, components, foundations");
     expect(decision).toContain(`application ${receipt.id}`);
-    expect(workspace.decisionLog[0]?.title).toBe("Applied Gap proposal: Make secondary actions recognizable");
+    expect(workspace.decisionLog[0]?.title).toBe(`Applied Gap proposal ${proposal.id}, revision ${revision}`);
 
     // Private Gap evidence never reaches canonical records, exports, or history.
     const canonical = await canonicalText();
@@ -403,7 +424,7 @@ describe("Apply failure and recovery", () => {
     // Canonical records are back, but the exports could not be regenerated, and nothing may be applied over the leftover journal.
     const partial = await workspaceHashes();
     expect(changedFiles(before, partial)).toEqual([]);
-    expect((await planApplication(proposal.id)).blockers).toEqual([{ kind: "state", message: expect.stringContaining("Restart Monet") }]);
+    await expect(planApplication(proposal.id)).rejects.toMatchObject({ status: 503, message: expect.stringContaining("Restart Monet") });
     await expect(applyProposal(proposal.id, { revision, hash })).rejects.toMatchObject({ kind: "state" });
 
     faults.renameFail = ""; faults.renameFailTimes = 0;
@@ -460,9 +481,10 @@ describe("Apply failure and recovery", () => {
     expect(failure.receipt?.outcome).toBe("applied");
     faults.renameFail = ""; faults.renameFailTimes = 0;
     const committed = await workspaceHashes();
-    expect((await getProposal(proposal.id)).status).toBe("approved");
+    expect(JSON.parse(await readFile(proposalFile(proposal.id), "utf8")).status).toBe("approved");
+    await expect(getProposal(proposal.id)).rejects.toMatchObject({ status: 503 });
     expect(await applicationFiles()).toContain(`${failure.receipt!.id}.journal.json`);
-    expect((await planApplication(proposal.id)).blockers[0]).toMatchObject({ kind: "state", message: expect.stringContaining("Restart Monet") });
+    await expect(planApplication(proposal.id)).rejects.toMatchObject({ status: 503, message: expect.stringContaining("Restart Monet") });
     expect(await recoverApplications()).toEqual([{ application_id: failure.receipt!.id, proposal_id: proposal.id, outcome: "completed", restored: true, failure: null }]);
     await expectWorkspaceUnchanged(committed);
     expect((await getProposal(proposal.id))).toMatchObject({ status: "applied", application: { id: failure.receipt!.id } });
@@ -478,20 +500,23 @@ describe("Apply failure and recovery", () => {
     const applying = applyProposal(first.proposal.id, { revision: first.revision, hash: first.hash });
     await applyGate.reached;
     let saved = false;
-    const saving = saveComponents("button", { ...button, notes: `${button.notes} Edited during apply.` }).then(() => { saved = true; });
+    const saving = saveComponents("button", { ...button, notes: `${button.notes} Edited during apply.` }).then(() => { saved = true; }, (error: unknown) => error);
     await new Promise((resolve) => setTimeout(resolve, 30));
     expect(saved, "the save must wait for the transaction").toBe(false);
     faults.gate = null;
     applyGate.open();
     const applied = await applying;
     expect(applied.outcome).toBe("applied");
-    await saving;
-    // The save ran after the whole transaction, with the full record the caller sent (ordinary saves are last-writer-wins), never between the apply's writes and its exports.
+    expect(await saving).toMatchObject({ status: 409, message: expect.stringContaining("Reload") });
+    // Waiting is insufficient for a stale full-record save: it must see the newly applied version.
+    const fresh = (await loadWorkspace()).components.find((c) => c.id === "button")!;
+    expect(fresh.use_when).toContain("Card actions");
+    await saveComponents("button", { ...fresh, notes: `${fresh.notes} Edited after refreshing.` });
     const merged = (await loadWorkspace()).components.find((c) => c.id === "button")!;
-    expect(merged.notes).toContain("Edited during apply.");
-    expect(merged.use_when).toEqual(button.use_when);
+    expect(merged.notes).toContain("Edited after refreshing.");
+    expect(merged.use_when).toContain("Card actions");
     expect(applied.receipt!.files.find((file) => file.path === "components/decisions.json")!.after_hash).not.toBe((await workspaceHashes()).get("components/decisions.json"));
-    expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"), "utf8")).toContain("Edited during apply.");
+    expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"), "utf8")).toContain("Edited after refreshing.");
     expect((await getProposal(first.proposal.id)).status).toBe("applied");
 
     // The other order: a save is mid-write when Apply arrives. Apply queues, then sees the changed target and refuses.
@@ -507,5 +532,226 @@ describe("Apply failure and recovery", () => {
     await expect(queuedApply).rejects.toMatchObject({ kind: "stale" });
     expect((await loadWorkspace()).components.find((c) => c.id === "button")!.rationale).toContain("Edited before apply.");
     expect((await getProposal(second.proposal.id)).status).toBe("approved");
+  });
+});
+
+async function committedButUnreconciled() {
+  const approved = await approvedProposal([{ target: "component:button", field: "notes", after: "Approved action guidance." }]);
+  faults.renameFail = "/proposals/"; faults.renameFailTimes = 1;
+  let failure: ApplyError | undefined;
+  try { await applyProposal(approved.proposal.id, { revision: approved.revision, hash: approved.hash }); } catch (error) { failure = error as ApplyError; }
+  faults.renameFail = ""; faults.renameFailTimes = 0;
+  expect(failure?.receipt?.outcome).toBe("applied");
+  return { ...approved, receipt: failure!.receipt! };
+}
+
+describe("Safe Apply merge-gate regressions", () => {
+  it("blocks ordinary saves, initialization, reads, and Apply until recovery is verified", async () => {
+    const workspace = await loadWorkspace();
+    const button = workspace.components.find((item) => item.id === "button")!;
+    const p = await approvedProposal(await multiRecordChanges());
+    faults.renameFail = "DESIGN_SYSTEM.md"; faults.renameFailTimes = -1;
+    await expect(applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash })).rejects.toMatchObject({ receipt: { restored: false } });
+    const before = await workspaceHashes();
+    for (const operation of [
+      () => saveComponents("button", { ...button, notes: "This save must not be acknowledged." }),
+      () => savePrimitiveTaxonomy(workspace.primitiveTaxonomy), () => initializeStore(), () => loadWorkspace(),
+      () => applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash }),
+    ]) await expect(operation()).rejects.toMatchObject({ status: 503 });
+    await expect(recoverApplications()).rejects.toMatchObject({ status: 503, message: expect.stringContaining("could not be verified") });
+    const receipts = await listApplications();
+    expect(receipts).toHaveLength(1);
+    expect(receipts[0]).toMatchObject({ outcome: "rolled_back", restored: false, recovered: true });
+    expect((await applicationFiles()).some((file) => file.endsWith(".journal.json"))).toBe(true);
+    await expectWorkspaceUnchanged(before);
+    faults.renameFail = ""; faults.renameFailTimes = 0;
+    // Clearing the I/O fault alone does not bypass recovery.
+    await expect(saveComponents("button", button)).rejects.toMatchObject({ status: 503 });
+    await recoverApplications();
+    await saveComponents("button", { ...button, notes: "Saved only after verified recovery." });
+    await recoverApplications();
+    expect((await loadWorkspace()).components.find((item) => item.id === "button")?.notes).toBe("Saved only after verified recovery.");
+  });
+
+  it("makes a possibly committed proposal immutable until its exact approval is reconciled", async () => {
+    const p = await committedButUnreconciled();
+    const original = await readFile(proposalFile(p.proposal.id));
+    for (const operation of [
+      () => saveProposalRevision(p.proposal.id, { summary: "Later revision", changes: [{ target: "component:button", field: "notes", after: "Never approved." }] }),
+      () => rejectProposal(p.proposal.id, {}), () => supersedeProposal(p.proposal.id), () => rebaseProposal(p.proposal.id),
+      () => approveProposal(p.proposal.id, { revision: p.revision, hash: p.hash }), () => draftProposalWithAi(p.proposal.id),
+      () => applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash }),
+    ]) await expect(operation()).rejects.toMatchObject({ status: 503 });
+    expect((await readFile(proposalFile(p.proposal.id))).equals(original)).toBe(true);
+    const committed = await workspaceHashes();
+    await recoverApplications();
+    await expectWorkspaceUnchanged(committed);
+    expect(await getProposal(p.proposal.id)).toMatchObject({ status: "applied", approval: { revision: p.revision, hash: p.hash }, application: { id: p.receipt.id } });
+    expect(await getApplication(p.receipt.id)).toMatchObject({ outcome: "applied", recovered: true, finished_at: p.receipt.finished_at });
+    expect((await applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash })).outcome).toBe("already_applied");
+  });
+
+  it.each(["later revision", "canonical bytes", "export bytes", "receipt identity", "journal before bytes"])("preserves all recovery evidence when %s disagree", async (fault) => {
+    const p = await committedButUnreconciled();
+    const journalFile = path.join(directory, "applications", `${p.receipt.id}.journal.json`);
+    if (fault === "later revision") {
+      const stored = JSON.parse(await readFile(proposalFile(p.proposal.id), "utf8")) as Proposal;
+      stored.revisions.push({ ...stored.revisions[0]!, number: 2 });
+      stored.approval = { ...stored.approval!, revision: 2 };
+      await writeFile(proposalFile(p.proposal.id), JSON.stringify(stored));
+    } else if (fault === "canonical bytes") {
+      const journal = JSON.parse(await readFile(journalFile, "utf8")) as { files: { path: string; before: string }[] };
+      const file = journal.files.find((item) => item.path === "components/decisions.json")!;
+      await writeFile(path.join(directory, file.path), Buffer.from(file.before, "base64"));
+    } else if (fault === "export bytes") await writeFile(path.join(directory, "DESIGN_SYSTEM.md"), "An inconsistent export.\n");
+    else if (fault === "receipt identity") await writeFile(path.join(directory, "applications", `${p.receipt.id}.json`), JSON.stringify({ ...p.receipt, revision: 2 }));
+    else {
+      const journal = JSON.parse(await readFile(journalFile, "utf8"));
+      journal.files[0].before_hash = "0".repeat(64);
+      await writeFile(journalFile, JSON.stringify(journal));
+    }
+    const before = await workspaceHashes();
+    const evidence = await Promise.all([journalFile, proposalFile(p.proposal.id), path.join(directory, "applications", `${p.receipt.id}.json`)].map((file) => readFile(file)));
+    await expect(recoverApplications()).rejects.toMatchObject({ status: 503 });
+    await expectWorkspaceUnchanged(before);
+    const after = await Promise.all([journalFile, proposalFile(p.proposal.id), path.join(directory, "applications", `${p.receipt.id}.json`)].map((file) => readFile(file)));
+    expect(after.every((bytes, i) => bytes.equals(evidence[i]!))).toBe(true);
+    await expect(loadWorkspace()).rejects.toMatchObject({ status: 503 });
+    await expect(initializeStore()).rejects.toMatchObject({ status: 503 });
+  });
+
+  it("keeps a published receipt as possible commit evidence when directory fsync fails", async () => {
+    const p = await approvedProposal(await multiRecordChanges());
+    faults.receiptSyncFailTimes = 1;
+    await expect(applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash })).rejects.toThrow("may have committed");
+    const receipt = (await listApplications())[0]!;
+    expect(receipt.outcome).toBe("applied");
+    const committed = await workspaceHashes();
+    expect(await applicationFiles()).toContain(`${receipt.id}.journal.json`);
+    await expect(savePrimitiveTaxonomy([])).rejects.toMatchObject({ status: 503 });
+    await recoverApplications();
+    await expectWorkspaceUnchanged(committed);
+    expect(await getApplication(receipt.id)).toMatchObject({ outcome: "applied", recovered: true });
+  });
+
+  it.each([1, 2])("recovers byte-exactly when %s receipt writes fail before publication", async (failures) => {
+    const p = await approvedProposal(await multiRecordChanges());
+    const before = await workspaceHashes();
+    faults.receiptFailTimes = failures;
+    await expect(applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash })).rejects.toThrow();
+    await expectWorkspaceUnchanged(before);
+    if (failures === 2) {
+      expect((await applicationFiles()).some((file) => file.endsWith(".journal.json"))).toBe(true);
+      await expect(loadWorkspace()).rejects.toMatchObject({ status: 503 });
+      await recoverApplications();
+    }
+    await expectWorkspaceUnchanged(before);
+    expect((await listApplications())[0]).toMatchObject({ outcome: "rolled_back", restored: true, recovered: failures === 2 });
+  });
+
+  it("syncs canonical bytes and containing directories before publishing the receipt", async () => {
+    const p = await approvedProposal(await multiRecordChanges());
+    faults.durabilityEvents = [];
+    const result = await applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash });
+    const events = faults.durabilityEvents;
+    const receiptRename = events.indexOf(`rename:${path.join(directory, "applications", `${result.receipt!.id}.json`)}`);
+    for (const file of [...result.receipt!.files, ...result.receipt!.derived_hashes!]) {
+      const absolute = path.join(directory, file.path);
+      const rename = events.indexOf(`rename:${absolute}`);
+      expect(rename).toBeGreaterThan(0);
+      expect(events.slice(0, rename).some((event) => event.startsWith(`sync:${absolute}.`) && event.endsWith(".tmp"))).toBe(true);
+      expect(events.slice(rename + 1, receiptRename)).toContain(`sync:${path.dirname(absolute)}`);
+    }
+  });
+
+  it("never copies private AI summaries, screenshots, observations, or reasoning to canonical audit entries", async () => {
+    const gap = await diagnosedGap(wideAnalysis(), true);
+    const created = await createProposal({ gap_id: gap.id });
+    vi.stubEnv("MONET_AI_COMMAND", "provider");
+    vi.mocked(runProvider).mockResolvedValueOnce({ summary: `${CONTEXT} ${PNG}`, rationale: `${PROBLEM}; PRIVATE AI REASONING`, changes: [{ target: "component:button", operation: "amend", field: "notes", value: "Keep secondary actions recognizable.", note: "grid.png PRIVATE SCREENSHOT OBSERVATION" }] });
+    const drafted = await draftProposalWithAi(created.id);
+    vi.stubEnv("MONET_AI_COMMAND", "");
+    expect(drafted.draft_failed).toBeUndefined();
+    const revision = drafted.revisions[0]!;
+    expect(revision.author).toBe("ai");
+    await approveProposal(created.id, { revision: revision.number, hash: revision.hash });
+    const result = await applyProposal(created.id, { revision: revision.number, hash: revision.hash });
+    const canonical = await canonicalText();
+    const context = await createMonetService({ loadWorkspace }).getDesignContext({ componentIds: ["button"] });
+    for (const secret of [PROBLEM, CONTEXT, PNG, "grid.png", "PRIVATE AI REASONING", "PRIVATE SCREENSHOT OBSERVATION"]) {
+      expect(canonical).not.toContain(secret);
+      expect(JSON.stringify(context)).not.toContain(secret);
+    }
+    const decision = (await loadWorkspace()).decisionLog[0]!;
+    expect(decision.body).toContain(`Gap ${gap.id}; proposal ${created.id}, revision ${revision.number} (hash ${revision.hash}), application ${result.receipt!.id}`);
+  });
+
+  it.each([false, true])("HTTP/shared/MCP reads wait for a complete Apply outcome (rollback=%s)", async (fail) => {
+    const p = await approvedProposal(await multiRecordChanges());
+    const original = (await loadWorkspace()).principles.find((item) => `principle:${item.id}` === PRINCIPLE)!.body;
+    const server = createMonetMcpServer(createMonetService({ loadWorkspace }));
+    const client = new Client({ name: "apply-isolation-test", version: "1" });
+    const isolated = new Client({ name: "separate-process-isolation-test", version: "1" });
+    const stdio = new StdioClientTransport({ command: process.execPath, args: ["--import", "tsx", path.join(process.cwd(), "mcp/index.ts")], env: { ...Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string")), MONET_ROOT: directory }, stderr: "pipe" });
+    stdio.stderr?.on("data", () => undefined);
+    const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+    await server.connect(serverTransport); await client.connect(clientTransport);
+    const paused = gate("/patterns/");
+    if (fail) { faults.renameFail = "/patterns/"; faults.renameFailTimes = 1; }
+    const applying = applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash }).catch((error: unknown) => error);
+    try {
+      await paused.reached;
+      let observed = false;
+      const reading = loadWorkspace().then((workspace) => { observed = true; return workspace; });
+      const mcp = client.readResource({ uri: `monet://principles/${PRINCIPLE.split(":")[1]}` }).then((response) => { observed = true; return response; });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      expect(observed).toBe(false);
+      // Exercise the actual stdio MCP process, which cannot use the editing service's queue.
+      await isolated.connect(stdio);
+      await expect(isolated.readResource({ uri: `monet://principles/${PRINCIPLE.split(":")[1]}` })).rejects.toThrow("in progress or needs recovery");
+      faults.gate = null; paused.open();
+      await applying;
+      const workspace = await reading;
+      const expected = fail ? original : `${original}\n\nActions inside cards are still actions: they need the same affordance as actions anywhere else.`;
+      expect(workspace.principles.find((item) => `principle:${item.id}` === PRINCIPLE)!.body).toBe(expected);
+      const response = await mcp;
+      expect(JSON.parse((response.contents[0] as { text: string }).text).body).toBe(expected);
+      const separate = await isolated.readResource({ uri: `monet://principles/${PRINCIPLE.split(":")[1]}` });
+      expect(JSON.parse((separate.contents[0] as { text: string }).text).body).toBe(expected);
+    } finally { faults.gate = null; paused.open(); await applying; await client.close(); await isolated.close(); await server.close(); }
+  });
+
+  it("rejects a separate reader's mixed snapshot even when an entire Apply finishes between its file reads", async () => {
+    const p = await approvedProposal(await multiRecordChanges());
+    const module = pathToFileURL(path.join(process.cwd(), "server/writeLock.ts")).href;
+    const first = path.join(directory, "principles/keep-primary-actions-obvious.md");
+    const second = path.join(directory, "patterns/dashboard.md");
+    const child = spawn(process.execPath, ["--import", "tsx", "--input-type=module", "-e", `import { withWorkspaceRead } from ${JSON.stringify(module)}; import { readFile } from 'node:fs/promises'; import { once } from 'node:events'; try { const data = await withWorkspaceRead(async () => { const first = await readFile(${JSON.stringify(first)}, 'utf8'); console.log('READY'); await once(process.stdin, 'data'); const second = await readFile(${JSON.stringify(second)}, 'utf8'); return {first,second}; }); console.log('UNSAFE', data); } catch (error) { console.log('BLOCKED', error.status); } process.stdin.destroy();`], { env: { ...process.env, MONET_ROOT: directory }, stdio: ["pipe", "pipe", "pipe"] });
+    let output = "";
+    const exited = once(child, "exit");
+    const ready = new Promise<void>((resolve, reject) => {
+      child.stdout.on("data", (chunk) => { output += String(chunk); if (output.includes("READY")) resolve(); });
+      child.on("error", reject);
+      child.on("exit", () => { if (!output.includes("READY")) reject(new Error("Reader exited before becoming ready.")); });
+    });
+    try {
+      await ready;
+      await applyProposal(p.proposal.id, { revision: p.revision, hash: p.hash });
+      child.stdin.write("continue\n");
+      await exited;
+      expect(output).toContain("BLOCKED 503");
+      expect(output).not.toContain("UNSAFE");
+    } finally { if (child.exitCode === null) { child.kill(); await exited; } }
+  });
+
+  it("never rolls back an applied proposal just because its receipt is missing", async () => {
+    const p = await committedButUnreconciled();
+    const proposal = JSON.parse(await readFile(proposalFile(p.proposal.id), "utf8")) as Proposal;
+    await writeFile(proposalFile(p.proposal.id), JSON.stringify({ ...proposal, status: "applied", application: { id: p.receipt.id, applied_at: p.receipt.finished_at } }));
+    await rm(path.join(directory, "applications", `${p.receipt.id}.json`));
+    const committed = await workspaceHashes();
+    await expect(recoverApplications()).rejects.toMatchObject({ status: 503 });
+    await expectWorkspaceUnchanged(committed);
+    expect(await applicationFiles()).toContain(`${p.receipt.id}.journal.json`);
   });
 });

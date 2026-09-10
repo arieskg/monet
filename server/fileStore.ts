@@ -1,4 +1,4 @@
-import { mkdir, readFile, readdir, rename, unlink, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { GAP_IMAGE_LIMIT, gapInputSchema, gapReviewInputSchema, type Gap, type GapDiagnosisResponse, type GapHumanReview, type GapImage, type GapSummary } from "../shared/gaps.js";
@@ -9,7 +9,8 @@ import { analyzeReference, analyzeReferenceCollection } from "./referenceAnalysi
 import { generateSourceMappings, type MappingRefreshResult } from "./sourceMapping.js";
 import { normalizeFoundation, normalizeTokens, resolveThemeTokens, resolveTokens, themeModes } from "./tokens.js";
 import { workspaceRoot } from "./workspace.js";
-import { withWorkspaceWrite } from "./writeLock.js";
+import { assertWorkspaceWrite, withWorkspaceRead, withWorkspaceWrite } from "./writeLock.js";
+import { atomicWrite, syncDirectory } from "./durableFiles.js";
 
 const STATUSES: Status[] = ["undecided", "selected", "needs_review", "experimental", "do_not_use"];
 const MAPPING_STATUSES: MappingStatus[] = ["mapped", "needs_review", "unmapped", "ignored", "no_equivalent"];
@@ -235,14 +236,6 @@ async function readDirectoryOrEmpty(directory: string): Promise<string[]> {
   catch (error) { if (isMissing(error)) return []; throw error; }
 }
 
-async function atomicWrite(file: string, contents: string | Uint8Array): Promise<void> {
-  const temp = `${file}.${randomUUID()}.tmp`;
-  try {
-    await writeFile(temp, contents, { mode: 0o600 });
-    await rename(temp, file);
-  } finally { await unlink(temp).catch((error: NodeJS.ErrnoException) => { if (error.code !== "ENOENT") throw error; }); }
-}
-
 async function writeJson(file: string, value: unknown): Promise<void> {
   await atomicWrite(file, `${JSON.stringify(value, null, 2)}\n`);
 }
@@ -287,6 +280,10 @@ async function readThemes(): Promise<{ themes: Theme[]; defaultThemeId: string }
 }
 
 export async function loadWorkspace(requestedThemeId?: string, requestedMode?: ThemeMode): Promise<Workspace> {
+  return withWorkspaceRead(() => readWorkspace(requestedThemeId, requestedMode));
+}
+
+async function readWorkspace(requestedThemeId?: string, requestedMode?: ThemeMode): Promise<Workspace> {
   const foundationFiles = (await readDirectoryOrEmpty(path.join(root(), "foundations"))).filter((name) => name.endsWith(".json")).sort();
   const foundations = await Promise.all(foundationFiles.map(async (name) => normalizeFoundation(await readJson<Foundation>(path.join(root(), "foundations", name)))));
   const baseResolution = resolveTokens(foundations);
@@ -333,6 +330,7 @@ export async function loadWorkspace(requestedThemeId?: string, requestedMode?: T
 
 /** Rewrites every derived file from the canonical records. Unlocked; callers hold the write lock or run before the service listens. */
 export async function writeExports(): Promise<void> {
+  assertWorkspaceWrite();
   const workspace = await loadWorkspace();
   const activeTheme = workspace.themes.find((theme) => theme.id === workspace.activeThemeId) ?? null;
   const darkResolution = workspace.modes.includes("dark")
@@ -408,17 +406,29 @@ export async function writeExports(): Promise<void> {
 
 export const regenerateExports = serialized(writeExports);
 
+export class StaleRecordError extends Error { status = 409; }
+
+function assertRecordVersion(input: { updated_at: string }, prior?: { updated_at: string }): void {
+  if (prior && input.updated_at !== prior.updated_at) throw new StaleRecordError("This record changed after it was loaded. Reload the workspace and review the current record before saving.");
+}
+
+function nextUpdatedAt(prior?: { updated_at: string }): string {
+  return new Date(Math.max(Date.now(), (Date.parse(prior?.updated_at ?? "") || 0) + 1)).toISOString();
+}
+
 /** Writes one principle file without regenerating exports. The file path is `principles/<id>.md`. */
 export async function writePrincipleRecord(id: string, input: Principle): Promise<void> {
+  assertWorkspaceWrite();
   const safeId = cleanId(id);
   const existing = await readPrinciplesDirectory(path.join(root(), "principles"));
   const prior = existing.find((item) => item.id === safeId);
+  assertRecordVersion(input, prior);
   const principle: Principle = {
     id: safeId,
     title: text(input.title, safeId),
     body: text(input.body),
     order: Number.isFinite(input.order) ? input.order : prior?.order ?? existing.length,
-    updated_at: new Date().toISOString(),
+    updated_at: nextUpdatedAt(prior),
   };
   await atomicWrite(path.join(root(), "principles", `${safeId}.md`), renderPrinciple(principle));
 }
@@ -430,13 +440,15 @@ export const savePrinciple = serialized(async (id: string, input: Principle): Pr
 
 /** Writes one pattern file without regenerating exports. The file path is `patterns/<id>.md`. */
 export async function writePatternRecord(id: string, input: MarkdownDocument): Promise<void> {
+  assertWorkspaceWrite();
   const safeId = cleanId(id);
   const existing = await readMarkdownDirectory(path.join(root(), "patterns"));
   const prior = existing.find((item) => item.id === safeId);
+  assertRecordVersion(input, prior);
   const document: MarkdownDocument = {
     id: safeId, title: text(input.title, safeId), summary: text(input.summary), body: text(input.body), status: status(input.status),
     tags: list(input.tags), order: Number.isFinite(input.order) ? input.order : prior?.order ?? existing.length,
-    updated_at: new Date().toISOString(), components: list(input.components), foundations: list(input.foundations),
+    updated_at: nextUpdatedAt(prior), components: list(input.components), foundations: list(input.foundations),
   };
   await atomicWrite(path.join(root(), "patterns", `${safeId}.md`), renderFrontmatter(document));
 }
@@ -528,15 +540,17 @@ export const deleteTheme = serialized(async (id: string): Promise<void> => {
  * but the decision file.
  */
 export async function writeComponentDecision(id: string, input: ComponentDecision): Promise<void> {
+  assertWorkspaceWrite();
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const index = workspace.components.findIndex((item) => item.id === safeId);
   const previous = index >= 0 ? workspace.components[index] : undefined;
+  assertRecordVersion(input, previous);
   const selection = componentSelection(input);
   const oldSource = previous?.selection?.source ?? null;
   const newSource = selection?.source ?? null;
   const changed = oldSource !== newSource;
-  const now = new Date().toISOString();
+  const now = nextUpdatedAt(previous);
   const next: ComponentDecision = {
     ...input, id: safeId, status: status(input.status), selection,
     preferences: input.preferences && typeof input.preferences === "object" ? input.preferences : {}, behavior: input.behavior && typeof input.behavior === "object" ? input.behavior : {},
@@ -938,12 +952,14 @@ export async function readGapImage(id: string): Promise<{ contents: Buffer; medi
  * new design system rather than failing on the first missing file. Existing files are never
  * touched; only what is absent is created.
  */
-export async function initializeStore(): Promise<void> {
+export const initializeStore = serialized(async (): Promise<void> => {
   const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals", "applications"];
   await Promise.all([
     ...directories.map((name) => mkdir(path.join(root(), name), { recursive: true })),
     mkdir(path.join(root(), "references", "assets"), { recursive: true }),
   ]);
+  await syncDirectory(root());
+  await syncDirectory(path.dirname(root()));
   const seeds: [file: string[], value: unknown][] = [
     [["taxonomy", "components.json"], []],
     [["taxonomy", "primitives.json"], []],
@@ -976,8 +992,8 @@ export async function initializeStore(): Promise<void> {
       readFile(path.join(root(), "tokens", "tokens.json"), "utf8"),
     ]);
   } catch {
-    await regenerateExports();
+    await writeExports();
   }
-}
+});
 
 export { atomicWrite, cleanId, isMissing, parseFrontmatter, parsePrinciple, readDirectoryOrEmpty, readJson, renderFrontmatter, renderPrinciple, writeJson };

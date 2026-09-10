@@ -10,6 +10,7 @@ import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage,
 import { providerSupportsImages } from "./aiProvider.js";
 import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, rebaseProposal, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
 import { ApplyError, applyProposal, getApplication, listApplications, planApplication, recoverApplications } from "./applicationStore.js";
+import { WorkspaceUnavailableError } from "./writeLock.js";
 import { ZodError } from "zod";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
@@ -183,16 +184,16 @@ const server = createServer(async (request, response) => {
     const message = error instanceof Error ? error.message : "Unexpected error.";
     const status = typeof (error as { status?: unknown })?.status === "number" ? (error as { status: number }).status : undefined;
     // An Apply failure says which gate refused it, and carries the rollback receipt when writing had started.
-    const detail = error instanceof ApplyError ? { kind: error.kind, receipt: error.receipt } : {};
+    const detail = error instanceof ApplyError ? { kind: error.kind, receipt: error.receipt } : error instanceof WorkspaceUnavailableError ? { kind: error.kind } : {};
     respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : status ?? (message === "Invalid record id." ? 400 : 500), { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message, ...detail });
   }
 });
 
-await initializeStore();
 // An application interrupted by a crash is rolled back or completed before any request can edit the workspace.
 for (const recovery of await recoverApplications()) {
   console.log(`Recovered application ${recovery.application_id} for proposal ${recovery.proposal_id}: ${recovery.outcome === "completed" ? "completed" : recovery.restored ? "rolled back, every record restored" : `rolled back, restore NOT verified (${recovery.failure ?? "unknown"})`}`);
 }
+await initializeStore();
 server.listen(PORT, "127.0.0.1", () => {
   const address = server.address();
   console.log(`Monet file service: http://127.0.0.1:${typeof address === "object" && address ? address.port : PORT}`);

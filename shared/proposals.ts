@@ -239,6 +239,8 @@ export interface ApplicationReceipt {
   /** Whether every journaled file was verified back to its before bytes. Always true for `applied`. */
   restored: boolean;
   records: ApplicationRecord[]; files: ApplicationFile[]; derived: string[];
+  /** Exact derived bytes at commit. Older, completed receipts may omit this. */
+  derived_hashes?: { path: string; hash: string }[];
   validation: ApplicationValidation | null;
   knowledge_fingerprint_before: string; knowledge_fingerprint_after: string | null;
 }
