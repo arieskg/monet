@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { api, directoryApi } from "../api";
+import { api, createProfileApi, directoryApi, PROFILE_SWITCH_EVENT } from "../api";
+import { acknowledgeOnboarding, forgetOnboarding, pendingOnboarding, rememberOnboarding } from "../projectOnboarding";
+import type { ProjectOnboardingInput } from "../../shared/projectOnboarding";
 import { useWorkspace } from "../WorkspaceContext";
 import { PageHeader } from "../components/Common";
 import { Modal } from "../components/Modal";
@@ -27,25 +29,89 @@ function DirectoryBrowser({ start, onPick, onClose }: { start: string; onPick: (
   </div></Modal>;
 }
 
+/** Pending work may finish in its bound Profile, but must never navigate a departed editor. */
+function useLiveOperation() {
+  const live = useRef(true);
+  useEffect(() => {
+    live.current = true;
+    const leave = () => { live.current = false; };
+    window.addEventListener("pagehide", leave);
+    window.addEventListener(PROFILE_SWITCH_EVENT, leave);
+    return () => { leave(); window.removeEventListener("pagehide", leave); window.removeEventListener(PROFILE_SWITCH_EVENT, leave); };
+  }, []);
+  return live;
+}
+
 function ProjectList() {
   const navigate = useNavigate();
+  const { environment } = useWorkspace();
+  const live = useLiveOperation();
+  const [destination, setDestination] = useState<"current" | "new">("current");
+  const [profileName, setProfileName] = useState<string | null>(null);
+  const [kind, setKind] = useState<"scratch" | "monet-starter">("monet-starter");
+  const [pending, setPending] = useState<ProjectOnboardingInput | null>(null);
+  const submitting = useRef(false);
   const [items, setItems] = useState<ProjectSummary[] | null>(null), [error, setError] = useState(""), [attempt, setAttempt] = useState(0);
   const [root, setRoot] = useState(""), [name, setName] = useState(""), [browsing, setBrowsing] = useState(false), [busy, setBusy] = useState(false);
   useEffect(() => { let live = true; api.projects().then((value) => { if (live) { setItems(value); setError(""); } }).catch((e) => { if (live) setError(message(e)); }); return () => { live = false; }; }, [attempt]);
+  useEffect(() => {
+    if (!environment?.profile?.id) return;
+    try {
+      const saved = pendingOnboarding(environment.profile.id);
+      if (saved) { setPending(saved); setRoot(saved.project.root); setName(saved.project.name ?? ""); setDestination("new"); setProfileName(saved.profile.name); setKind(saved.profile.kind); }
+    } catch { setError("Saved onboarding could not be read. Restore browser storage before retrying this connection."); }
+  }, [environment?.profile?.id]);
+  const suggestedName = (name.trim() || root.trim().replace(/\/+$/, "").split("/").pop() || "New project").slice(0, 100);
   async function connect() {
+    // Capture identity before the first await; never consult the selected Profile later.
+    const currentId = environment?.profile?.id;
+    if (!currentId || submitting.current) return;
+    submitting.current = true;
     setBusy(true); setError("");
-    try { const project = await api.connectProject({ root, ...(name.trim() ? { name: name.trim() } : {}) }); void navigate(`/projects/${project.id}`); }
-    catch (caught) { setError(message(caught)); setBusy(false); }
+    try {
+      let profileId = currentId, project;
+      if (destination === "new") {
+        const input = pending ?? { operation_id: crypto.randomUUID(), project: { root, ...(name.trim() ? { name: name.trim() } : {}) }, profile: { name: (profileName ?? suggestedName).trim(), kind } };
+        rememberOnboarding(currentId, input);
+        setPending(input);
+        const result = await createProfileApi(currentId).onboardProject(input);
+        profileId = result.profile_id; project = result.project;
+        // Retain the resume pointer until the destination page actually opens.
+        rememberOnboarding(currentId, input, { profileId, projectId: project.id });
+      } else {
+        project = await createProfileApi(currentId).connectProject({ root, ...(name.trim() ? { name: name.trim() } : {}) });
+      }
+      if (!live.current) return;
+      if (profileId === currentId) void navigate(`/projects/${project.id}`);
+      else window.location.assign(`/projects/${encodeURIComponent(project.id)}?profile=${encodeURIComponent(profileId)}`);
+    } catch (caught) {
+      if (live.current) setError(message(caught));
+    } finally { submitting.current = false; if (live.current) setBusy(false); }
   }
+
   return <div className="page surfaces-page projects-page">
-    <PageHeader eyebrow="Build with it" title="Local projects" description="Connect a project folder to this Profile, find its screens, and capture one into Surfaces without hunting for HTML or CSS files." />
-    <p className="surface-notice">Connections are private to this Profile. Monet reads the folder to list screens; it never installs dependencies, runs project scripts, or changes project files. Capture loads the running app in an isolated browser that can only reach the app’s own local port.</p>
-    {error && <div className="gap-error" role="alert">{error}<button className="button" onClick={() => setAttempt((a) => a + 1)}>Retry</button></div>}
-    <fieldset className="surface-panel" disabled={busy}><legend>Connect a local project</legend>
-      <div className="surface-toolbar"><label>Project folder<input value={root} placeholder="/Users/you/code/my-app" onChange={(e) => setRoot(e.target.value)} /></label><button type="button" className="button" onClick={() => setBrowsing(true)}>Browse…</button></div>
-      <label>Name (optional)<input value={name} maxLength={100} placeholder="Defaults to the folder name" onChange={(e) => setName(e.target.value)} /></label>
-      <button className="button primary" disabled={!root.trim()} onClick={() => void connect()}>{busy ? "Scanning…" : "Connect and discover screens"}</button>
+    <PageHeader eyebrow="Build with it" title="Local projects" description="Choose a project, choose its Profile, then find and capture a screen into Surfaces." />
+    <p className="surface-notice">Connections are private to their chosen Profile. Monet reads the folder to list screens; it never installs dependencies, runs project scripts, or changes project files. Capture loads the running app in an isolated browser that can only reach the app’s own local port.</p>
+    {error && <div className="gap-error" role="alert">{error}<button className="button" onClick={() => setAttempt((a) => a + 1)}>Reload projects</button></div>}
+    <fieldset className="surface-panel" disabled={busy}><legend>1 · Choose a local project</legend>
+      <div className="surface-toolbar"><label>Project folder<input disabled={Boolean(pending)} value={root} placeholder="/Users/you/code/my-app" onChange={(e) => setRoot(e.target.value)} /></label><button type="button" className="button" disabled={Boolean(pending)} onClick={() => setBrowsing(true)}>Browse…</button></div>
+      <label>Name (optional)<input disabled={Boolean(pending)} value={name} maxLength={100} placeholder="Defaults to the folder name" onChange={(e) => setName(e.target.value)} /></label>
+      <fieldset className="surface-panel" disabled={!root.trim() || Boolean(pending)}><legend>2 · Profile destination</legend>
+        <label><input type="radio" name="destination" checked={destination === "current"} onChange={() => setDestination("current")} /> Use current Profile — {environment?.profile?.name ?? "Loading…"}</label>
+        <label><input type="radio" name="destination" checked={destination === "new"} onChange={() => setDestination("new")} /> Create new Profile</label>
+        {destination === "new" && <>
+          <label>Profile name<input maxLength={100} value={profileName ?? suggestedName} onChange={(e) => setProfileName(e.target.value)} /></label>
+          <label>Starting point<select aria-label="Starting point" value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="monet-starter">Monet Starter</option><option value="scratch">Blank</option></select></label>
+          <p className="muted">{kind === "scratch" ? "Begin without design decisions. The imported Surface remains observed evidence." : "Compare the imported Surface against Monet Starter’s design decisions."} Importing never adopts the app’s styles into this Profile.</p>
+        </>}
+      </fieldset>
+      {pending && <p role="status">This connection is saved for retry. Resume uses the same Profile and Project IDs, including after a restart.</p>}
+      <p className="muted">The Project and its captured Surfaces belong to the chosen Profile. If interrupted, return here to resume this connection.</p>
+      <button className="button primary" disabled={!root.trim() || !environment?.profile?.id || destination === "new" && !(profileName ?? suggestedName).trim()} onClick={() => void connect()}>{busy ? "Preparing project…" : pending ? "Resume connection" : "Connect and discover screens"}</button>
     </fieldset>
+    {pending && !busy && <button className="button ghost" onClick={() => {
+      if (window.confirm("Start a different connection? The saved operation and any created Profile are retained; this does not undo them.")) { forgetOnboarding(environment!.profile!.id); setPending(null); }
+    }}>Start a different connection</button>}
     {browsing && <DirectoryBrowser start={root} onPick={(path) => { setRoot(path); setBrowsing(false); }} onClose={() => setBrowsing(false)} />}
     {items === null && !error ? <p role="status">Loading projects…</p> : items?.length ? <div className="project-list">{items.map((item) => <Link className="gap-row" key={item.id} to={`/projects/${item.id}`}><b>{item.name}</b><span>{item.framework} · {item.screens} screens</span><span>{new Date(item.scanned_at).toLocaleDateString()}</span></Link>)}</div> : items && <p className="muted">No projects connected to this Profile yet.</p>}
   </div>;
@@ -61,6 +127,7 @@ function ScreenRow({ screen, selected, onSelect, aiReason }: { screen: ProjectSc
 
 function ProjectDetail({ id }: { id: string }) {
   const { environment } = useWorkspace();
+  const live = useLiveOperation();
   const navigate = useNavigate();
   const [project, setProject] = useState<ProjectRecord | null>(null), [error, setError] = useState(""), [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(""), [query, setQuery] = useState(""), [finder, setFinder] = useState<ScreenFinderResult | null>(null);
@@ -69,6 +136,7 @@ function ProjectDetail({ id }: { id: string }) {
   const [check, setCheck] = useState<{ ok: boolean; text: string } | null>(null);
   const [preset, setPreset] = useState(0), [width, setWidth] = useState(1280), [height, setHeight] = useState(900), [mode, setMode] = useState<ThemeMode>("light"), [strategy, setStrategy] = useState<"auto" | "stylesheet" | "computed">("auto");
   const [result, setResult] = useState<ProjectCaptureResult | null>(null);
+  useEffect(() => { if (project && environment?.profile?.id) acknowledgeOnboarding(environment.profile.id, project.id); }, [project, environment?.profile?.id]);
   useEffect(() => {
     let live = true;
     api.project(id).then((next) => { if (!live) return; setProject(next); setError(""); const d = next.capture_defaults; setBaseUrl(d.base_url ?? ""); setWidth(d.width); setHeight(d.height); setMode(d.mode); setStrategy(d.strategy); setPreset(Math.max(0, CAPTURE_PRESETS.findIndex((p) => p.width === d.width && p.height === d.height)));
@@ -84,7 +152,7 @@ function ProjectDetail({ id }: { id: string }) {
   const visible = keywordMatches ? [...new Set([...aiMatches.map((m) => m.screen_id), ...keywordMatches.map((m) => m.screen_id)])].map((id) => screens.find((s) => s.id === id)!).filter(Boolean) : screens;
   async function act<T>(label: string, work: () => Promise<T>, then: (value: T) => void) {
     setBusy(label); setError("");
-    try { then(await work()); } catch (caught) { setError(message(caught)); } finally { setBusy(""); }
+    try { const value = await work(); if (live.current) then(value); } catch (caught) { if (live.current) setError(message(caught)); } finally { if (live.current) setBusy(""); }
   }
   function choose(screen: ProjectScreen) { setSelected(screen.id); setRoute(screen.kind === "dynamic_route" ? screen.route : ""); setResult(null); }
   const captureSource = sourceKind === "dev_server" ? { kind: "dev_server" as const, base_url: baseUrl } : { kind: "static" as const, directory: staticDir };
@@ -95,7 +163,7 @@ function ProjectDetail({ id }: { id: string }) {
     <PageHeader eyebrow="Build with it" title={project?.name ?? "Project"} description={project ? `${project.inventory.framework} · ${project.root}` : "Loading project…"} action={project && <span className="surface-toolbar"><button className="button ghost" disabled={Boolean(busy)} onClick={() => void act("scan", () => api.rescanProject(id), (next) => { setProject(next); setFinder(null); })}>Rescan</button><button className="button ghost" disabled={Boolean(busy)} onClick={() => { if (window.confirm("Disconnect this project from the Profile? Saved Surfaces keep their capture history.")) void act("disconnect", () => api.disconnectProject(id), () => void navigate("/projects")); }}>Disconnect</button></span>} />
     {error && <div className="gap-error" role="alert">{error}<button className="button" onClick={() => setAttempt((a) => a + 1)}>Reload project</button></div>}
     {project && <>
-      <section className="surface-panel"><h2>What Monet found</h2>
+      <section className="surface-panel"><h2>What Monet found</h2><p>Profile: <b>{environment?.profile?.name}</b> · Captures are implementation evidence; they do not create design decisions.</p>
         <p>{project.inventory.screens.length} screens · {project.inventory.entries.toLocaleString()} entries scanned{project.inventory.truncated ? " (stopped at the scan limit)" : ""} · {new Date(project.inventory.scanned_at).toLocaleString()}</p>
         {project.inventory.dev_command && <p>To capture the live app, start it yourself in a terminal, then check the connection below:</p>}{project.inventory.dev_command && <pre className="project-command">{project.inventory.dev_command}</pre>}
         {project.inventory.notices.length > 0 && <details><summary>{project.inventory.notices.length} discovery notices</summary><ul>{project.inventory.notices.map((n, i) => <li key={i}>{n}</li>)}</ul></details>}
@@ -103,7 +171,8 @@ function ProjectDetail({ id }: { id: string }) {
         {environment?.aiConfigured ? <button className="button ghost" disabled={Boolean(busy)} onClick={() => void act("interpret", () => api.interpretProject(id), setProject)}>{busy === "interpret" ? "Interpreting…" : "Suggest friendlier screen names with AI"}</button> : <p className="muted">Optional AI naming and natural-language search are off because no provider is configured. Deterministic discovery works without it.</p>}
       </section>
       <fieldset className="surface-panel" disabled={Boolean(busy)}><legend>1 · Choose a screen</legend>
-        <div className="surface-toolbar"><label>Find a screen<input value={query} placeholder="Example: the settings page" onChange={(e) => { setQuery(e.target.value); }} /></label>{environment?.aiConfigured && <button className="button ghost" disabled={!query.trim()} onClick={() => void act("find", () => api.findScreens(id, { query, ai: true }), setFinder)}>{busy === "find" ? "Asking…" : "Ask AI to find it"}</button>}</div>
+        <div className="surface-toolbar"><label>Find a screen<input value={query} maxLength={300} placeholder="The page where the user chooses an exercise and presses Start" onChange={(e) => { setQuery(e.target.value); }} /></label>{environment?.aiConfigured && <button className="button ghost" disabled={!query.trim()} onClick={() => void act("find", () => api.findScreens(id, { query, ai: true }), setFinder)}>{busy === "find" ? "Asking…" : "Ask AI to find it"}</button>}</div>
+        <p className="muted">Search screen names and visible text, or optionally ask AI to rank the discovered screens from your description. Select a result to capture it. AI cannot add screens or choose the capture address.</p>
         {finder?.query === query && finder.ai.status !== "not_requested" && <p className="muted" role="status">{finder.ai.message}</p>}
         <div className="project-screens">{visible.map((screen) => <ScreenRow key={screen.id} screen={screen} selected={selected === screen.id} onSelect={() => choose(screen)} aiReason={aiMatches.find((m) => m.screen_id === screen.id)?.reason} />)}{visible.length === 0 && <p className="muted">No screens match. Try other words, or select any screen and enter the exact path.</p>}</div>
         {current && <label>Path to capture<input value={routeValue} onChange={(e) => setRoute(e.target.value)} /></label>}

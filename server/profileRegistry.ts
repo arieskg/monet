@@ -159,12 +159,25 @@ export class ProfileRegistry {
       // Project directories are inspected and served during capture; Profile storage and the library are never project content.
       checkProjectRoot: (root: string) => { if (overlap(root, path.resolve(this.directory)) || this.data.profiles.some((p) => overlap(root, p.root))) throw conflict("A project directory cannot contain or live inside a Profile or the Monet library."); } });
   }
-  async create(raw: unknown): Promise<ProfileRegistration> {
+  async create(raw: unknown, reservedId?: string): Promise<ProfileRegistration> {
     const input = z.object({ name: identitySchema.shape.name, kind: z.enum(["scratch", "monet-starter", "fork"]), sourceProfileId: id.optional(), includeReferences: z.boolean().default(false) }).strict().parse(raw);
     if ((input.kind === "fork") !== Boolean(input.sourceProfileId)) throw conflict("Only forks require a source Profile.");
+    if (reservedId) id.parse(reservedId); // Internal durable onboarding reservation, never accepted by the Profile API.
     return this.exclusive(async () => {
-      const profileId = randomUUID(), root = path.resolve(this.directory, "profiles", profileId);
+      const profileId = reservedId ?? randomUUID(), root = path.resolve(this.directory, "profiles", profileId);
       const stage = path.resolve(this.directory, "profiles", `.creating-${profileId}`);
+      if (reservedId) {
+        const previous = this.data.profiles.find((p) => p.identity.id === reservedId);
+        if (previous) { await this.scope(reservedId); return structuredClone(previous); }
+        if (await lstat(root).then(() => true, (e) => { if (missing(e)) return false; throw e; })) throw conflict("Unregistered onboarding Profile publication requires recovery.");
+        // No pending publication exists (checked by exclusive). Only this reserved ID owns the
+        // unpublished stage; a crash during seeding may leave it incomplete. Rebuild that stage.
+        if (await lstat(stage).then(() => true, (e) => { if (missing(e)) return false; throw e; })) {
+          if ((await lstat(stage)).isSymbolicLink()) throw conflict("Invalid onboarding Profile stage.");
+          await verifyProfileTree(stage);
+          await rm(stage, { recursive: true });
+        }
+      }
       await mkdir(stage, { recursive: true });
       let published = false;
       try {
@@ -194,8 +207,8 @@ export class ProfileRegistry {
         async function flush(dir: string): Promise<void> { for (const entry of await readdir(dir, { withFileTypes: true })) { const file = path.join(dir, entry.name); if (entry.isDirectory()) await flush(file); else await atomicWrite(file, await readFile(file)); } await syncDirectory(dir); }
         await flush(stage);
         const registration = { identity, root };
-        await atomicWrite(path.join(this.directory, "pending-profile.json"), JSON.stringify({ ...registration, stage }));
         published = true; // From here, retain the stage/publication for startup recovery on any failure.
+        await atomicWrite(path.join(this.directory, "pending-profile.json"), JSON.stringify({ ...registration, stage }));
         await rename(stage, root); await syncDirectory(path.dirname(root));
         await this.save({ ...this.data, profiles: [...this.data.profiles, registration] });
         await durableRemove(path.join(this.directory, "pending-profile.json")); return registration;

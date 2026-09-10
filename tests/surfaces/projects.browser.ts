@@ -41,14 +41,21 @@ test.beforeAll(async () => {
   project = path.join(directory, "hostile-site"); await mkdir(path.join(project, "assets"), { recursive: true });
   for (const [name, contents] of Object.entries(fixture)) await writeFile(path.join(project, name), contents);
   await writeFile(path.join(project, "assets", "logo.png"), await sharp({ create: { width: 40, height: 24, channels: 3, background: "#3355aa" } }).png().toBuffer());
-  service = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: path.resolve(import.meta.dirname, "../.."), env: { ...process.env, MONET_ROOT: workspace, MONET_LIBRARY: path.join(directory, "library"), MONET_PORT: "0", MONET_EDITOR_ORIGIN: editor, MONET_AI_COMMAND: "" }, stdio: ["ignore", "pipe", "pipe"] });
+  await startService();
+  await startEditor();
+});
+async function startService() {
+  service = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: path.resolve(import.meta.dirname, "../.."), env: { ...process.env, MONET_ROOT: path.join(directory, "workspace"), MONET_LIBRARY: path.join(directory, "library"), MONET_PORT: "0", MONET_EDITOR_ORIGIN: editor, MONET_AI_COMMAND: "" }, stdio: ["ignore", "pipe", "pipe"] });
   apiUrl = await new Promise<string>((resolve, reject) => {
     let output = "", errors = ""; const timer = setTimeout(() => reject(new Error("Service timed out")), 15000);
     service.stderr!.on("data", (data) => { errors += data; }); service.on("exit", () => { clearTimeout(timer); reject(new Error(errors)); });
     service.stdout!.on("data", (data) => { output += data; const match = /Monet file service: (http:\/\/127\.0\.0\.1:\d+)/.exec(output); if (match) { clearTimeout(timer); resolve(match[1]!); } });
   });
+}
+async function startEditor() {
   vite = await createServer({ configFile: false, root: path.resolve(import.meta.dirname, "../.."), plugins: [react()], server: { host: "127.0.0.1", port: 43149, strictPort: true, proxy: { "/api": apiUrl } } }); await vite.listen();
-});
+}
+
 test.afterAll(async () => { await vite?.close(); if (service && service.exitCode === null && service.signalCode === null) { const exited = once(service, "exit"); service.kill(); await exited; } if (directory) await rm(directory, { recursive: true, force: true }); });
 
 test("captures a hostile static project in an isolated browser: egress blocked, secrets and active content stripped, provenance attested", async ({ request }) => {
@@ -124,3 +131,145 @@ test("connects, discovers, captures and saves a screen entirely from the editor"
   await page.getByRole("link", { name: "← Surfaces" }).click();
   await expect(page.locator(".gap-row", { hasText: "Editor fixture" }).first()).toBeVisible();
 });
+
+for (const kind of ["scratch", "monet-starter"] as const) {
+  test(`inline ${kind} Profile continues to capture with independent knowledge and provenance`, async ({ page, request }) => {
+    await page.goto(`${editor}/projects`);
+    await page.getByLabel("Project folder", { exact: true }).fill(project);
+    await page.getByRole("radio", { name: "Create new Profile", exact: true }).check();
+    await expect(page.getByLabel("Profile name", { exact: true })).toHaveValue("hostile-site");
+    // Duplicate labels are intentional: identity must never be resolved by name.
+    await page.getByLabel("Profile name", { exact: true }).fill("Imported project");
+    await page.getByLabel("Starting point", { exact: true }).selectOption(kind);
+    await page.getByRole("button", { name: "Connect and discover screens" }).click();
+    await expect(page).toHaveURL(/\/projects\/[a-f0-9-]+\?profile=[a-f0-9-]+/);
+    const url = new URL(page.url()), profileId = url.searchParams.get("profile")!, projectId = url.pathname.split("/").pop()!;
+    const scoped = `${apiUrl}/api/profiles/${profileId}`;
+    const before = await (await request.get(`${scoped}/workspace`)).json();
+    if (kind === "scratch") expect(before.themes).toEqual([]); // Starter retains its existing compatibility data.
+    expect(before.foundations.length > 0).toBe(kind === "monet-starter");
+    const record = await (await request.get(`${scoped}/projects/${projectId}`)).json();
+    expect(record.profile_id).toBe(profileId);
+    await expect(page.getByRole("combobox", { name: "Profile", exact: true })).toHaveValue(profileId);
+    await page.locator(".project-screen", { hasText: "index.html" }).getByRole("radio").check();
+    await page.getByRole("button", { name: "Capture this screen" }).click();
+    await expect(page.getByRole("heading", { name: /^Captured: / })).toBeVisible({ timeout: 40000 });
+    await page.getByRole("link", { name: "Open in Surfaces" }).click();
+    await page.getByRole("button", { name: "Save Surface", exact: true }).click();
+    await expect(page).toHaveURL(/\/surfaces\/[a-f0-9-]+(?:\?profile=[a-f0-9-]+)?$/);
+    const surfaceId = new URL(page.url()).pathname.split("/").pop()!;
+    const surface = await (await request.get(`${scoped}/surfaces/${surfaceId}`)).json();
+    expect(surface.run.profile_id).toBe(profileId);
+    expect(surface.capture.project_id).toBe(projectId);
+    const after = await (await request.get(`${scoped}/workspace`)).json();
+    expect(after.knowledgeFingerprint).toBe(before.knowledgeFingerprint);
+    expect(after.foundations).toEqual(before.foundations);
+    const gapResponse = await request.post(`${scoped}/surface-gaps/${surfaceId}`, { data: { revision: 1, problem: "Review observed implementation", expected: "Make an explicit design decision", issue_ids: [surface.run.issues[0].id], include_screenshot: false } });
+    expect(gapResponse.status(), await gapResponse.text()).toBe(201);
+    expect((await gapResponse.json()).profile_id).toBe(profileId);
+  });
+}
+
+test("inline onboarding resumes after a lost response, browser reload and service restart", async ({ page, request }) => {
+  const before = await (await request.get(`${apiUrl}/api/profiles`)).json();
+  await page.goto(`${editor}/projects`);
+  await page.getByLabel("Project folder", { exact: true }).fill(project);
+  await page.getByRole("radio", { name: "Create new Profile", exact: true }).check();
+  await page.getByLabel("Profile name", { exact: true }).fill("Retry destination");
+  await page.getByLabel("Starting point", { exact: true }).selectOption("scratch");
+  let calls = 0, operationId = "", createdId = "", connectedId = "";
+  await page.route("**/project-onboardings", async (route) => {
+    const input = route.request().postDataJSON();
+    if (!operationId) operationId = input.operation_id;
+    expect(input.operation_id).toBe(operationId);
+    if (++calls === 1) { await route.fulfill({ status: 500, json: { error: "Interrupted before publication" } }); return; }
+    const response = await route.fetch();
+    expect(response.status()).toBe(200);
+    const result = await response.json(); createdId = result.profile_id; connectedId = result.project.id;
+    await route.abort(); // The server completed, but the client never received its response.
+  });
+  await page.getByRole("button", { name: "Connect and discover screens" }).click();
+  await expect(page.getByRole("alert")).toContainText("Interrupted before publication");
+  await page.getByRole("button", { name: "Resume connection", exact: true }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  expect(createdId).not.toBe("");
+  await page.unroute("**/project-onboardings");
+  const exited = once(service, "exit"); service.kill("SIGKILL"); await exited;
+  await vite.close(); await startService(); await startEditor();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Resume connection", exact: true })).toBeVisible();
+  await expect(page.getByLabel("Project folder", { exact: true })).toHaveValue(project);
+  await page.getByRole("button", { name: "Resume connection", exact: true }).click();
+  await expect(page).toHaveURL(`${editor}/projects/${connectedId}?profile=${createdId}`);
+  await expect(page.getByRole("heading", { name: "hostile-site" })).toBeVisible();
+  const after = await (await request.get(`${apiUrl}/api/profiles`)).json();
+  expect(after.profiles).toHaveLength(before.profiles.length + 1);
+  expect(await (await request.get(`${apiUrl}/api/profiles/${createdId}/projects`)).json()).toHaveLength(1);
+});
+
+test("switching Profile during onboarding cannot navigate or bind into the new document", async ({ page, request }) => {
+  const other = await (await request.post(`${apiUrl}/api/profiles`, { data: { name: "Switch target", kind: "scratch" } })).json();
+  await page.goto(`${editor}/projects`);
+  await page.getByLabel("Project folder", { exact: true }).fill(project);
+  await page.getByRole("radio", { name: "Create new Profile", exact: true }).check();
+  let release!: () => void, started!: () => void;
+  const pending = new Promise<void>((resolve) => { release = resolve; });
+  const begun = new Promise<void>((resolve) => { started = resolve; });
+  let createdId = "";
+  await page.route("**/project-onboardings", async (route) => {
+    if (route.request().method() !== "POST") { await route.continue(); return; }
+    const response = await route.fetch(); createdId = (await response.json()).profile_id;
+    started(); await pending;
+    await route.fulfill({ response }).catch(() => undefined);
+  });
+  await page.getByRole("button", { name: "Connect and discover screens" }).click();
+  await begun;
+  await page.getByRole("combobox", { name: "Profile", exact: true }).selectOption(other.identity.id);
+  await expect(page).toHaveURL(new RegExp(`profile=${other.identity.id}`));
+  release();
+  expect(await (await request.get(`${apiUrl}/api/profiles/${createdId}/projects`)).json()).toHaveLength(1);
+  expect(await (await request.get(`${apiUrl}/api/profiles/${other.identity.id}/projects`)).json()).toEqual([]);
+});
+
+for (const operation of ["discovery", "capture", "finder"] as const) {
+  test(`Profile switch discards delayed ${operation} UI and preserves original ownership`, async ({ page, request }) => {
+    const original = (await (await request.get(`${apiUrl}/api/profiles`)).json()).originalProfileId;
+    const other = await (await request.post(`${apiUrl}/api/profiles`, { data: { name: `During ${operation}`, kind: "scratch" } })).json();
+    const scoped = `${apiUrl}/api/profiles/${original}`;
+    let projectId = "";
+    if (operation !== "discovery") projectId = (await (await request.post(`${scoped}/projects`, { data: { root: project } })).json()).id;
+    if (operation === "finder") await page.route("**/environment", async (route) => {
+      const response = await route.fetch(); await route.fulfill({ json: { ...await response.json(), aiConfigured: true } });
+    });
+    await page.goto(`${editor}/projects${projectId ? `/${projectId}` : ""}?profile=${original}`);
+    let release!: () => void, started!: () => void, finished!: () => void;
+    const pending = new Promise<void>((resolve) => { release = resolve; });
+    const begun = new Promise<void>((resolve) => { started = resolve; });
+    const done = new Promise<void>((resolve) => { finished = resolve; });
+    let payload: { id?: string; capture_id?: string } = {};
+    const endpoint = operation === "discovery" ? "projects" : `${operation === "capture" ? "project-captures" : "project-screen-finders"}/${projectId}`;
+    await page.route(`**/api/profiles/${original}/${endpoint}`, async (route) => {
+      if (route.request().method() !== "POST") { await route.continue(); return; }
+      const response = await route.fetch(); payload = await response.json(); started(); await pending;
+      await route.fulfill({ response }).catch(() => undefined); finished();
+    });
+    if (operation === "discovery") {
+      await page.getByLabel("Project folder", { exact: true }).fill(project);
+      await page.getByRole("button", { name: "Connect and discover screens" }).click();
+    } else if (operation === "capture") {
+      await page.locator(".project-screen", { hasText: "index.html" }).getByRole("radio").check();
+      await page.getByRole("button", { name: "Capture this screen" }).click();
+    } else {
+      await page.getByLabel("Find a screen", { exact: true }).fill("chooses an exercise and presses Start");
+      await page.getByRole("button", { name: "Ask AI to find it" }).click();
+    }
+    await begun;
+    await page.getByRole("combobox", { name: "Profile", exact: true }).selectOption(other.identity.id);
+    await expect(page).toHaveURL(new RegExp(`profile=${other.identity.id}`));
+    release(); await done;
+    await expect(page).toHaveURL(new RegExp(`profile=${other.identity.id}`));
+    expect(await (await request.get(`${apiUrl}/api/profiles/${other.identity.id}/projects`)).json()).toEqual([]);
+    if (operation === "discovery") expect((await (await request.get(`${scoped}/projects/${payload.id}`)).json()).profile_id).toBe(original);
+    if (operation === "capture") expect((await request.post(`${apiUrl}/api/profiles/${other.identity.id}/surface-previews`, { data: { capture_id: payload.capture_id, selection: {} } })).status()).toBe(404);
+  });
+}
