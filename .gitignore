@@ -11,3 +11,5 @@ monet/design-system.json
 # Product reports and screenshots are private evidence, not starter guidance.
 monet/gaps/
 monet/proposals/
+# Apply receipts and journals are per-workspace audit records, not starter guidance.
+monet/applications/

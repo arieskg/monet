@@ -1,9 +1,11 @@
-import { spawn } from "node:child_process";
+import { spawn, type ChildProcess } from "node:child_process";
 import { once } from "node:events";
-import { chmod, cp, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { chmod, cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { expect, it } from "vitest";
+import type { ApplicationReceipt, ApplyPlan, ApplyResult } from "../shared/proposals.js";
 import { BUNDLED_WORKSPACE } from "./workspace.js";
 
 /**
@@ -36,33 +38,43 @@ async function expectBytesUnchanged(file: string, before: Buffer): Promise<void>
   expect.fail(`${file} changed in bytes that do not show as text`);
 }
 
-it("drives a proposal from diagnosis to approval over HTTP without touching canonical files", async () => {
-  const directory = await mkdtemp(path.join(tmpdir(), "monet-proposal-http-"));
-  await cp(BUNDLED_WORKSPACE, directory, { recursive: true, filter: (source) => !/\/(gaps|proposals)(\/|$)/.test(source) });
-  const script = path.join(directory, "provider.mjs");
-  const wrapper = path.join(directory, "provider.sh");
-  await writeFile(script, PROVIDER_SCRIPT);
-  await writeFile(wrapper, `#!/bin/sh\nexec "${process.execPath}" "${script}" "$@"\n`);
-  await chmod(wrapper, 0o755);
+async function startService(directory: string, wrapper: string): Promise<{ child: ChildProcess; url: string; output: () => string }> {
   const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], {
     cwd: path.resolve(import.meta.dirname, ".."),
     env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0", MONET_AI_COMMAND: wrapper, MONET_CODEX_EXECUTABLE: "", MONET_AI_IMAGES: "" },
     stdio: ["ignore", "pipe", "pipe"],
   });
-  try {
-    const url = await new Promise<string>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error("File service startup timed out")), 10000);
-      let output = "";
-      let stderr = "";
-      child.stderr.on("data", (data) => { stderr += String(data); });
-      child.on("error", (error) => { clearTimeout(timeout); reject(error); });
-      child.on("exit", () => { clearTimeout(timeout); reject(new Error(`File service exited before startup: ${stderr}`)); });
-      child.stdout.on("data", (data) => {
-        output += String(data);
-        const match = /Monet file service: (http:\/\/127\.0\.0\.1:\d+)/.exec(output);
-        if (match) { clearTimeout(timeout); resolve(match[1]!); }
-      });
+  let output = "";
+  const url = await new Promise<string>((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error("File service startup timed out")), 10000);
+    let stderr = "";
+    child.stderr!.on("data", (data) => { stderr += String(data); });
+    child.on("error", (error) => { clearTimeout(timeout); reject(error); });
+    child.on("exit", () => { clearTimeout(timeout); reject(new Error(`File service exited before startup: ${stderr}`)); });
+    child.stdout!.on("data", (data) => {
+      output += String(data);
+      const match = /Monet file service: (http:\/\/127\.0\.0\.1:\d+)/.exec(output);
+      if (match) { clearTimeout(timeout); resolve(match[1]!); }
     });
+  });
+  return { child, url, output: () => output };
+}
+
+async function stop(child: ChildProcess): Promise<void> {
+  if (child.exitCode === null && child.signalCode === null) { const exited = once(child, "exit"); child.kill(); await exited; }
+}
+
+it("drives a proposal from diagnosis through approval and Apply over HTTP, and recovers an interrupted Apply at startup", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "monet-proposal-http-"));
+  await cp(BUNDLED_WORKSPACE, directory, { recursive: true, filter: (source) => !/\/(gaps|proposals|applications)(\/|$)/.test(source) });
+  const script = path.join(directory, "provider.mjs");
+  const wrapper = path.join(directory, "provider.sh");
+  await writeFile(script, PROVIDER_SCRIPT);
+  await writeFile(wrapper, `#!/bin/sh\nexec "${process.execPath}" "${script}" "$@"\n`);
+  await chmod(wrapper, 0o755);
+  let service = await startService(directory, wrapper);
+  try {
+    const { url } = service;
     const json = { "content-type": "application/json" };
     const decisionsBefore = await readFile(path.join(directory, "components", "decisions.json"));
     const exportBefore = await readFile(path.join(directory, "DESIGN_SYSTEM.md"));
@@ -89,19 +101,74 @@ it("drives a proposal from diagnosis to approval over HTTP without touching cano
     ] }) })).json() as { revisions: { number: number; hash: string; checks: { ok: boolean }; changes: { author: string }[] }[] };
     expect(edited.revisions[1]).toMatchObject({ number: 2, checks: { ok: true }, changes: [{ author: "human" }] });
 
+    // Nothing can be applied before approval, and the plan says so.
+    const unapproved = await (await fetch(`${url}/api/proposal-applications/${proposal.id}`)).json() as ApplyPlan;
+    expect(unapproved).toMatchObject({ ready: false, blockers: [{ kind: "state" }] });
+    const early = await fetch(`${url}/api/proposal-applications/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ revision: 2, hash: edited.revisions[1]!.hash }) });
+    expect(early.status).toBe(409);
+    expect(await early.json()).toMatchObject({ kind: "state", receipt: null });
+
     expect((await fetch(`${url}/api/proposal-approvals/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ revision: 1, hash: drafted.revisions[0]!.hash }) })).status).toBe(409);
     const approved = await fetch(`${url}/api/proposal-approvals/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ revision: 2, hash: edited.revisions[1]!.hash, note: "Reviewed." }) });
     expect(approved.status).toBe(200);
     expect(await approved.json()).toMatchObject({ status: "approved", approval: { revision: 2 } });
-    expect(await (await fetch(`${url}/api/proposals?gap=${gap.id}`)).json()).toEqual([expect.objectContaining({ id: proposal.id, status: "approved", approved_revision: 2 })]);
+    expect(await (await fetch(`${url}/api/proposals?gap=${gap.id}`)).json()).toEqual([expect.objectContaining({ id: proposal.id, status: "approved", approved_revision: 2, application_id: null })]);
     expect((await fetch(`${url}/api/proposals/does-not-exist`)).status).toBe(404);
     expect((await fetch(`${url}/api/proposal-revisions/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ summary: "", changes: [] }) })).status).toBe(400);
 
     await expectBytesUnchanged(path.join(directory, "components", "decisions.json"), decisionsBefore);
     await expectBytesUnchanged(path.join(directory, "DESIGN_SYSTEM.md"), exportBefore);
     expect((await (await fetch(`${url}/api/workspace`)).text())).not.toContain("Secondary means visibly a button");
+
+    // Apply: the plan, a refused wrong hash, the write, the receipt, and idempotency.
+    const plan = await (await fetch(`${url}/api/proposal-applications/${proposal.id}`)).json() as ApplyPlan;
+    expect(plan).toMatchObject({ ready: true, blockers: [], unsupported: [], revision: 2, records: [{ key: "component:button", operation: "amend", fields: ["notes"], route: "/components/button" }], files: [{ path: "components/decisions.json", action: "update" }, { action: "create" }], checks: { ok: true } });
+    const wrongHash = await fetch(`${url}/api/proposal-applications/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ revision: 2, hash: "a".repeat(64) }) });
+    expect(wrongHash.status).toBe(409);
+    expect(await wrongHash.json()).toMatchObject({ kind: "state", error: expect.stringContaining("approved revision 2") });
+    await expectBytesUnchanged(path.join(directory, "components", "decisions.json"), decisionsBefore);
+
+    const applied = await fetch(`${url}/api/proposal-applications/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ revision: 2, hash: edited.revisions[1]!.hash }) });
+    expect(applied.status).toBe(200);
+    const result = await applied.json() as ApplyResult;
+    expect(result.outcome).toBe("applied");
+    expect(result.receipt).toMatchObject({ outcome: "applied", proposal_id: proposal.id, revision: 2, hash: edited.revisions[1]!.hash, restored: true, validation: { ok: true } });
+    expect(result.proposal).toMatchObject({ status: "applied", application: { id: result.receipt!.id } });
+    expect(await readFile(path.join(directory, "components", "decisions.json"), "utf8")).toContain("Secondary means visibly a button");
+    expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"), "utf8")).toContain("Secondary means visibly a button");
+    expect((await (await fetch(`${url}/api/workspace`)).text())).toContain("Secondary means visibly a button");
+    expect(await (await fetch(`${url}/api/applications`)).json()).toEqual([expect.objectContaining({ id: result.receipt!.id, outcome: "applied" })]);
+    expect(await (await fetch(`${url}/api/applications/${result.receipt!.id}`)).json()).toEqual(result.receipt);
+    expect(await (await fetch(`${url}/api/proposals?gap=${gap.id}`)).json()).toEqual([expect.objectContaining({ id: proposal.id, status: "applied", application_id: result.receipt!.id })]);
+    const again = await (await fetch(`${url}/api/proposal-applications/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ revision: 2, hash: edited.revisions[1]!.hash }) })).json() as ApplyResult;
+    expect(again).toMatchObject({ outcome: "already_applied", receipt: { id: result.receipt!.id } });
+    expect((await fetch(`${url}/api/proposal-revisions/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ summary: "x", changes: [{ target: "component:button", field: "notes", after: "y" }] }) })).status).toBe(409);
+    expect((await readdir(path.join(directory, "applications"))).filter((name) => name.endsWith(".journal.json"))).toEqual([]);
+    const decisionEntries = (await readdir(path.join(directory, "decisions"))).filter((name) => name.includes("-proposal-"));
+    expect(decisionEntries.length).toBe(1);
+    // Private Gap evidence stays out of the canonical records and exports the Apply just rewrote.
+    for (const file of ["components/decisions.json", "DESIGN_SYSTEM.md", "design-system.json", `decisions/${decisionEntries[0]!}`]) expect(await readFile(path.join(directory, file), "utf8")).not.toContain("Card actions read as text");
+
+    // Interrupt: stop the service, leave a journal and a half-written record behind, and start again.
+    await stop(service.child);
+    const principleFile = path.join(directory, "principles", "keep-primary-actions-obvious.md");
+    const original = await readFile(principleFile);
+    const applicationId = "22222222-3333-4444-8555-666666666666";
+    await writeFile(path.join(directory, "applications", `${applicationId}.journal.json`), JSON.stringify({ version: 1, application_id: applicationId, proposal_id: proposal.id, gap_id: gap.id, revision: 2, hash: edited.revisions[1]!.hash, started_at: "2026-09-09T12:00:00.000Z",
+      records: [], files: [{ path: "principles/keep-primary-actions-obvious.md", action: "update", before: original.toString("base64"), before_hash: createHash("sha256").update(original).digest("hex") }], derived: [], baseline_errors: [], knowledge_fingerprint_before: "f" }));
+    await writeFile(principleFile, "---\ntitle: \"Half written\"\norder: 0\nupdated_at: \"\"\n---\n\nGARBAGE FROM A CRASH\n");
+    service = await startService(directory, wrapper);
+    expect(service.output()).toContain(`Recovered application ${applicationId} for proposal ${proposal.id}: rolled back, every record restored`);
+    await expectBytesUnchanged(principleFile, original);
+    expect((await readdir(path.join(directory, "applications"))).filter((name) => name.endsWith(".journal.json"))).toEqual([]);
+    const recovered = await (await fetch(`${service.url}/api/applications/${applicationId}`)).json() as ApplicationReceipt;
+    expect(recovered).toMatchObject({ outcome: "rolled_back", recovered: true, restored: true });
+    expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"), "utf8")).not.toContain("GARBAGE");
+    // The applied proposal is untouched by the unrelated recovery, and its record still carries the change.
+    expect(await (await fetch(`${service.url}/api/proposals/${proposal.id}`)).json()).toMatchObject({ status: "applied" });
+    expect(await readFile(path.join(directory, "components", "decisions.json"), "utf8")).toContain("Secondary means visibly a button");
   } finally {
-    if (child.exitCode === null && child.signalCode === null) { const exited = once(child, "exit"); child.kill(); await exited; }
+    await stop(service.child);
     await rm(directory, { recursive: true, force: true });
   }
-}, 30000);
+}, 60000);

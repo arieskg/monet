@@ -9,6 +9,7 @@ import { createMonetService } from "../shared/service.js";
 import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage, saveGapReview } from "./fileStore.js";
 import { providerSupportsImages } from "./aiProvider.js";
 import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, rebaseProposal, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
+import { ApplyError, applyProposal, getApplication, listApplications, planApplication, recoverApplications } from "./applicationStore.js";
 import { ZodError } from "zod";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
@@ -73,6 +74,13 @@ const server = createServer(async (request, response) => {
     const gap = match(url.pathname, "/api/gaps/");
     if (request.method === "GET" && gap) return respond(response, 200, await getGap(gap));
     if (request.method === "DELETE" && gap) { await deleteGap(gap); return respond(response, 200, { ok: true }); }
+    // Applications: the receipts of applied proposals, and the one route that writes canonical records from an approved revision.
+    if (request.method === "GET" && url.pathname === "/api/applications") return respond(response, 200, await listApplications(url.searchParams.get("proposal") ?? undefined));
+    const application = match(url.pathname, "/api/applications/");
+    if (request.method === "GET" && application) return respond(response, 200, await getApplication(application));
+    const proposalApplication = match(url.pathname, "/api/proposal-applications/");
+    if (request.method === "GET" && proposalApplication) return respond(response, 200, await planApplication(proposalApplication));
+    if (request.method === "POST" && proposalApplication) return respond(response, 200, await applyProposal(proposalApplication, await body(request)));
     // Proposals: editor-only change sets derived from a Gap diagnosis. Review and approval only; no route here writes a canonical record.
     if (url.pathname === "/api/proposals") {
       if (request.method === "GET") return respond(response, 200, await listProposals(url.searchParams.get("gap") ?? undefined));
@@ -174,11 +182,17 @@ const server = createServer(async (request, response) => {
     if (error instanceof ZodError) return respond(response, 400, { error: error.issues.map((issue) => `${issue.path.join(".")}: ${issue.message}`).join("; ") });
     const message = error instanceof Error ? error.message : "Unexpected error.";
     const status = typeof (error as { status?: unknown })?.status === "number" ? (error as { status: number }).status : undefined;
-    respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : status ?? (message === "Invalid record id." ? 400 : 500), { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message });
+    // An Apply failure says which gate refused it, and carries the rollback receipt when writing had started.
+    const detail = error instanceof ApplyError ? { kind: error.kind, receipt: error.receipt } : {};
+    respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : status ?? (message === "Invalid record id." ? 400 : 500), { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message, ...detail });
   }
 });
 
 await initializeStore();
+// An application interrupted by a crash is rolled back or completed before any request can edit the workspace.
+for (const recovery of await recoverApplications()) {
+  console.log(`Recovered application ${recovery.application_id} for proposal ${recovery.proposal_id}: ${recovery.outcome === "completed" ? "completed" : recovery.restored ? "rolled back, every record restored" : `rolled back, restore NOT verified (${recovery.failure ?? "unknown"})`}`);
+}
 server.listen(PORT, "127.0.0.1", () => {
   const address = server.address();
   console.log(`Monet file service: http://127.0.0.1:${typeof address === "object" && address ? address.port : PORT}`);

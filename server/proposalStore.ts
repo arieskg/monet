@@ -19,7 +19,8 @@ import { workspaceRoot } from "./workspace.js";
 /**
  * Proposals are editor-only records under `proposals/` in the active workspace. Like Gaps they are
  * absent from `Workspace`, exports, and MCP. This module reads canonical records to snapshot,
- * project, and validate; it never writes one. Apply belongs to a later phase with its own journal.
+ * project, and validate; it never writes one. The only canonical write a proposal can lead to is
+ * `server/applicationStore.ts`, which composes the internals exported at the bottom of this file.
  */
 
 /** A request that is well-formed but not allowed in the proposal's current state. */
@@ -55,7 +56,10 @@ function integrity(proposal: Proposal): ProposalIntegrity {
 async function readProposal(id: string): Promise<Proposal> {
   const proposal = await readJson<Proposal>(path.join(root(), "proposals", `${cleanId(id)}.json`));
   if (proposal.version !== 1 || proposal.id !== id || !Array.isArray(proposal.revisions) || !Array.isArray(proposal.allowed_targets)) throw new Error("Invalid Proposal record.");
-  return proposal;
+  // Records saved before Apply existed carry no application; an applied status without one is a hand edit.
+  const application = proposal.application && typeof proposal.application === "object" && typeof proposal.application.id === "string" ? proposal.application : null;
+  if (proposal.status === "applied" && !application) throw new Error("Invalid Proposal record: applied without an application receipt.");
+  return { ...proposal, application };
 }
 
 async function writeProposal(proposal: Proposal): Promise<void> {
@@ -73,7 +77,7 @@ function latest(proposal: Proposal): ProposalRevision | undefined {
 }
 
 function summary(proposal: Proposal): ProposalSummary {
-  return { id: proposal.id, gap_id: proposal.gap_id, status: proposal.status, created_at: proposal.created_at, updated_at: proposal.updated_at, summary: latest(proposal)?.summary ?? "", revision: latest(proposal)?.number ?? 0, approved_revision: proposal.approval?.revision ?? null };
+  return { id: proposal.id, gap_id: proposal.gap_id, status: proposal.status, created_at: proposal.created_at, updated_at: proposal.updated_at, summary: latest(proposal)?.summary ?? "", revision: latest(proposal)?.number ?? 0, approved_revision: proposal.approval?.revision ?? null, application_id: proposal.application?.id ?? null };
 }
 
 function targetViews(proposal: Proposal, workspace: Workspace): ProposalTargetView[] {
@@ -235,6 +239,8 @@ export async function getProposal(id: string): Promise<ProposalView> {
 function assertEditable(proposal: Proposal): void {
   if (proposal.status === "rejected") throw new ProposalStateError("This proposal was rejected. Create a new proposal from the Gap instead.");
   if (proposal.status === "superseded") throw new ProposalStateError("This proposal was superseded. Edit the newer proposal instead.");
+  // Applied is terminal: the records now carry the change, and undoing it is a new reviewed proposal, not an edit here.
+  if (proposal.status === "applied") throw new ProposalStateError("This proposal was applied. Report a new Gap to change the records again.");
 }
 
 async function appendRevision(proposal: Proposal, input: ProposalRevisionInput, author: ProposalAuthor, authors?: ReadonlyMap<string, ProposalAuthor>): Promise<ProposalView> {
@@ -370,3 +376,10 @@ export async function supersedeProposal(id: string): Promise<ProposalView> {
     return result;
   });
 }
+
+/**
+ * Internals for `server/applicationStore.ts`, the one module allowed to turn a proposal into
+ * canonical writes. Exposed so Apply reuses the same reads, staleness, integrity, and live checks
+ * as approval rather than reimplementing them.
+ */
+export const proposalInternals = { context, readProposal, writeProposal, gapOrNull, latest, view, staleness, integrity, targetFingerprint, revisionHash, computeChecks, withLock };

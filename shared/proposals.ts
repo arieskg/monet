@@ -4,10 +4,11 @@ import type { ComponentDecision, PrimitiveDecision, Status, TaxonomyEntry, Theme
 import { normalizeTokens, resolveThemeTokens, resolveTokens, themeModes } from "./tokens.js";
 
 /**
- * Gaps V2 Phase 1: a Proposal is a separately persisted, editable, typed change set that a Gap
- * diagnosis justifies. It describes how canonical Monet records *would* change. Nothing in this
- * module, or in the server code built on it, writes a canonical record: the projection below is an
- * in-memory preview used for prospective validation and review only. Apply is a later phase.
+ * Gaps V2: a Proposal is a separately persisted, editable, typed change set that a Gap diagnosis
+ * justifies. It describes how canonical Monet records *would* change. Nothing in this module writes
+ * a canonical record: the projection below is an in-memory preview used for prospective validation
+ * and review. The one path that does write is Apply (`server/applicationStore.ts`), which takes an
+ * approved revision through a journaled transaction and leaves a receipt.
  */
 
 export const PROPOSAL_ELIGIBLE_CLASSIFICATIONS = ["missing_decision", "weak_guidance", "conflicting_guidance", "retrieval_relationship"] as const;
@@ -17,7 +18,8 @@ export const PROPOSAL_RECORD_KINDS = ["principle", "foundation", "pattern", "com
 export type ProposalRecordKind = typeof PROPOSAL_RECORD_KINDS[number];
 export type ProposalFieldType = "text" | "markdown" | "status" | "string_list" | "id_list" | "string_map" | "boolean_map" | "tokens" | "overrides";
 export type ProposalAuthor = "ai" | "human";
-export type ProposalStatus = "draft" | "approved" | "rejected" | "superseded";
+/** `applied` is terminal: the approved revision was written to the canonical records and a receipt exists. */
+export type ProposalStatus = "draft" | "approved" | "rejected" | "superseded" | "applied";
 
 export interface ProposalFieldSpec { type: ProposalFieldType; label: string; /** Must be nonempty on a created record. */ required?: boolean }
 
@@ -143,6 +145,8 @@ export interface Proposal {
   rejection: { rejected_at: string; reason: string } | null;
   superseded_by: string | null;
   supersedes: string | null;
+  /** The receipt that applied this proposal. Absent on records saved before Apply existed. */
+  application?: { id: string; applied_at: string } | null;
 }
 export interface ProposalStaleness {
   stale: boolean;
@@ -162,7 +166,7 @@ export interface ProposalStaleness {
 export interface ProposalIntegrity { ok: boolean; revisions: number[]; current_ok: boolean }
 export interface ProposalTargetView { key: string; kind: ProposalRecordKind; title: string; route: string; exists: boolean; fields: Record<string, ProposalFieldSpec & { current: unknown }> }
 export interface ProposalView extends Proposal { staleness: ProposalStaleness; integrity: ProposalIntegrity; targets: ProposalTargetView[]; ai_available: boolean }
-export type ProposalSummary = Pick<Proposal, "id" | "gap_id" | "status" | "created_at" | "updated_at"> & { summary: string; revision: number; approved_revision: number | null };
+export type ProposalSummary = Pick<Proposal, "id" | "gap_id" | "status" | "created_at" | "updated_at"> & { summary: string; revision: number; approved_revision: number | null; application_id: string | null };
 export interface ProposalEligibility { eligible: boolean; reasons: string[]; basis: ProposalBasis[]; targets: GapRecordLink[]; allow_new_pattern: boolean }
 export interface GapProposalOverview { eligibility: ProposalEligibility; proposals: ProposalSummary[] }
 export type ProposalDraftResponse = ProposalView & { draft_failed?: string };
@@ -176,6 +180,7 @@ export type ProposalDraftResponse = ProposalView & { draft_failed?: string };
 export function approvalBlockers(proposal: Pick<Proposal, "status" | "revisions"> & { staleness: ProposalStaleness; integrity: ProposalIntegrity }): string[] {
   if (proposal.status === "rejected") return ["This proposal was rejected. Create a new proposal from the Gap instead."];
   if (proposal.status === "superseded") return ["This proposal was superseded. Edit the newer proposal instead."];
+  if (proposal.status === "applied") return ["This proposal was applied. Report a new Gap to change the records again."];
   if (proposal.status === "approved") return ["This proposal is already approved."];
   const current = proposal.revisions[proposal.revisions.length - 1];
   if (!current) return ["Save a revision before approving."];
@@ -189,7 +194,86 @@ export function approvalBlockers(proposal: Pick<Proposal, "status" | "revisions"
   return blockers;
 }
 
-export const proposalStatusLabels: Record<ProposalStatus, string> = { draft: "Draft", approved: "Approved", rejected: "Rejected", superseded: "Superseded" };
+export const proposalStatusLabels: Record<ProposalStatus, string> = { draft: "Draft", approved: "Approved", rejected: "Rejected", superseded: "Superseded", applied: "Applied" };
+
+/**
+ * Apply V1 writes only through save paths that store and restore a record faithfully today: the
+ * principle file, the pattern file, and the component decision file. Everything else a proposal can
+ * express is deliberately unsupported rather than approximated. Component aliases and relationships
+ * live in `taxonomy/components.json`, which the editing service has no write path for; Foundations,
+ * themes, and primitives wait until their save and recovery paths are proven the same way.
+ */
+export const APPLY_SUPPORT: Record<ProposalRecordKind, { fields: readonly string[]; reason: string }> = {
+  principle: { fields: ["title", "body"], reason: "" },
+  pattern: { fields: ["title", "summary", "status", "tags", "body", "components", "foundations"], reason: "" },
+  component: { fields: ["status", "rationale", "notes", "use_when", "avoid_when", "preferences", "behavior", "foundations", "primitives"], reason: "Component aliases and relationships live in the taxonomy, which Apply cannot write yet." },
+  foundation: { fields: [], reason: "Foundation records and tokens are not applied automatically yet. Make the change in the Foundations editor." },
+  primitive: { fields: [], reason: "Primitive decisions are not applied automatically yet." },
+  theme: { fields: [], reason: "Theme overrides are not applied automatically yet. Make the change in the Themes editor." },
+};
+
+/** Whether Apply can write one change, and why not when it cannot. */
+export function applySupport(change: Pick<ProposalChange, "target" | "field">): { supported: boolean; reason: string } {
+  const parsed = parseRecordKey(change.target);
+  if (!parsed) return { supported: false, reason: "Not a record key." };
+  const support = APPLY_SUPPORT[parsed.kind];
+  return support.fields.includes(change.field) ? { supported: true, reason: "" } : { supported: false, reason: support.reason || `${parsed.kind} records are not applied automatically yet.` };
+}
+
+export type ApplyErrorKind = "state" | "integrity" | "stale" | "unsupported" | "validation" | "write_failed" | "busy";
+export interface ApplyBlocker { kind: Exclude<ApplyErrorKind, "write_failed" | "busy">; message: string }
+export interface ApplyUnsupported { target: string; field: string; reason: string }
+export interface ApplicationRecord { key: string; operation: "amend" | "create"; title: string; route: string; fields: string[] }
+export interface ApplicationFile { path: string; action: "update" | "create"; before_hash: string | null; after_hash: string | null }
+export interface ApplicationValidation { ok: boolean; errors: number; warnings: number; new_errors: string[] }
+/**
+ * The durable record of one Apply. `applied` means every canonical write, the export regeneration,
+ * and the final validation succeeded; `rolled_back` means writing started and every before-byte was
+ * restored, either in the same request or by recovery at the next start (`recovered`).
+ */
+export interface ApplicationReceipt {
+  version: 1; id: string; proposal_id: string; gap_id: string; revision: number; hash: string;
+  outcome: "applied" | "rolled_back"; started_at: string; finished_at: string; recovered: boolean;
+  /** Bounded failure message for a rollback; null when applied. */
+  failure: string | null;
+  /** Whether every journaled file was verified back to its before bytes. Always true for `applied`. */
+  restored: boolean;
+  records: ApplicationRecord[]; files: ApplicationFile[]; derived: string[];
+  validation: ApplicationValidation | null;
+  knowledge_fingerprint_before: string; knowledge_fingerprint_after: string | null;
+}
+/** What Apply would do right now, computed against the live workspace. Nothing is written to produce it. */
+export interface ApplyPlan {
+  proposal_id: string; status: ProposalStatus; revision: number | null; hash: string | null;
+  ready: boolean; blockers: ApplyBlocker[]; unsupported: ApplyUnsupported[];
+  records: ApplicationRecord[]; files: { path: string; action: "update" | "create" }[]; derived: string[];
+  /** Prospective validation and lint rerun against the live workspace, when the Gap still exists. */
+  checks: ProposalChecks | null;
+  staleness: ProposalStaleness; integrity: ProposalIntegrity;
+  /** Every receipt for this proposal, newest first: the application and any rolled-back attempts. */
+  applications: ApplicationReceipt[];
+}
+export interface ApplyResult { outcome: "applied" | "already_applied"; receipt: ApplicationReceipt | null; proposal: ProposalView }
+
+/**
+ * What, in the saved state, stops the approved revision from being applied. The server rechecks
+ * the same rule under its write lock and adds live checks; the UI mirrors it to explain the button.
+ */
+export function applyBlockers(proposal: Pick<Proposal, "status" | "revisions" | "approval"> & { staleness: ProposalStaleness; integrity: ProposalIntegrity }): ApplyBlocker[] {
+  if (proposal.status === "applied") return [{ kind: "state", message: "This proposal was already applied." }];
+  if (proposal.status === "rejected") return [{ kind: "state", message: "This proposal was rejected; nothing can be applied." }];
+  if (proposal.status === "superseded") return [{ kind: "state", message: "This proposal was superseded; apply the newer proposal instead." }];
+  if (proposal.status !== "approved" || !proposal.approval) return [{ kind: "state", message: "Approve the current revision before applying it." }];
+  const current = proposal.revisions[proposal.revisions.length - 1];
+  const blockers: ApplyBlocker[] = [];
+  if (!current || current.number !== proposal.approval.revision || current.hash !== proposal.approval.hash) blockers.push({ kind: "integrity", message: "The approval no longer names the current revision. Review and approve again." });
+  else if (!proposal.integrity.current_ok) blockers.push({ kind: "integrity", message: `Revision ${current.number}'s stored content does not match its approved hash. The proposal file was changed outside Monet; nothing from it can be applied.` });
+  const { staleness } = proposal;
+  if (staleness.gap_missing) blockers.push({ kind: "stale", message: "The Gap behind this proposal was deleted after approval. Its checks cannot be rerun, so it cannot be applied." });
+  else if (staleness.diagnosis_changed) blockers.push({ kind: "stale", message: "The Gap was diagnosed or reviewed again after approval. Supersede the proposal and approve the new one." });
+  else if (staleness.stale) blockers.push({ kind: "stale", message: `Target records changed after approval: ${[...staleness.changed_targets, ...staleness.missing_targets].join(", ")}. Refresh the proposal, review it, and approve it again.` });
+  return blockers;
+}
 
 function measuredErrors(diagnosis: NonNullable<Gap["diagnosis"]>): boolean {
   return diagnosis.conformance.findings.some((finding) => finding.level === "error");
@@ -236,7 +320,9 @@ export function proposalEligibility(gap: Pick<Gap, "diagnosis" | "review">, curr
   return { eligible: true, reasons: [], basis, targets, allow_new_pattern };
 }
 
-const EMPTY_DECISION = (id: string): ComponentDecision => ({ id, status: "undecided", selection: null, preferences: {}, behavior: {}, rationale: "", notes: "", use_when: [], avoid_when: [], foundations: [], primitives: [], candidates: [], history: [], updated_at: "" });
+/** The decision a taxonomy entry has before anyone records one. Apply starts from this when it amends a component that has no decision yet. */
+export const emptyComponentDecision = (id: string): ComponentDecision => ({ id, status: "undecided", selection: null, preferences: {}, behavior: {}, rationale: "", notes: "", use_when: [], avoid_when: [], foundations: [], primitives: [], candidates: [], history: [], updated_at: "" });
+const EMPTY_DECISION = emptyComponentDecision;
 const EMPTY_PRIMITIVE = (id: string): PrimitiveDecision => ({ id, status: "undecided", purpose: "", preferences: {}, tokens: [], inspiration: null, notes: "", updated_at: "" });
 
 function taxonomyEntry(workspace: Workspace, id: string): TaxonomyEntry | undefined {
