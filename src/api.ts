@@ -2,6 +2,8 @@ import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision
 import type { Gap, GapDiagnosisResponse, GapInput, GapReviewInput, GapSummary } from "../shared/gaps";
 import type { ApplicationReceipt, ApplyErrorKind, ApplyPlan, ApplyResult, GapProposalOverview, ProposalDraftResponse, ProposalRevisionInput, ProposalSummary, ProposalView } from "../shared/proposals";
 
+import type { SurfaceInput, SurfaceSelection, SurfacePreview, SurfaceSummary } from "../shared/surfaces";
+
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
 export interface SourceRefreshResult { source: Source; discovered: number; mapped: number; needs_review: number; unmapped: number }
@@ -11,7 +13,7 @@ export interface Environment { root: string; appRoot: string; bundled: boolean; 
 
 /** A failed request. An Apply refusal or rollback also says which gate refused it and carries the receipt, when writing had started. */
 export class ApiError extends Error {
-  constructor(message: string, public status: number, public kind?: ApplyErrorKind, public receipt: ApplicationReceipt | null = null) { super(message); }
+  constructor(message: string, public status: number, public kind?: ApplyErrorKind | "refresh_failed", public receipt: ApplicationReceipt | null = null) { super(message); }
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -22,6 +24,13 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
+  surfaces: () => request<SurfaceSummary[]>("/api/surfaces"),
+  surface: (id: string, revision?: number) => request<SurfacePreview>(`/api/surfaces/${encodeURIComponent(id)}${revision ? `?revision=${revision}` : ""}`),
+  previewSurface: (input: SurfaceInput, selection: SurfaceSelection) => request<SurfacePreview>("/api/surface-previews", { method: "POST", body: JSON.stringify({ input, selection }) }),
+  saveSurface: (input: SurfaceInput, selection: SurfaceSelection) => request<SurfacePreview>("/api/surfaces", { method: "POST", body: JSON.stringify({ input, selection }) }),
+  reviseSurface: (id: string, expected_revision: number, selection: SurfaceSelection, save: boolean) => request<SurfacePreview>(`/api/${save ? "surface-revisions" : "surface-previews"}/${encodeURIComponent(id)}`, { method: "POST", body: JSON.stringify({ expected_revision, selection }) }),
+  deleteSurface: (id: string) => request<{ ok: boolean }>("/api/surfaces/" + encodeURIComponent(id), { method: "DELETE" }),
+  surfaceGap: (id: string, value: { revision: number; problem: string; expected: string; issue_ids: string[]; include_screenshot: boolean }) => request<Gap>("/api/surface-gaps/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
   gaps: () => request<GapSummary[]>("/api/gaps"),
   gap: (id: string) => request<Gap>("/api/gaps/" + encodeURIComponent(id)),
   createGap: (value: GapInput) => request<Gap>("/api/gaps", { method: "POST", body: JSON.stringify(value) }),

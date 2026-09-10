@@ -79,11 +79,11 @@ describe("Apply workspace refresh barrier", () => {
   it("keeps editing blocked if the successful application cannot be refreshed, and supports retry", async () => {
     await mount();
     vi.mocked(api.workspace).mockRejectedValueOnce(new Error("Refresh unavailable"));
-    await act(async () => { await expect(state.applyApprovedProposal("proposal", { revision: 1, hash: "a".repeat(64) })).rejects.toMatchObject({ kind: "write_failed" }); });
+    await act(async () => { await expect(state.applyApprovedProposal("proposal", { revision: 1, hash: "a".repeat(64) })).rejects.toMatchObject({ kind: "refresh_failed" }); });
     expect(state.editingBlocked).toBe(true);
     expect(state.workspace).toBeNull();
     expect(notesEditor()).toBeNull();
-    expect(container.textContent).toContain("Refresh unavailable");
+    expect(container.textContent).toContain("Applied successfully, but the workspace could not be refreshed");
     vi.mocked(api.workspace).mockResolvedValueOnce(after);
     await act(async () => { await state.reload(); });
     expect(state.editingBlocked).toBe(false);

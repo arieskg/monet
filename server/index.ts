@@ -12,6 +12,8 @@ import { approveProposal, createProposal, draftProposalWithAi, gapProposalOvervi
 import { ApplyError, applyProposal, getApplication, listApplications, planApplication, recoverApplications } from "./applicationStore.js";
 import { WorkspaceUnavailableError } from "./writeLock.js";
 import { ZodError } from "zod";
+import { previewSurface, saveSurface, listSurfaces, getSurface, reviseSurface, deleteSurface, surfaceToGap, surfaceRevisionQuery } from "./surfaceStore.js";
+import { SURFACE_BODY_LIMIT } from "../shared/surfaces.js";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
 const workspaceDirectory = resolveWorkspaceRoot();
@@ -23,7 +25,7 @@ const monet = createMonetService({ loadWorkspace });
 
 function respond(response: ServerResponse, status: number, value: unknown): void {
   const body = JSON.stringify(value);
-  response.writeHead(status, { "content-type": "application/json; charset=utf-8", "content-length": Buffer.byteLength(body), "cache-control": "no-store" });
+  response.writeHead(status, { "content-type": "application/json; charset=utf-8", "content-length": Buffer.byteLength(body), "cache-control": "no-store", "x-content-type-options": "nosniff" });
   response.end(body);
 }
 
@@ -42,10 +44,11 @@ async function body(request: IncomingMessage, maxSize = MAX_BODY): Promise<unkno
   for await (const chunk of request) {
     const next = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += next.length;
-    if (size > maxSize) throw new Error("Request body is too large.");
+    if (size > maxSize) throw Object.assign(new Error("Request body is too large."), { status: 413 });
     chunks.push(next);
   }
-  return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  try { return JSON.parse(Buffer.concat(chunks).toString("utf8")); }
+  catch { throw Object.assign(new Error("Request body must be valid JSON."), { status: 400 }); }
 }
 
 function match(pathname: string, prefix: string): string | null {
@@ -56,6 +59,31 @@ const server = createServer(async (request, response) => {
   try {
     if (!allowedOrigin(request)) return respond(response, 403, { error: "Monet only accepts requests from a local browser origin." });
     const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    // Surface imports are JSON only. Browser requests must originate in the configured editor;
+    // opaque sandbox origins and cross-site fetches never reach an import or mutation.
+    if (url.pathname.startsWith("/api/surface")) {
+      const host = request.headers.host ?? "";
+      const origin = request.headers.origin;
+      const editor = process.env.MONET_EDITOR_ORIGIN ?? "http://127.0.0.1:43140";
+      const local = /^127\.0\.0\.1:\d+$/.test(host) || /^localhost:\d+$/.test(host);
+      if (!local || request.headers["sec-fetch-site"] === "cross-site" || origin && ![editor, "http://" + host].includes(origin)) return respond(response, 403, { error: "Surfaces only accepts requests from this Monet editor." });
+      if (request.method !== "GET" && request.headers["content-type"]?.split(";")[0] !== "application/json") return respond(response, 415, { error: "Surface requests require application/json." });
+      if (url.pathname === "/api/surface-previews" && request.method === "POST") return respond(response, 200, await previewSurface(await body(request, SURFACE_BODY_LIMIT)));
+      if (url.pathname === "/api/surfaces") {
+        if (request.method === "GET") return respond(response, 200, await listSurfaces());
+        if (request.method === "POST") return respond(response, 201, await saveSurface(await body(request, SURFACE_BODY_LIMIT)));
+      }
+      const surfaceGap = match(url.pathname, "/api/surface-gaps/");
+      if (surfaceGap && request.method === "POST") return respond(response, 201, await surfaceToGap(surfaceGap, await body(request)));
+      const surfaceRevision = match(url.pathname, "/api/surface-revisions/");
+      if (surfaceRevision && request.method === "POST") return respond(response, 200, await reviseSurface(surfaceRevision, await body(request)));
+      const surfacePreview = match(url.pathname, "/api/surface-previews/");
+      if (surfacePreview && request.method === "POST") return respond(response, 200, await reviseSurface(surfacePreview, await body(request), false));
+      const surface = match(url.pathname, "/api/surfaces/");
+      if (surface && request.method === "GET") return respond(response, 200, await getSurface(surface, url.searchParams.has("revision") ? surfaceRevisionQuery.parse(url.searchParams.get("revision")) : undefined));
+      if (surface && request.method === "DELETE") { await deleteSurface(surface); return respond(response, 200, { ok: true }); }
+      return respond(response, 404, { error: "Not found." });
+    }
     if (url.pathname === "/api/gaps") {
       if (request.method === "GET") return respond(response, 200, await listGaps());
       if (request.method === "POST") return respond(response, 201, await createGap(await body(request, 14 * 1024 * 1024)));

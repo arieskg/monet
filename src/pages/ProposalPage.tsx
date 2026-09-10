@@ -126,7 +126,7 @@ export function ApplicationPanel({ receipt, plan }: { receipt: ApplicationReceip
   </section>;
 }
 
-export interface ApplyOutcome { kind: ApplyErrorKind | "applied" | "already_applied"; message: string; receipt: ApplicationReceipt | null }
+export interface ApplyOutcome { kind: ApplyErrorKind | "applied" | "already_applied" | "refresh_failed"; message: string; receipt: ApplicationReceipt | null }
 
 /** The result of one Apply request, worded so stale, validation, rollback, unverified restore, and already-applied never read alike. */
 export function ApplyOutcomeNotice({ outcome }: { outcome: ApplyOutcome }) {
@@ -135,6 +135,7 @@ export function ApplyOutcomeNotice({ outcome }: { outcome: ApplyOutcome }) {
   const success = outcome.kind === "applied" || outcome.kind === "already_applied";
   const title = outcome.kind === "applied" ? "Applied."
     : outcome.kind === "already_applied" ? "Already applied."
+    : outcome.kind === "refresh_failed" ? "Applied successfully; workspace refresh failed. Reload the workspace before continuing."
     : outcome.kind === "stale" ? "Not applied: the records changed after approval. Nothing was written."
     : outcome.kind === "integrity" ? "Not applied: the approved revision failed its integrity check. Nothing was written."
     : outcome.kind === "unsupported" ? "Not applied: the proposal contains changes Apply cannot write. Nothing was written."

@@ -953,7 +953,7 @@ export async function readGapImage(id: string): Promise<{ contents: Buffer; medi
  * touched; only what is absent is created.
  */
 export const initializeStore = serialized(async (): Promise<void> => {
-  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals", "applications"];
+  const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals", "applications", "surfaces"];
   await Promise.all([
     ...directories.map((name) => mkdir(path.join(root(), name), { recursive: true })),
     mkdir(path.join(root(), "references", "assets"), { recursive: true }),

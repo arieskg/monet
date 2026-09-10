@@ -68,7 +68,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       throw caught;
     }
     applying.current = false;
-    if (!await fetchWorkspace()) throw new ApiError("The application completed, but the workspace could not be refreshed. Editing remains blocked; reload before continuing.", 503, "write_failed", result.receipt);
+    if (!await fetchWorkspace()) {
+      const notice = "Applied successfully, but the workspace could not be refreshed. Editing remains blocked; reload before continuing.";
+      setError(notice); // The boot/error surface must preserve the successful Apply outcome too.
+      throw new ApiError(notice, 503, "refresh_failed", result.receipt);
+    }
     return result;
   }, [fetchWorkspace]);
 

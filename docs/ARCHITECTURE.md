@@ -215,3 +215,13 @@ For Gaps only, `MONET_AI_IMAGES=1` opts into the additional compatible argument
 inspect images. Otherwise the screenshot remains saved but analysis uses text and
 structured evidence. The provider must report whether it actually inspected an
 attached image; this status is shown with the diagnosis.
+
+## Imported Surfaces
+
+Surfaces is editor-only evidence, separate from controlled Preview specimens and
+canonical Workspace data. The server sanitizes HTML/CSS and raster bytes, then
+the UI renders script-free opaque sandbox frames. Comparisons reuse shared token
+resolution and Conformance; saved snapshots and mapping revisions use atomic
+`surfaces/<id>.json` records and the existing workspace access boundary. Selected
+evidence can be copied into Gaps without diagnosis or canonical writes. See
+[Surfaces](SURFACES.md) for its import contract, limits and security tests.

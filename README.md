@@ -125,6 +125,10 @@ exports. V1 ends at recommendations. Image inspection requires an explicitly ena
 compatible provider; text-only diagnosis and deterministic checks remain available.
 See the [Gaps guide](docs/GAPS.md).
 
+**Surfaces** imports safe static HTML/CSS snapshots, previews approved token mappings
+side by side, and copies selected unresolved evidence into Gaps. No app execution
+or automatic design changes. See the [Surfaces guide](docs/SURFACES.md).
+
 ## Documentation and contributing
 
 - [Workspace guide](docs/WORKSPACE.md) — configuration, canonical files, exports, and modes
