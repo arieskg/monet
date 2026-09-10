@@ -47,7 +47,7 @@ async function readRecord(id: string): Promise<ProjectRecord> {
 async function writeRecord(record: ProjectRecord): Promise<void> { await atomicWrite(recordFile(record.id), JSON.stringify(record, null, 2) + "\n"); }
 const summary = (r: ProjectRecord): ProjectSummary => ({ id: r.id, name: r.name, root: r.root, kind: r.inventory.kind, framework: r.inventory.framework, screens: r.inventory.screens.length, scanned_at: r.inventory.scanned_at, created_at: r.created_at });
 
-async function canonicalProjectRoot(input: string): Promise<string> {
+export async function canonicalProjectRoot(input: string): Promise<string> {
   if (!path.isAbsolute(input)) throw conflict("Enter an absolute directory path.", 400);
   let root: string;
   try { root = await realpath(input); } catch { throw conflict("That directory does not exist or is not accessible.", 400); }
@@ -56,13 +56,18 @@ async function canonicalProjectRoot(input: string): Promise<string> {
   workspaceScope().checkProjectRoot?.(root);
   return root;
 }
-export const connectProject = (raw: unknown): Promise<ProjectRecord> => withWorkspaceWrite(async () => {
+export const connectProject = (raw: unknown, reservedId?: string): Promise<ProjectRecord> => withWorkspaceWrite(async () => {
   const input = projectConnectSchema.parse(raw), scope = workspaceScope();
   if (!scope.bindProject) throw conflict("Project connection requires a registered Profile. Start the editing service with its library.");
+  if (reservedId) {
+    z.string().uuid().parse(reservedId); // Only the internal onboarding reservation supplies this ID.
+    try { return await readRecord(reservedId); }
+    catch (error) { if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error; }
+  }
   const root = await canonicalProjectRoot(input.root);
   const name = (input.name?.trim() || path.basename(root)).slice(0, 100) || "Project";
   const inventory = await scanProject(root);
-  const id = randomUUID();
+  const id = reservedId ?? randomUUID();
   const record: ProjectRecord = { version: 1, ...profileOwnership(), id, name, root, binding_revision: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString(), inventory,
     capture_defaults: { ...(inventory.default_port ? { base_url: `http://127.0.0.1:${inventory.default_port}` } : {}), width: 1280, height: 900, mode: "light", strategy: "auto" } };
   const binding = await scope.bindProject(id, name);
@@ -130,6 +135,11 @@ export async function findScreens(id: string, raw: unknown, env: NodeJS.ProcessE
     const matches = parsed.matches.filter((m) => { if (!known.has(m.screen_id)) throw new Error("Unknown screen id"); if (seen.has(m.screen_id)) return false; seen.add(m.screen_id); return true; });
     result.ai = { status: "complete", message: "AI-suggested matches; confirm the route before capturing.", matches };
   } catch { result.ai = { status: "failed", message: "AI matching failed or cited screens outside this project. Keyword matches remain.", matches: [] }; }
+  // A delayed answer must still refer to the same bound, current inventory.
+  await withWorkspaceRead(async () => {
+    const current = await readRecord(id);
+    if (current.binding_revision !== record.binding_revision || current.inventory.fingerprint !== record.inventory.fingerprint) throw conflict("The project inventory changed during screen finding. Retry.");
+  });
   return result;
 }
 

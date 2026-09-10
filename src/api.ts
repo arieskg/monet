@@ -9,6 +9,8 @@ import type { DirectoryListing, ProjectCaptureResult, ProjectConnectionCheck, Pr
 /** A manual import carries its input; a project capture carries only the server-held capture id. */
 export type SurfaceImport = { input: SurfaceInput } | { capture_id: string; title?: string; context?: string };
 
+import type { ProjectOnboardingInput, ProjectOnboardingResult } from "../shared/projectOnboarding";
+
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
 export interface SourceRefreshResult { source: Source; discovered: number; mapped: number; needs_review: number; unmapped: number }
@@ -42,6 +44,7 @@ return {
   projects: () => request<ProjectSummary[]>("/api/projects"),
   project: (id: string) => request<ProjectRecord>("/api/projects/" + encodeURIComponent(id)),
   connectProject: (value: { root: string; name?: string }) => request<ProjectRecord>("/api/projects", { method: "POST", body: JSON.stringify(value) }),
+  onboardProject: (value: ProjectOnboardingInput) => request<ProjectOnboardingResult>("/api/project-onboardings", { method: "POST", body: JSON.stringify(value) }),
   disconnectProject: (id: string) => request<{ ok: boolean }>("/api/projects/" + encodeURIComponent(id), { method: "DELETE" }),
   rescanProject: (id: string) => request<ProjectRecord>("/api/project-scans/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
   interpretProject: (id: string) => request<ProjectRecord>("/api/project-interpretations/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
@@ -124,4 +127,5 @@ export const profileApi = {
     const result = await response.json() as ProfileRegistration & { error?: string }; if (!response.ok) throw new Error(result.error ?? "Unable to create Profile."); return result;
   },
 };
-export function switchProfile(id: string): void { window.location.assign(`/?profile=${encodeURIComponent(id)}`); }
+export const PROFILE_SWITCH_EVENT = "monet:profile-switch";
+export function switchProfile(id: string): void { window.dispatchEvent(new Event(PROFILE_SWITCH_EVENT)); window.location.assign(`/?profile=${encodeURIComponent(id)}`); }

@@ -169,6 +169,18 @@ describe("Profile-bound project records and capture pipeline", () => {
     await expect(withProfile(a, () => checkProjectConnection(record.id, { base_url: "http://127.0.0.1:43141" }, { MONET_PORT: "43141" }))).rejects.toThrow(/Monet itself/);
     expect((await withProfile(a, () => checkProjectConnection(record.id, { base_url: "http://127.0.0.1:1" }))).reachable).toBe(false);
   });
+  it("rejects a finder answer after inventory changes, and safely rejects malformed AI", async () => {
+    const record = await withProfile(a, () => connectProject({ root: project }));
+    const env = { MONET_AI_COMMAND: "fake" };
+    for (const malformed of [null, { matches: "wrong" }, { matches: [{ screen_id: record.inventory.screens[0]!.id, confidence: "high", reason: "x", route: "https://evil.test" }] }]) {
+      expect((await withProfile(a, () => findScreens(record.id, { query: "home", ai: true }, env, async () => malformed))).ai).toMatchObject({ status: "failed", matches: [] });
+    }
+    await expect(withProfile(a, () => findScreens(record.id, { query: "home", ai: true }, env, async () => {
+      await writeFile(path.join(project, "new.html"), "<h1>New screen</h1>");
+      await rescanProject(record.id);
+      return { matches: [{ screen_id: record.inventory.screens[0]!.id, confidence: "high", reason: "Old inventory" }] };
+    }))).rejects.toThrow(/inventory changed/);
+  });
   it("captures through a fake browser step into an attested Surface with a fixed evaluation target", async () => {
     const record = await withProfile(a, () => connectProject({ root: project }));
     const home = record.inventory.screens.find((s) => s.route === "/")!;

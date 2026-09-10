@@ -1,10 +1,10 @@
 # Surfaces V1.1: Local Project Connection
 
 Local Project Connection lets someone who does not know which HTML, CSS, JavaScript or component
-files make up a screen go from a Profile to a saved Surface:
+files make up a screen go from a project folder to a saved Surface:
 
-**Select Profile → Connect Local Project → choose directory → discover screens → choose screen →
-capture → existing Surfaces workflow**
+**Connect Local Project → choose directory → use current Profile or create one → discover /
+optionally AI-find a screen → capture → existing Surfaces workflow**
 
 It adds a Project record bound to one Profile, bounded deterministic discovery of a project's
 screens, an isolated capture browser, and a server-attested handoff into the unchanged Surface
@@ -13,12 +13,14 @@ learn canonical decisions, run project scripts, or change project files.
 
 ## Workflow
 
-1. Select the Profile you want to evaluate against, then open **Build with it → Projects**
-   (or **Surfaces → Capture from a local project**).
-2. **Connect a local project**: type or browse to the project folder and connect. Monet scans the
-   folder and lists what it found: the framework, the screens with their routes and source files,
-   any built copy (`dist/`, `build/`, `out/`, …), the command that starts the app, and notices
-   about what it could not establish.
+1. Open **Build with it → Projects** (or **Surfaces → Capture from a local project**) and type or
+   browse to the project folder.
+2. Choose **Use current Profile — <name>** or **Create new Profile** inline. A new Profile name
+   defaults to the project name (or folder name); choose **Monet Starter** or **Blank**. Connect
+   creates the Profile through Profiles V1, binds the Project by stable ID, scans the folder,
+   and opens its discovered screens automatically in the chosen Profile. Names may be duplicates;
+   identities never are. No Theme is required. Blank stays without design decisions; Starter
+   compares against its seed decisions. Neither adopts the imported application's styles.
 3. **Choose a screen.** Filter by words from the screen (route, name, visible text). With an AI
    provider configured you can also *Ask AI to find it* in your own words or *Suggest friendlier
    screen names*; both are optional and validated against the deterministic inventory. Dynamic
@@ -32,6 +34,32 @@ learn canonical decisions, run project scripts, or change project files.
 6. **Open in Surfaces.** The captured document arrives as an ordinary sanitized Surface preview
    with editable title/context and a provenance panel. Approve mappings, preview, save, revise and
    report evidence to Gaps exactly as in [Surfaces V1](SURFACES.md).
+
+Inline creation is one resumable operation. Before sending it, the editor stores a random operation
+UUID and the exact request in browser storage, scoped to the source Profile. The service durably
+reserves the target Profile and Project UUIDs under `<library>/project-onboardings/<operation>.json`
+before Profile publication. Retrying the same request reuses those IDs; names are never identity.
+A changed request or a different source Profile using that operation ID is refused.
+
+Profiles V1 still owns staged publication and startup recovery. An unpublished stage can be rebuilt
+under its reserved ID; a pending publication is recovered on restart; an already registered Profile
+is reused. Project discovery/binding similarly fills only the missing record under its reserved ID.
+The completed reservation remains as a retry receipt, so replay never creates a new Profile or
+resurrects a deliberately disconnected Project. Browser storage is cleared only when the destination
+Project page actually loads. A lost response, reload or service restart leaves **Resume connection**
+available in the original Profile's Projects page. Switching Profiles discards late UI navigation;
+submitted server work finishes against its reserved destination.
+
+The current-Profile connection path is unchanged. Blank and Monet Starter both use the same resume
+contract; optional AI discovery remains a later, separate action. Resume records are private library
+metadata, excluded from canonical knowledge, exports, MCP and Profile forks.
+
+Limitations: one editing service per library, as in Profiles V1. Pending Profile publication can
+require a service restart before retry. The browser resume pointer requires retained storage for the
+same editor origin; deliberately clearing that storage or choosing **Start a different connection**
+abandons automatic UI resume, without deleting the durable record or any Profile. Completed records
+are retained without automatic expiry to keep old retries safe. This is not a general workflow engine
+or a change to the standalone Profile-creation API.
 
 ## Data model
 
@@ -69,8 +97,9 @@ selection; every limit and every security boundary.
 AI (optional, explicit, validated): natural-language screen finding and friendlier screen names.
 The prompt labels every route, file name and hint as untrusted data, forbids browsing and code
 execution, and the provider may only return `screen_id` values from the supplied inventory with
-bounded labels/reasons. Unknown ids, duplicates or malformed output fail closed with the
-deterministic result intact. AI never sees project files beyond the inventory, never chooses the
+bounded labels/reasons. Unknown ids or malformed output fail closed with the deterministic
+result intact; duplicate finder matches are deduplicated. Delayed finder results are rejected if
+the bound project inventory changed before completion. AI never sees project files beyond the inventory, never chooses the
 capture URL, and never touches provenance.
 
 ## Capture architecture
@@ -163,7 +192,9 @@ Profile-bound records and library bindings, provider validation, capture pipelin
 fake browser step, strategy selection, oversize refusal and HTTP boundary checks.
 `pnpm test:surfaces:browser` captures a hostile static project in the real isolated browser
 (exfiltration, sockets, workers, popups, hidden secrets, DOM-serialization tampering) and drives the
-full editor workflow from connection to a saved Surface.
+full editor workflow from connection to a saved Surface, inline Blank/Starter creation, unchanged
+canonical knowledge after import, creation failure and connection retry, and Profile switches during
+creation, discovery, capture and AI finding.
 
 Representative local projects (ConvoGym: Vite + React Router; kg_blog: Astro with a built copy)
 were connected and captured during development; see the V1.1 delivery notes in the pull request or
