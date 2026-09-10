@@ -265,7 +265,7 @@ function ProposalDetail({ id }: { id: string }) {
   }
   async function approve() {
     if (!latest) return;
-    if (!window.confirm(`Approve revision ${latest.number} exactly as saved (hash ${latest.hash.slice(0, 12)}…)? Checks are rerun against the live workspace first. Approval does not change any Monet record; Apply is a later step.`)) return;
+    if (!window.confirm(`Approve revision ${latest.number} exactly as saved (hash ${latest.hash.slice(0, 12)}…)? Checks are rerun against the live workspace first. Approval does not change any Monet record; Apply is a separate step offered afterwards.`)) return;
     await run(() => api.approveProposal(id, { revision: latest.number, hash: latest.hash, note: "" }), `Revision ${latest.number} approved.`);
   }
   async function reject() {
@@ -316,7 +316,7 @@ function ProposalDetail({ id }: { id: string }) {
       {proposal.status === "approved" && proposal.approval && <p className="proposal-note" role="status"><b>Approved revision {proposal.approval.revision}</b> · {formatDate(proposal.approval.approved_at)} · hash <code className="gap-hash">{proposal.approval.hash}</code>. Saving a new revision clears this approval.</p>}
       {planError && <div className="gap-error" role="alert">Could not compute the apply plan: {planError} <button className="button ghost micro" onClick={() => setAttempt((count) => count + 1)}>Retry</button></div>}
       {proposal.status === "approved" && (plan ? <ApplyPanel plan={plan} busy={busy} onApply={() => void apply()} /> : !planError && <p role="status">Checking what Apply would change…</p>)}
-      {proposal.status === "applied" && proposal.application && (() => { const receipt = plan?.applications.find((item) => item.id === proposal.application!.id) ?? applyOutcome?.receipt ?? null; return receipt ? <ApplicationPanel receipt={receipt} plan={plan} /> : <p className="proposal-note" role="status"><b>Applied</b> {formatDate(proposal.application.applied_at)} · receipt <code className="gap-hash">{proposal.application.id}</code>{planError ? "" : " · loading the receipt…"}</p>; })()}
+      {proposal.status === "applied" && proposal.application && (() => { const receipt = plan?.applications.find((item) => item.id === proposal.application!.id) ?? applyOutcome?.receipt ?? null; return receipt ? <ApplicationPanel receipt={receipt} plan={plan} /> : <p className="proposal-note" role="status"><b>Applied</b> {formatDate(proposal.application.applied_at)} · receipt <code className="gap-hash">{proposal.application.id}</code>{plan ? " · the receipt file is missing from applications/." : planError ? "" : " · loading the receipt…"}</p>; })()}
       {proposal.status === "rejected" && <p className="proposal-note" role="status"><b>Rejected</b> {proposal.rejection?.rejected_at ? formatDate(proposal.rejection.rejected_at) : ""}{proposal.rejection?.reason ? ` · ${proposal.rejection.reason}` : ""}. Create a new proposal from the Gap if the idea returns.</p>}
       {proposal.status === "superseded" && proposal.superseded_by && <p className="proposal-note" role="status"><b>Superseded</b> by <Link to={`/proposals/${proposal.superseded_by}`}>the newer proposal</Link>.</p>}
       {proposal.supersedes && <p className="gap-evidence-line">Supersedes <Link to={`/proposals/${proposal.supersedes}`}>an earlier proposal</Link>.</p>}
@@ -353,7 +353,8 @@ function ProposalDetail({ id }: { id: string }) {
             const spec = parsed && PROPOSAL_FIELDS[parsed.kind][change.field];
             const author = authorOf(change);
             const current = currentOf(change);
-            const drifted = change.operation === "amend" && !valuesEqual(change.before, current);
+            // On an applied proposal the record carries the applied value by design; that is not drift worth flagging.
+            const drifted = change.operation === "amend" && proposal.status !== "applied" && !valuesEqual(change.before, current);
             return <article key={slot(change)} className="proposal-change" aria-label={`${change.target} ${change.field}`}>
               <header>
                 <div><span className="eyebrow">{change.operation === "create" ? "New pattern" : parsed?.kind ?? "record"}</span><h3>{target?.route ? <Link to={target.route}>{target.title}</Link> : change.target} · {spec?.label ?? change.field}</h3></div>

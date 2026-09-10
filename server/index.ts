@@ -80,7 +80,7 @@ const server = createServer(async (request, response) => {
     if (request.method === "GET" && application) return respond(response, 200, await getApplication(application));
     const proposalApplication = match(url.pathname, "/api/proposal-applications/");
     if (request.method === "GET" && proposalApplication) return respond(response, 200, await planApplication(proposalApplication));
-    if (request.method === "POST" && proposalApplication) return respond(response, 200, await applyProposal(proposalApplication, await body(request)));
+    if (request.method === "POST" && proposalApplication) return respond(response, 200, await applyProposal(proposalApplication, request.headers["content-length"] && request.headers["content-length"] !== "0" ? await body(request) : {}));
     // Proposals: editor-only change sets derived from a Gap diagnosis. Review and approval only; no route here writes a canonical record.
     if (url.pathname === "/api/proposals") {
       if (request.method === "GET") return respond(response, 200, await listProposals(url.searchParams.get("gap") ?? undefined));

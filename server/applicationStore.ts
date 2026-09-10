@@ -324,7 +324,8 @@ async function transaction(proposal: Proposal, approved: ProposalRevision, gap: 
     const bytes = await readBytes(relative);
     const created = relative === entry || approved.changes.some((change) => change.operation === "create" && targetPath(change.target) === relative);
     if (created && bytes !== null) throw new ApplyError("stale", `${relative} already exists; the approved revision expected to create it.`);
-    if (!created && bytes === null) throw new ApplyError("stale", `${relative} is missing; the approved revision expected to update it.`);
+    // The decision file is the one target the writer creates on demand; every other update needs its file.
+    if (!created && bytes === null && relative !== "components/decisions.json") throw new ApplyError("stale", `${relative} is missing; the approved revision expected to update it.`);
     files.push({ path: relative, action: bytes === null ? "create" : "update", before: bytes?.toString("base64") ?? null, before_hash: bytes ? sha256(bytes) : null });
   }
   const baseline = validateWorkspace(ctx.workspace).filter((finding) => finding.level === "error").map(describe);

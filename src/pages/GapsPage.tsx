@@ -195,7 +195,7 @@ export function ProposalSection({ gap, records, overview, error, onCreate, onGap
     {error && <p className="gap-error" role="alert">{error}</p>}
     {!overview && !error && <p role="status">Checking whether this diagnosis can back a proposal…</p>}
     {overview && (overview.eligibility.eligible
-      ? <><h2>Turn this diagnosis into a reviewed change</h2><p>A proposal drafts typed changes to the records the {overview.eligibility.basis.some((item) => item.source === "human") ? "review" : "diagnosis"} cited{overview.eligibility.allow_new_pattern ? ", or one new pattern," : ""} for review and approval. Nothing changes in Monet until a later Apply step.</p>
+      ? <><h2>Turn this diagnosis into a reviewed change</h2><p>A proposal drafts typed changes to the records the {overview.eligibility.basis.some((item) => item.source === "human") ? "review" : "diagnosis"} cited{overview.eligibility.allow_new_pattern ? ", or one new pattern," : ""} for review and approval. Nothing changes in Monet until the proposal is approved and then applied.</p>
         <div className="gap-record-links">{overview.eligibility.targets.map((target) => target.route ? <Link key={target.key} to={target.route}>{target.title}</Link> : <span key={target.key}>{target.title}</span>)}</div>
         <button className="button primary" disabled={busy} onClick={onCreate}>{busy ? "Creating…" : "Propose improvement"}</button></>
       : <><h2>No proposal from this diagnosis yet</h2><ul>{overview.eligibility.reasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul></>)}

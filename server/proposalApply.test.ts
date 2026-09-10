@@ -124,8 +124,10 @@ const NEW_PATTERN: ProposalChangeInput[] = [
 async function multiRecordChanges(): Promise<ProposalChangeInput[]> {
   const workspace = await loadWorkspace();
   const principle = workspace.principles.find((p) => `principle:${p.id}` === PRINCIPLE)!;
+  const card = workspace.components.find((c) => c.id === "card")!;
   return [
     { target: "component:button", field: "use_when", after: [...buttonUseWhen(workspace), "Secondary actions on a card or tile need a visible affordance"] },
+    { target: "component:card", field: "notes", after: `${card.notes} State which action is primary when a card carries more than one.` },
     { target: PRINCIPLE, field: "body", after: `${principle.body}\n\nActions inside cards are still actions: they need the same affordance as actions anywhere else.` },
     { target: "pattern:dashboard", field: "summary", after: "Answer a small number of known questions at a glance, with a visible action on every card that has one." },
     ...NEW_PATTERN,
@@ -249,7 +251,7 @@ describe("Apply transaction", () => {
     const before = await workspaceHashes();
     const plan = await planApplication(proposal.id);
     expect(plan).toMatchObject({ ready: true, blockers: [], unsupported: [], revision, hash, checks: { ok: true } });
-    expect(plan.records.map((record) => [record.key, record.operation, record.fields])).toEqual([["component:button", "amend", ["use_when"]], [PRINCIPLE, "amend", ["body"]], ["pattern:dashboard", "amend", ["summary"]], ["pattern:card-actions", "create", ["title", "summary", "body", "components", "foundations"]]]);
+    expect(plan.records.map((record) => [record.key, record.operation, record.fields])).toEqual([["component:button", "amend", ["use_when"]], ["component:card", "amend", ["notes"]], [PRINCIPLE, "amend", ["body"]], ["pattern:dashboard", "amend", ["summary"]], ["pattern:card-actions", "create", ["title", "summary", "body", "components", "foundations"]]]);
     expect(plan.records.find((record) => record.key === "pattern:card-actions")).toMatchObject({ title: "Card actions", route: "/patterns/card-actions" });
     expect(plan.files).toEqual([{ path: "components/decisions.json", action: "update" }, { path: "patterns/card-actions.md", action: "create" }, { path: "patterns/dashboard.md", action: "update" }, { path: "principles/keep-primary-actions-obvious.md", action: "update" }, { path: expect.stringMatching(/^decisions\/.*proposal-/), action: "create" }]);
     expect(plan.derived).toEqual(expect.arrayContaining(["DESIGN_SYSTEM.md", "design-system.json", "tokens/tokens.json", "tokens/color.json", "tokens/themes/default.json"]));
@@ -277,6 +279,8 @@ describe("Apply transaction", () => {
 
     const workspace = await loadWorkspace();
     expect(buttonUseWhen(workspace)).toContain("Secondary actions on a card or tile need a visible affordance");
+    // Two components share one file: both decisions land, and neither loses its selection or history.
+    expect(workspace.components.find((c) => c.id === "card")).toMatchObject({ notes: expect.stringContaining("State which action is primary"), selection: { source: "ant-design" } });
     expect(workspace.components.find((c) => c.id === "button")).toMatchObject({ selection: { source: "shopify-polaris" }, history: expect.any(Array) });
     expect(workspace.patterns.find((p) => p.id === "card-actions")).toMatchObject({ title: "Card actions", status: "experimental", components: ["card", "button"], foundations: ["color"] });
     expect(workspace.patterns.find((p) => p.id === "dashboard")?.summary).toContain("visible action on every card");

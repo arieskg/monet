@@ -9,6 +9,8 @@ import { ApplicationPanel, ApplyOutcomeNotice, ApplyPanel, ChangeDiff, ChecksPan
 import { proposalActions } from "../proposalActions";
 
 const render = (node: React.ReactElement) => renderToStaticMarkup(<MemoryRouter>{node}</MemoryRouter>);
+/** An asymmetric matcher with the type the compared field has, so object literals stay lint-clean. */
+const containing = (text: string): string => expect.stringContaining(text) as string;
 
 function checks(overrides: Partial<ProposalChecks> = {}): ProposalChecks {
   return { computed_at: "2026-09-09T12:00:00Z", validation: { new_errors: [], new_warnings: [], resolved: [], baseline_errors: 0, baseline_warnings: 2 }, lint: [], ok: true, ...overrides };
@@ -157,19 +159,19 @@ describe("Proposal review surfaces", () => {
     const approval = { revision: 1, hash: "a".repeat(64), approved_at: "", note: "" };
     expect(applyBlockers(view({ status: "approved", approval }))).toEqual([]);
     expect(applyBlockers(view()).map((b) => b.kind)).toEqual(["state"]);
-    expect(applyBlockers(view({ status: "applied", approval }))).toEqual([{ kind: "state", message: expect.stringContaining("already applied") }]);
+    expect(applyBlockers(view({ status: "applied", approval }))).toEqual([{ kind: "state", message: containing("already applied") }]);
     expect(applyBlockers(view({ status: "rejected" }))[0]?.kind).toBe("state");
-    expect(applyBlockers(view({ status: "approved", approval: { ...approval, hash: "b".repeat(64) } }))).toEqual([{ kind: "integrity", message: expect.stringContaining("no longer names the current revision") }]);
-    expect(applyBlockers(view({ status: "approved", approval, integrity: { ok: false, revisions: [1], current_ok: false } }))).toEqual([{ kind: "integrity", message: expect.stringContaining("does not match its approved hash") }]);
-    expect(applyBlockers(view({ status: "approved", approval, staleness: { ...staleness, stale: true, changed_targets: ["component:button"] } }))).toEqual([{ kind: "stale", message: expect.stringContaining("component:button") }]);
+    expect(applyBlockers(view({ status: "approved", approval: { ...approval, hash: "b".repeat(64) } }))).toEqual([{ kind: "integrity", message: containing("no longer names the current revision") }]);
+    expect(applyBlockers(view({ status: "approved", approval, integrity: { ok: false, revisions: [1], current_ok: false } }))).toEqual([{ kind: "integrity", message: containing("does not match its approved hash") }]);
+    expect(applyBlockers(view({ status: "approved", approval, staleness: { ...staleness, stale: true, changed_targets: ["component:button"] } }))).toEqual([{ kind: "stale", message: containing("component:button") }]);
     expect(applyBlockers(view({ status: "approved", approval, staleness: { ...staleness, stale: true, gap_missing: true } }))[0]?.message).toContain("deleted");
     expect(applyBlockers(view({ status: "approved", approval, staleness: { ...staleness, stale: true, diagnosis_changed: true } }))[0]?.message).toContain("Supersede");
     expect(applyBlockers(view({ status: "approved", approval, staleness: { ...staleness, knowledge_changed: true } }))).toEqual([]);
     expect(applySupport({ target: "principle:clarity", field: "body" })).toEqual({ supported: true, reason: "" });
     expect(applySupport({ target: "pattern:forms", field: "components" }).supported).toBe(true);
     expect(applySupport({ target: "component:button", field: "use_when" }).supported).toBe(true);
-    expect(applySupport({ target: "component:button", field: "aliases" })).toMatchObject({ supported: false, reason: expect.stringContaining("taxonomy") });
-    expect(applySupport({ target: "foundation:color", field: "tokens" })).toMatchObject({ supported: false, reason: expect.stringContaining("Foundation") });
+    expect(applySupport({ target: "component:button", field: "aliases" })).toMatchObject({ supported: false, reason: containing("taxonomy") });
+    expect(applySupport({ target: "foundation:color", field: "tokens" })).toMatchObject({ supported: false, reason: containing("Foundation") });
     expect(applySupport({ target: "theme:default", field: "overrides" }).supported).toBe(false);
     expect(applySupport({ target: "primitive:box", field: "notes" }).supported).toBe(false);
     expect(proposalActions(view({ status: "applied", approval }), false)).toEqual({ reject: false, supersede: false, refresh: false, approve: false });
