@@ -1,6 +1,7 @@
 import { projectEvidenceSchema, type ProjectEvidenceBinding, type ProfileOwned } from "./profiles.js";
 import { z } from "zod";
 import type { DesignReview, ResolvedThemeToken, ThemeMode, TokenType } from "./model.js";
+import type { SurfaceCapture } from "./projects.js";
 import { normalizeColour, normalizeDimension } from "./review.js";
 
 export const SURFACE_VERSION = 1;
@@ -26,7 +27,9 @@ export const surfaceSelectionSchema = z.object({
   theme_id: z.string().regex(/^[a-z0-9][a-z0-9-]{0,79}$/).optional(), mode: z.enum(["light", "dark"]).default("light"),
 }).strict();
 export type SurfaceSelection = z.input<typeof surfaceSelectionSchema>;
-export const surfaceImportSchema = z.object({ input: surfaceInputSchema, selection: surfaceSelectionSchema.default({ mappings: [], mode: "light" }) }).strict();
+/** Manual import supplies `input`; a project capture supplies the server-held `capture_id` (optionally retitled). */
+export const surfaceImportSchema = z.object({ input: surfaceInputSchema.optional(), capture_id: z.string().uuid().optional(), title: text.min(1).optional(), context: z.string().max(2000).optional(), selection: surfaceSelectionSchema.default({ mappings: [], mode: "light" }) }).strict()
+  .refine((value) => Boolean(value.input) !== Boolean(value.capture_id), { message: "Provide either captured input or a capture id, not both." });
 export const surfaceRevisionSchema = z.object({ expected_revision: z.number().int().min(1), selection: surfaceSelectionSchema }).strict();
 export interface SurfaceIssue { id: string; kind: "removed" | "unsupported" | "missing_asset" | "unmapped" | "ambiguous" | "invalid_mapping"; location: string; detail: string; count?: number }
 export interface SurfaceDeclaration { id: string; location: string; property: string; value: string; important: boolean; mappable: boolean }
@@ -38,14 +41,14 @@ export interface SurfaceRun extends ProfileOwned {
   theme_id?: string; mode: ThemeMode; requested_mode: ThemeMode; mappings: SurfaceMapping[]; bindings: SurfaceBinding[];
   issues: SurfaceIssue[]; review: DesignReview;
 }
-export interface SurfaceRecord extends ProfileOwned { version: 1; id: string; created_at: string; snapshot: SurfaceSnapshot; runs: SurfaceRun[] }
+export interface SurfaceRecord extends ProfileOwned { version: 1; id: string; created_at: string; snapshot: SurfaceSnapshot; runs: SurfaceRun[]; /** Server-attested project capture provenance; absent for manual imports. */ capture?: SurfaceCapture }
 export interface SurfacePreview {
   snapshot: SurfaceSnapshot; run: SurfaceRun; original: string; applied: string;
   declarations: SurfaceDeclaration[]; candidates: Record<string, string[]>;
   tokens: { name: string; value: string; type: TokenType; foundation: string }[];
-  stale: boolean; saved?: { id: string; revision: number; revisions: number[] };
+  stale: boolean; saved?: { id: string; revision: number; revisions: number[] }; capture?: SurfaceCapture;
 }
-export interface SurfaceSummary { id: string; title: string; created_at: string; revision: number }
+export interface SurfaceSummary { id: string; title: string; created_at: string; revision: number; capture?: { project_id: string; project_name: string; screen_label: string; route: string } }
 export const surfaceGapSchema = z.object({
   revision: z.number().int().min(1), problem: z.string().trim().min(1).max(4000), expected: z.string().max(2000).default(""),
   issue_ids: z.array(text).min(1).max(8), include_screenshot: z.boolean().default(false),

@@ -4,6 +4,10 @@ import type { Gap, GapDiagnosisResponse, GapInput, GapReviewInput, GapSummary } 
 import type { ApplicationReceipt, ApplyErrorKind, ApplyPlan, ApplyResult, GapProposalOverview, ProposalDraftResponse, ProposalRevisionInput, ProposalSummary, ProposalView } from "../shared/proposals";
 
 import type { SurfaceInput, SurfaceSelection, SurfacePreview, SurfaceSummary } from "../shared/surfaces";
+import type { DirectoryListing, ProjectCaptureResult, ProjectConnectionCheck, ProjectRecord, ProjectSummary, ScreenFinderResult } from "../shared/projects";
+
+/** A manual import carries its input; a project capture carries only the server-held capture id. */
+export type SurfaceImport = { input: SurfaceInput } | { capture_id: string; title?: string; context?: string };
 
 export interface ReferenceSaveInput extends Reference { asset_data_url?: string; asset_filename?: string }
 
@@ -32,8 +36,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 return {
   surfaces: () => request<SurfaceSummary[]>("/api/surfaces"),
   surface: (id: string, revision?: number) => request<SurfacePreview>(`/api/surfaces/${encodeURIComponent(id)}${revision ? `?revision=${revision}` : ""}`),
-  previewSurface: (input: SurfaceInput, selection: SurfaceSelection) => request<SurfacePreview>("/api/surface-previews", { method: "POST", body: JSON.stringify({ input, selection }) }),
-  saveSurface: (input: SurfaceInput, selection: SurfaceSelection) => request<SurfacePreview>("/api/surfaces", { method: "POST", body: JSON.stringify({ input, selection }) }),
+  previewSurface: (source: SurfaceImport, selection: SurfaceSelection) => request<SurfacePreview>("/api/surface-previews", { method: "POST", body: JSON.stringify({ ...source, selection }) }),
+  saveSurface: (source: SurfaceImport, selection: SurfaceSelection) => request<SurfacePreview>("/api/surfaces", { method: "POST", body: JSON.stringify({ ...source, selection }) }),
+  // Local projects: Profile-bound connections, deterministic discovery, optional AI interpretation and isolated capture.
+  projects: () => request<ProjectSummary[]>("/api/projects"),
+  project: (id: string) => request<ProjectRecord>("/api/projects/" + encodeURIComponent(id)),
+  connectProject: (value: { root: string; name?: string }) => request<ProjectRecord>("/api/projects", { method: "POST", body: JSON.stringify(value) }),
+  disconnectProject: (id: string) => request<{ ok: boolean }>("/api/projects/" + encodeURIComponent(id), { method: "DELETE" }),
+  rescanProject: (id: string) => request<ProjectRecord>("/api/project-scans/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
+  interpretProject: (id: string) => request<ProjectRecord>("/api/project-interpretations/" + encodeURIComponent(id), { method: "POST", body: "{}" }),
+  findScreens: (id: string, value: { query: string; ai: boolean }) => request<ScreenFinderResult>("/api/project-screen-finders/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
+  checkProjectConnection: (id: string, base_url: string) => request<ProjectConnectionCheck>("/api/project-connections/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify({ base_url }) }),
+  captureScreen: (id: string, value: { screen_id: string; route?: string; source: { kind: "dev_server"; base_url: string } | { kind: "static"; directory: string }; width: number; height: number; mode: ThemeMode; strategy: "auto" | "stylesheet" | "computed" }) => request<ProjectCaptureResult>("/api/project-captures/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
   reviseSurface: (id: string, expected_revision: number, selection: SurfaceSelection, save: boolean) => request<SurfacePreview>(`/api/${save ? "surface-revisions" : "surface-previews"}/${encodeURIComponent(id)}`, { method: "POST", body: JSON.stringify({ expected_revision, selection }) }),
   deleteSurface: (id: string) => request<{ ok: boolean }>("/api/surfaces/" + encodeURIComponent(id), { method: "DELETE" }),
   surfaceGap: (id: string, value: { revision: number; problem: string; expected: string; issue_ids: string[]; include_screenshot: boolean }) => request<Gap>("/api/surface-gaps/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
@@ -93,6 +107,12 @@ return {
 
 }
 export const api = createProfileApi(typeof window === "undefined" ? undefined : new URLSearchParams(window.location.search).get("profile") ?? undefined);
+export const directoryApi = {
+  async list(path?: string): Promise<DirectoryListing> {
+    const response = await fetch(`/api/directories${path ? `?path=${encodeURIComponent(path)}` : ""}`);
+    const value = await response.json() as DirectoryListing & { error?: string }; if (!response.ok) throw new Error(value.error ?? "Unable to list folders."); return value;
+  },
+};
 export const profileApi = {
   async rename(id: string, name: string): Promise<void> {
     const response = await fetch(`/api/profile-names/${encodeURIComponent(id)}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) });

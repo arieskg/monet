@@ -54,7 +54,7 @@ Surface-to-Gap handoff records structured Profile, Surface, revision, snapshot-h
 
 New Gaps with Surface provenance must reference an existing saved Surface revision in that Profile. The server verifies stored record/run ownership and integrity, then matches the supplied revision, run hash and snapshot hash before publishing the Gap. This is a creation-time check: deleting a Surface later does not erase or invalidate a retained Gap's copied historical evidence. Free-form Gap prose remains user-authored, not authenticated provenance.
 
-The application-level Project contract is `{ id, name, profileId, bindingRevision }`. New bindings begin at revision 1; reassignment is refused. One Profile may serve several Projects. The registry exposes validated binding and assertion methods for the upcoming connection layer. There is deliberately no project discovery, project execution, connection UI, capture origin registration or live capture in V1.
+The application-level Project contract is `{ id, name, profileId, bindingRevision }`. New bindings begin at revision 1; reassignment is refused. One Profile may serve several Projects. The registry exposes validated binding and assertion methods to the connection layer. [Surfaces V1.1: Local Project Connection](PROJECTS.md) builds on this contract with Profile-bound project records, bounded discovery and isolated capture; V1 itself deliberately shipped no discovery, execution or capture.
 
 ## MCP, Build With It and exports
 

@@ -5,8 +5,13 @@
   "description": "A local design-system workspace that gives coding agents task-specific guidance and checks reported evidence through read-only MCP.",
   "license": "MIT",
   "homepage": "https://github.com/arieskg/monet#readme",
-  "repository": { "type": "git", "url": "git+https://github.com/arieskg/monet.git" },
-  "bugs": { "url": "https://github.com/arieskg/monet/issues" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arieskg/monet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/arieskg/monet/issues"
+  },
   "keywords": [
     "design-system",
     "design-tokens",
@@ -40,6 +45,7 @@
     "@vitejs/plugin-react": "5.2.0",
     "css-tree": "3.2.1",
     "parse5": "8.0.1",
+    "playwright-core": "1.63.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router-dom": "7.18.2",

@@ -131,7 +131,9 @@ See the [Gaps guide](docs/GAPS.md).
 
 **Surfaces** imports safe static HTML/CSS snapshots, previews approved token mappings
 side by side, and copies selected unresolved evidence into Gaps. No app execution
-or automatic design changes. See the [Surfaces guide](docs/SURFACES.md).
+or automatic design changes. See the [Surfaces guide](docs/SURFACES.md). **Projects** connects
+a local project folder to a Profile, discovers its screens without reading code yourself, and
+captures one in an isolated browser straight into Surfaces. See [Local Project Connection](docs/PROJECTS.md).
 
 ## Documentation and contributing
 

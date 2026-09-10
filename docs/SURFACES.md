@@ -175,5 +175,7 @@ mode reloads, narrow editor layout, and the Gap handoff. Those browser-test
 measurements are not a product capability.
 
 Follow up with representative real capture formats and additional browser engines
-before widening CSS/asset support. Semantic AI mapping, component replacement,
-project profiles, capture automation and automatic canonical learning are outside V1.
+before widening CSS/asset support. Semantic AI mapping, component replacement and
+automatic canonical learning are outside V1. Project profiles arrived with
+[Profiles V1](PROFILES.md); capture automation from a connected local project is
+[Surfaces V1.1: Local Project Connection](PROJECTS.md), which feeds this same import.

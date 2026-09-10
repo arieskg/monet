@@ -17,6 +17,8 @@ import { WorkspaceUnavailableError } from "./writeLock.js";
 import { ZodError } from "zod";
 import { previewSurface, saveSurface, listSurfaces, getSurface, reviseSurface, deleteSurface, surfaceToGap, surfaceRevisionQuery } from "./surfaceStore.js";
 import { SURFACE_BODY_LIMIT } from "../shared/surfaces.js";
+import { connectProject, listProjects, getProject, rescanProject, disconnectProject, interpretProject, findScreens, checkProjectConnection, captureProjectScreen } from "./projectStore.js";
+import { listDirectories } from "./directories.js";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
 const workspaceDirectory = resolveWorkspaceRoot();
@@ -72,6 +74,29 @@ async function handleProfileRequest(request: IncomingMessage, response: ServerRe
       const surface = match(url.pathname, "/api/surfaces/");
       if (surface && request.method === "GET") return respond(response, 200, await getSurface(surface, url.searchParams.has("revision") ? surfaceRevisionQuery.parse(url.searchParams.get("revision")) : undefined));
       if (surface && request.method === "DELETE") { await deleteSurface(surface); return respond(response, 200, { ok: true }); }
+      return respond(response, 404, { error: "Not found." });
+    }
+    // Local Project Connection: Profile-bound project records, bounded discovery and isolated capture. Captures return only a
+    // server-held capture id plus a sanitized preview; saving goes through the ordinary Surface routes above.
+    if (url.pathname.startsWith("/api/project")) {
+      if (url.pathname === "/api/projects") {
+        if (request.method === "GET") return respond(response, 200, await listProjects());
+        if (request.method === "POST") return respond(response, 201, await connectProject(await body(request)));
+      }
+      const project = match(url.pathname, "/api/projects/");
+      if (project && request.method === "GET") return respond(response, 200, await getProject(project));
+      if (project && request.method === "DELETE") { await disconnectProject(project); return respond(response, 200, { ok: true }); }
+      const actions: [prefix: string, action: (id: string, value: unknown) => Promise<unknown>][] = [
+        ["/api/project-scans/", (id) => rescanProject(id)],
+        ["/api/project-interpretations/", (id) => interpretProject(id)],
+        ["/api/project-screen-finders/", (id, value) => findScreens(id, value)],
+        ["/api/project-connections/", (id, value) => checkProjectConnection(id, value)],
+        ["/api/project-captures/", (id, value) => captureProjectScreen(id, value)],
+      ];
+      for (const [prefix, action] of actions) {
+        const id = match(url.pathname, prefix);
+        if (request.method === "POST" && id) return respond(response, 200, await action(id, request.headers["content-length"] && request.headers["content-length"] !== "0" ? await body(request) : {}));
+      }
       return respond(response, 404, { error: "Not found." });
     }
     if (url.pathname === "/api/gaps") {
@@ -216,6 +241,8 @@ const server = createServer(async (request, response) => {
       if (request.method === "GET") return respond(response, 200, { ...profiles.list(), defaultProfileId });
       if (request.method === "POST") return respond(response, 201, await profiles.create(await body(request)));
     }
+    // Folder browsing for project connection is editor-only and Profile-independent; it lists directory names, never files.
+    if (url.pathname === "/api/directories" && request.method === "GET") return respond(response, 200, await listDirectories(url.searchParams.get("path")));
     const nameId = match(url.pathname, "/api/profile-names/");
     if (nameId && request.method === "PUT") {
       const value = await body(request) as { name?: string };

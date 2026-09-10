@@ -68,6 +68,10 @@ describe("Surface feasibility and sanitizer", () => {
     await expect(sanitizeSurface({ title: "Bad", html: "x", assets: [{ filename: "../private.png", data_url }] })).rejects.toThrow("relative names");
     await expect(sanitizeSurface({ title: "Bad", html: "x", screenshot: { filename: "a.png", data_url: `data:image/png;base64,${Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"/>').toString("base64")}` } })).rejects.toThrow("MIME");
   });
+  it("allows clip-path inset() for visually-hidden patterns but never a URL, path or external reference", () => {
+    expect(safeValue("clip-path", "inset(50%)")).toBe(true);
+    for (const value of ["url(#clip)", "url(https://evil.test/x.svg#c)", 'path("M0 0h10v10z")', "circle(50%)"]) expect(safeValue("clip-path", value), value).toBe(false);
+  });
   it("bounds tree depth and declaration volume", async () => {
     await expect(sanitizeSurface({ title: "Deep", html: '<div>'.repeat(60) + 'x' + '</div>'.repeat(60) })).rejects.toThrow("depth");
     await expect(sanitizeSurface({ title: "Many", html: "x", css: `.x{${"color:red;".repeat(2001)}}` })).rejects.toThrow("2,000");

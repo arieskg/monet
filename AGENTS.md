@@ -64,6 +64,12 @@ No database, no hosted service, no model API. Files on disk, and MCP over stdio.
   receipt/proposal writes, and journal removal must preserve durability ordering.
 - **Apply history contains safe metadata only.** Never copy free-form proposal summaries,
   rationale, notes, diagnosis prose, or Gap evidence into canonical decision logs.
+- **Projects never run in Monet.** `server/projectDiscovery.ts` reads bounded prefixes and never
+  follows symlinks, installs, executes or writes; `server/projectStatic.ts` serves regular files only.
+  Project code executes solely inside the isolated capture browser (`server/projectCapture.ts`), whose
+  output is untrusted: shape-validate it, sanitize it like a pasted Surface, and never echo page text
+  into errors. Captured provenance comes from the ledger, never the client. Keep captures loopback-only
+  and Profile-bound; never add a remote capture target or an auto-start for a dev server.
 - **Conformance measures evidence, never source.** `shared/review.ts` parses no code and knows no
   framework. A check either measures what the caller submitted or reports it unverifiable; it never
   infers a violation from missing information, and a concept Monet has no scale or decision for is

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../api";
 import { useWorkspace } from "../WorkspaceContext";
 import { PageHeader } from "../components/Common";
@@ -26,10 +26,11 @@ export function SurfaceComparison({ preview }: { preview: SurfacePreview }) {
   </section>;
 }
 
-function SurfaceEditor({ id }: { id?: string }) {
+function SurfaceEditor({ id, captureId }: { id?: string; captureId?: string }) {
   const { workspace } = useWorkspace();
   const navigate = useNavigate();
   const [input, setInput] = useState<SurfaceInput>(initial);
+  const [captureTitle, setCaptureTitle] = useState(""), [captureContext, setCaptureContext] = useState("");
   const [preview, setPreview] = useState<SurfacePreview | null>(null);
   const [mappings, setMappings] = useState<SurfaceMapping[]>([]);
   const [theme, setTheme] = useState(workspace?.activeThemeId ?? "default");
@@ -41,16 +42,19 @@ function SurfaceEditor({ id }: { id?: string }) {
   const [gapId, setGapId] = useState("");
   const [mappingPage, setMappingPage] = useState(0), [mappingFilter, setMappingFilter] = useState("");
   useEffect(() => {
-    if (!id) return;
+    if (!id && !captureId) return;
     let active = true;
-    api.surface(id).then((next) => { if (active) { setPreview(next); setMappings(next.run.mappings); setTheme(next.run.theme_id ?? ""); setMode(next.run.requested_mode); setDirty(false); setUnsavedPreview(false); setError(""); } }).catch((e) => { if (active) setError(message(e)); });
+    // A project capture is held by the service under its id; the editor only ever sees the sanitized preview.
+    const load = id ? api.surface(id) : api.previewSurface({ capture_id: captureId! }, { mappings: [], mode: "light" });
+    load.then((next) => { if (active) { setPreview(next); setMappings(next.run.mappings); setTheme(next.run.theme_id ?? ""); setMode(id ? next.run.requested_mode : next.snapshot.input.mode); setDirty(false); setUnsavedPreview(!id); setError(""); if (!id) { setCaptureTitle(next.snapshot.input.title); setCaptureContext(next.snapshot.input.context); } } }).catch((e) => { if (active) setError(message(e)); });
     return () => { active = false; };
-  }, [id, attempt]);
+  }, [id, captureId, attempt]);
   async function run(save: boolean) {
     setBusy(true); setError("");
     try {
       const selection = { mappings, ...(theme ? { theme_id: theme } : {}), ...(workspace?.profile ? { profile_id: workspace.profile.id } : {}), mode };
-      const next = id && preview?.saved ? await api.reviseSurface(id, Math.max(...preview.saved.revisions), selection, save) : save ? await api.saveSurface(input, selection) : await api.previewSurface(input, selection);
+      const source = captureId ? { capture_id: captureId, ...(captureTitle.trim() ? { title: captureTitle.trim() } : {}), context: captureContext } : { input };
+      const next = id && preview?.saved ? await api.reviseSurface(id, Math.max(...preview.saved.revisions), selection, save) : save ? await api.saveSurface(source, selection) : await api.previewSurface(source, selection);
       if (!id && save && next.saved) { void navigate(`/surfaces/${next.saved.id}`); return; }
       setPreview(next); setDirty(false); setUnsavedPreview(!save); setSelectedIssues([]); setGapId("");
     } catch (caught) { setError(message(caught)); }
@@ -90,8 +94,13 @@ function SurfaceEditor({ id }: { id?: string }) {
     <PageHeader eyebrow="Build with it" title={id ? preview?.snapshot.input.title ?? "Saved Surface" : "Import a Surface"} description="Preview approved token mappings on a static product snapshot." action={id && <button className="button ghost" disabled={busy} onClick={() => void remove()}>Delete Surface</button>} />
     <p className="surface-notice">Private imported evidence. Surfaces never changes canonical Monet records, executes app code, fetches missing assets, or sends content to AI. Redact sensitive visible content before importing. Saved files follow your workspace’s Git and backup policy.</p>
     {error && <div className="gap-error" role="alert">{error}{id && <button className="button" onClick={() => setAttempt((a) => a + 1)}>Reload Surface</button>}</div>}
-    {id && !preview && !error && <p role="status">Loading Surface…</p>}
-    {!id && <fieldset className="surface-import" disabled={busy}><legend>Captured HTML, CSS and assets</legend>
+    {(id || captureId) && !preview && !error && <p role="status">{captureId ? "Loading captured screen…" : "Loading Surface…"}</p>}
+    {!id && captureId && preview && <fieldset className="surface-panel" disabled={busy}><legend>Captured from a local project</legend>
+      <label>Surface title<input value={captureTitle} maxLength={300} onChange={(e) => setCaptureTitle(e.target.value)} /></label>
+      <label>Product / state context<input value={captureContext} maxLength={2000} onChange={(e) => setCaptureContext(e.target.value)} /></label>
+      <p className="muted">The captured document stays with the service until you save it. Inspect the safe snapshot below, approve mappings, then <b>Save Surface</b>.</p>
+    </fieldset>}
+    {!id && !captureId && <fieldset className="surface-import" disabled={busy}><legend>Captured HTML, CSS and assets</legend>
       <label>Surface title<input value={input.title} maxLength={300} onChange={(e) => changeInput({ ...input, title: e.target.value })} /></label>
       <label>Product / state context<input value={input.context ?? ""} maxLength={2000} placeholder="Example: exercise library, signed-in, resting state" onChange={(e) => changeInput({ ...input, context: e.target.value })} /></label>
       <div className="surface-import-columns"><label>HTML file<input type="file" accept=".html,.htm" onChange={(e) => void files(e.target.files, "html")} /><textarea aria-label="Captured HTML" value={input.html} onChange={(e) => changeInput({ ...input, html: e.target.value })} placeholder="Paste captured HTML…" rows={8} maxLength={300000} /></label><label>Additional CSS file<input type="file" accept=".css" onChange={(e) => void files(e.target.files, "css")} /><textarea aria-label="Captured CSS" value={input.css ?? ""} onChange={(e) => changeInput({ ...input, css: e.target.value })} placeholder="Paste CSS (appended after embedded styles)…" rows={8} maxLength={300000} /></label></div>
@@ -103,6 +112,7 @@ function SurfaceEditor({ id }: { id?: string }) {
       <button className="button primary" disabled={!input.title.trim() || !input.html.trim()} onClick={() => void run(false)}>Inspect safe snapshot</button>
     </fieldset>}
     {preview && <>
+      {preview.capture && <section className="surface-panel"><h2>Capture provenance</h2><p><b>{preview.capture.project_name}</b> · {preview.capture.screen_label} · <code>{preview.capture.route}</code> · {preview.capture.source.kind === "dev_server" ? preview.capture.source.base_url : `static files (${preview.capture.source.directory || "root"})`} · {preview.capture.width}×{preview.capture.height} · {preview.capture.mode} · {preview.capture.strategy === "stylesheet" ? "stylesheets kept" : "computed styles inlined"} · {new Date(preview.capture.captured_at).toLocaleString()}</p><p className="muted">Recorded by the service at capture time; the Project stays bound to this Profile. {preview.capture.blocked.length ? `${preview.capture.blocked.reduce((n, b) => n + b.count, 0)} outside requests were blocked during capture.` : "No outside requests were attempted during capture."}</p>{preview.capture.warnings.length > 0 && <details><summary>{preview.capture.warnings.length} capture notes</summary><ul>{preview.capture.warnings.map((w, i) => <li key={i}>{w}</li>)}</ul></details>}</section>}
       <section className="surface-panel"><h2>Import fidelity</h2><p>Compare the sanitized baseline with your capture before interpreting the applied result. Removing content or substituting fonts can change layout.</p><details><summary>{preview.snapshot.issues.length} import notices</summary><ul>{preview.snapshot.issues.map((i) => <li key={i.id}>{i.detail} {i.count && i.count > 1 ? `(${i.count} occurrences)` : ""}</li>)}</ul></details>{preview.snapshot.input.screenshot && <details><summary>Original screenshot · comparison evidence only</summary><img className="surface-screenshot" src={preview.snapshot.input.screenshot.data_url} alt="User-supplied original capture" /></details>}</section>
       {preview.stale && <p className="surface-notice" role="status">Monet has changed since this saved comparison. Historical values remain frozen. Preview and save a new revision to use current tokens.</p>}
       {preview.saved && <label>Saved comparison revision<select disabled={busy} value={unsavedPreview ? "draft" : preview.run.revision} onChange={(e) => { setBusy(true); api.surface(preview.saved!.id, Number(e.target.value)).then((next) => { setPreview(next); setMappings(next.run.mappings); setTheme(next.run.theme_id ?? ""); setMode(next.run.requested_mode); setDirty(false); setUnsavedPreview(false); setSelectedIssues([]); }).catch((caught) => setError(message(caught))).finally(() => setBusy(false)); }}>{unsavedPreview && <option value="draft">Unsaved comparison</option>}{preview.saved.revisions.map((r) => <option key={r} value={r}>Revision {r}</option>)}</select></label>}
@@ -126,6 +136,10 @@ function SurfaceList() {
   const [items, setItems] = useState<SurfaceSummary[] | null>(null), [error, setError] = useState("");
   const [attempt, setAttempt] = useState(0);
   useEffect(() => { let active = true; api.surfaces().then((result) => { if (active) { setItems(result); setError(""); } }).catch((e) => { if (active) setError(message(e)); }); return () => { active = false; }; }, [attempt]);
-  return <div className="page surfaces-page"><PageHeader eyebrow="Build with it" title="Surfaces" description="Bring a static product snapshot into Monet. Compare approved token mappings in context." action={<Link className="button primary" to="/surfaces/new">Import Surface</Link>} />{error ? <div role="alert">{error}<button className="button" onClick={() => setAttempt((a) => a + 1)}>Retry</button></div> : items === null ? <p role="status">Loading Surfaces…</p> : items.length === 0 ? <div className="surface-panel"><h2>See Monet on your own UI</h2><p>Import captured HTML, CSS and local raster assets. Static snapshots stay private to the editor and never change your design system.</p><Link to="/surfaces/new">Import your first Surface</Link></div> : items.map((item) => <Link className="gap-row" key={item.id} to={`/surfaces/${item.id}`}><b>{item.title}</b><span>Revision {item.revision} · {new Date(item.created_at).toLocaleDateString()}</span></Link>)}</div>;
+  return <div className="page surfaces-page"><PageHeader eyebrow="Build with it" title="Surfaces" description="Bring a static product snapshot into Monet. Compare approved token mappings in context." action={<span className="surface-toolbar"><Link className="button" to="/projects">Capture from a local project</Link><Link className="button primary" to="/surfaces/new">Import Surface</Link></span>} />{error ? <div role="alert">{error}<button className="button" onClick={() => setAttempt((a) => a + 1)}>Retry</button></div> : items === null ? <p role="status">Loading Surfaces…</p> : items.length === 0 ? <div className="surface-panel"><h2>See Monet on your own UI</h2><p>Connect a local project and capture a screen, or import captured HTML, CSS and local raster assets. Static snapshots stay private to the editor and never change your design system.</p><p><Link to="/projects">Connect a local project</Link> · <Link to="/surfaces/new">Import your first Surface</Link></p></div> : items.map((item) => <Link className="gap-row" key={item.id} to={`/surfaces/${item.id}`}><b>{item.title}</b><span>{item.capture ? `${item.capture.project_name} · ${item.capture.route} · ` : ""}Revision {item.revision} · {new Date(item.created_at).toLocaleDateString()}</span></Link>)}</div>;
 }
-export function SurfacesPage() { const { id } = useParams(); return id ? <SurfaceEditor key={id} id={id === "new" ? undefined : id} /> : <SurfaceList />; }
+export function SurfacesPage() {
+  const { id } = useParams(); const [search] = useSearchParams();
+  const captureId = id === "new" ? search.get("capture") ?? undefined : undefined;
+  return id ? <SurfaceEditor key={`${id}:${captureId ?? ""}`} id={id === "new" ? undefined : id} captureId={captureId} /> : <SurfaceList />;
+}
