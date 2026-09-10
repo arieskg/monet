@@ -30,7 +30,7 @@ database.
 - `tokens/` contains generated per-foundation and consolidated resolved token exports, plus `tokens/themes/<theme>.json` (light) and `tokens/themes/<theme>.dark.json` (dark) per theme.
 - `taxonomy/primitives.json` and `primitives/decisions.json` define low-level building blocks between tokens and components.
 - `taxonomy/components.json`, `components/`, and `sources/` contain the user-facing taxonomy, decisions, and external mappings.
-- `decisions/` records human-readable changes to component inspirations.
+- `decisions/` records human-readable changes to component inspirations and applied Gap proposals.
 - `DESIGN_SYSTEM.md` is a regenerated readable summary; `design-system.json` is a
   regenerated structured snapshot that is deliberately not committed.
 - `AGENTS.md` tells coding agents how to apply the system.

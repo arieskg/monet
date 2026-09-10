@@ -51,12 +51,17 @@ Every path is relative to the workspace root.
 | `themes/*.json` | JSON | Override-only themes. `overrides` applies in every mode; an optional `modes.dark` map applies in dark only. `themes/config.json` names the default. |
 | `sources/registry.json` | JSON | External design systems used as inspiration, and their mappings. |
 | `references/registry.json` | JSON | Visual reference memory. Assets live in `references/assets/`. |
-| `decisions/*.md` | Markdown | A readable log of component inspiration changes. |
+| `decisions/*.md` | Markdown | A readable log of component inspiration changes and applied Gap proposals. |
 
 Private editor feedback lives separately in `gaps/<id>.json`: each Gap holds its
-report, optional bounded screenshot, and latest diagnosis. These are not canonical
-design decisions and never enter generated guidance, token exports, or MCP context.
-Missing Gaps read as empty. See [Gaps](GAPS.md) for storage, provider, and privacy details.
+report, optional bounded screenshot, and latest diagnosis. Reviewed change sets
+live in `proposals/<id>.json`, and `applications/<id>.json` receipts record which
+canonical files an approved proposal changed, with before and after hashes; an
+`applications/<id>.journal.json` exists only while an application is in progress
+or awaiting recovery. None of these are canonical design decisions and none enter
+generated guidance, token exports, or MCP context. Missing directories read as
+empty. See [Gaps](GAPS.md) and [Proposals](PROPOSALS.md) for storage, provider, and
+privacy details.
 
 ### Derived, written by Monet
 

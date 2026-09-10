@@ -1,10 +1,11 @@
-# Gaps V2 Phase 1: Proposals
+# Gaps V2: Proposals and Apply
 
 A Proposal turns an eligible Gap diagnosis into a reviewed, typed change set
-against canonical Monet records. This phase covers drafting, review, revision,
-and approval only. **Nothing in it modifies a canonical Monet record.** Apply,
-the journal and recovery it needs, receipts, revert, taxonomy creation, MCP
-writes, and multi-project support are later phases.
+against canonical Monet records. Drafting, review, revision, and approval
+modify nothing. **Apply** is the one step that writes: it takes an approved
+revision, named by number and hash, through a journaled, recoverable
+transaction and leaves a receipt. Revert, taxonomy creation, MCP writes, and
+multi-project support are later phases.
 
 ## Workflow
 
@@ -22,6 +23,10 @@ writes, and multi-project support are later phases.
 6. **Approve revision N** binds approval to that exact revision and its hash.
    **Reject** closes the proposal; **Supersede** derives a new one from the
    Gap's current diagnosis and carries eligible changes forward.
+7. On an approved proposal, **Approved → Apply approved changes** shows the
+   exact records and files that would change, the live validation, integrity,
+   and staleness state, and a warning that canonical Monet changes. **Apply
+   approved changes** writes them. See [Apply](#apply).
 
 ## Eligibility
 
@@ -173,18 +178,154 @@ never copied into the failure message.
 `POST /api/proposal-revisions/:id`, `/api/proposal-drafts/:id`,
 `/api/proposal-rebases/:id`, `/api/proposal-approvals/:id`,
 `/api/proposal-rejections/:id`, and `/api/proposal-supersessions/:id` act on
-one proposal. State conflicts return
-409. All routes keep the loopback local-origin boundary.
+one proposal. `GET /api/proposal-applications/:id` returns the apply plan and
+`POST` applies; `GET /api/applications[?proposal=]` and
+`GET /api/applications/:id` read receipts. State conflicts return 409, and an
+Apply failure carries `kind` and, once writing started, the rollback receipt.
+All routes keep the loopback local-origin boundary.
 
-## Phase 1 limits
+## Apply
 
-- No Apply: an approved proposal is a reviewed intent, not a change. Approval
-  is cleared by any later revision and blocked while stale, so Apply can later
-  require an approved, current revision.
-- Component `aliases` and `relationships` are proposable because retrieval
-  gaps need them, but they live in `taxonomy/components.json`, which has no
-  editing-service write path today. Apply must add one.
+Apply is the only path from a proposal to canonical Monet records. It is
+deterministic and involves no AI: the provider has no role after drafting, and
+nothing Apply writes comes from anywhere but the approved revision's stored
+values.
+
+### What can be applied
+
+Apply V1 writes only through save paths that store and restore a record
+faithfully today, and refuses everything else rather than approximating it:
+
+| Target | Fields | Written through |
+| --- | --- | --- |
+| `principle:` | `title`, `body` | `principles/<id>.md` |
+| `pattern:` | every proposable field, including the one new pattern | `patterns/<id>.md` |
+| `component:` | `status`, `rationale`, `notes`, `use_when`, `avoid_when`, `preferences`, `behavior`, `foundations`, `primitives` | `components/decisions.json` |
+
+Component `aliases` and `relationships` live in `taxonomy/components.json`,
+which the editing service cannot write; Foundations (including tokens), themes,
+and primitives are deferred until their save and recovery paths are proven the
+same way. A proposal that contains any unsupported change is listed as such on
+the plan and cannot be applied at all: **nothing is applied partially**. Make
+those changes in their editors, or supersede the proposal without them.
+
+`APPLY_SUPPORT` and `applySupport` in `shared/proposals.ts` are the table; the
+UI and the server read the same one.
+
+### Gates
+
+`GET /api/proposal-applications/:id` returns the **plan**: what Apply would do
+right now, computed against the live workspace without writing. `POST` with
+`{ revision, hash }` applies. Under the proposal lock and the workspace write
+lock, the server refuses unless all of the following hold:
+
+- the proposal is `approved`, and the request names the approved revision
+  number and hash exactly;
+- that revision is the current one and its stored content re-hashes to the
+  approved hash (a proposal file edited outside Monet fails here);
+- the Gap still exists and was not diagnosed or reviewed again since;
+- every amended record's content fingerprint equals the revision's, every
+  `before` snapshot equals the live value, and a created pattern does not
+  exist yet;
+- prospective validation and the generality lint pass against the live
+  workspace, rerun at that moment rather than read from the stored checks;
+- every change is a supported target;
+- no journal from an unrecovered application is on disk.
+
+The shared rule for the saved state is `applyBlockers`; the server adds the
+live checks. Refusals answer 409 with a `kind` (`state`, `integrity`, `stale`,
+`unsupported`, `validation`) and write nothing.
+
+### Transaction
+
+Apply never leaves the workspace partially updated. The steps, in order:
+
+1. Read every target file's current bytes (and confirm created files are
+   absent) and write `applications/<id>.journal.json` with those bytes, their
+   hashes, the records and derived files involved, and the validation errors
+   that already existed. The journal is fsynced and renamed into place before
+   any canonical write.
+2. Write the records through the existing writers (`writePrincipleRecord`,
+   `writePatternRecord`, `writeComponentDecision`), principles first, then
+   patterns, then component decisions, from the workspace read under the lock.
+3. Append a readable `decisions/<timestamp>-proposal-<id>.md` entry naming the
+   proposal, revision, hash, receipt, and the records and fields changed.
+4. Regenerate the derived exports once.
+5. Read the workspace back, verify that every changed field now reads as the
+   approved value (Markdown bodies are compared trimmed, as they are stored),
+   and run `validateWorkspace`; any new error fails the transaction.
+6. Write `applications/<id>.json`, the **receipt**. This is the commit point.
+7. Mark the proposal `applied`, then remove the journal.
+
+Any failure between steps 2 and 6 restores every journaled file to its before
+bytes (created files are removed), regenerates the exports, verifies every
+file's hash and the restored workspace's validation, writes a `rolled_back`
+receipt, and answers with the receipt and a `kind` of `write_failed` or
+`validation`. If the restore cannot be verified, the journal is kept, the
+receipt says so, nothing can be applied until the next start, and the response
+says to restart Monet. A failure after step 6 leaves the canonical change in
+place and the journal on disk; recovery finishes the bookkeeping.
+
+Ordinary saves take the same workspace write lock, so a save queued during an
+application runs after it, and an application queued behind a save that
+changed a target is refused as stale. Saves themselves remain last-writer-wins
+whole-record writes, as before.
+
+### Recovery
+
+Before the file service listens it reads every `applications/*.journal.json`.
+A journal whose receipt says `applied` was committed: the proposal is marked
+`applied` if that was interrupted, and the journal is removed. Any other
+journal is rolled back from its before bytes, the exports are regenerated, the
+restore is verified, and a `rolled_back` receipt with `recovered: true` is
+written; a restore that cannot be verified keeps the journal for the next
+start. An unreadable journal stops startup, because the workspace may be
+inconsistent and the journal holds the bytes needed to fix it by hand.
+
+### Receipts and history
+
+A receipt records the application id, proposal id, revision, hash, outcome,
+start and finish times, whether recovery produced it, the failure message for a
+rollback, whether the restore was verified, the records and fields changed,
+every written file with its before and after hash, the derived files
+regenerated, the final validation result, and the knowledge fingerprint before
+and after. Receipts are editor-only: absent from `Workspace`, exports, and MCP,
+listed by `GET /api/applications`, on the proposal page, and under **Applied
+Gap proposals** on the Decision log page. The bundled starter ignores
+`monet/applications/` in Git.
+
+The `decisions/` entry carries the proposal summary, the record keys and fields,
+and the identifiers. The Gap report, screenshot, proposal rationale, and basis
+never leave the editor-only records. The summary is reviewer-written text and
+is not linted; keep product names out of it.
+
+An applied proposal is terminal: it cannot be revised, approved, rejected,
+superseded, refreshed, or drafted. A duplicate Apply request for the same
+revision returns the same receipt with `already_applied` and writes nothing;
+concurrent duplicates queue behind each other. The proposal record keeps the
+approval and gains `application: { id, applied_at }`; an `applied` status
+without one is refused as corrupt.
+
+### Revert
+
+There is no rollback that bypasses approval, and no revert proposal yet.
+Undoing an application means reporting a new Gap and going through Review →
+Approve → Apply again. Generating a revert proposal from a receipt's before
+snapshots needs a proposal basis that is not a diagnosis, which the eligibility
+and staleness rules do not model today; it is deferred rather than bolted on.
+
+## Limits
+
+- Apply covers principles, patterns, and component decision fields only.
+  Component `aliases` and `relationships` are proposable because retrieval
+  gaps need them, but `taxonomy/components.json` has no editing-service write
+  path; Foundations, themes, and primitives wait for the same proof.
 - One new pattern per proposal, no other record creation.
+- Receipts are per-workspace audit records; rolled-back attempts stay on
+  record. Removing a receipt by hand makes an applied proposal report its
+  receipt as missing.
+- Recovery restores canonical bytes and regenerates exports; it does not
+  restore file modes or timestamps, and it is single-workspace.
 - The generality lint is heuristic and English-centric.
 - Revision history is the stored revision list with its snapshots; no
   comments; no delete route (reject instead). Proposals are single-workspace,

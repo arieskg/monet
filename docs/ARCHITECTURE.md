@@ -184,8 +184,12 @@ Gaps uses a separate editor-only contract (`shared/gaps.ts`) and HTTP endpoints.
 atomic `gaps/<id>.json` record. `server/gapDiagnosis.ts` reuses the shared service over
 a workspace snapshot and supplies full canonical knowledge alongside compact retrieval
 to the optional provider. It validates evidence/record citations and saves diagnosis
-only. Gaps never enters `Workspace`, design context, exports, or MCP. There is no apply
-operation. See [Gaps](GAPS.md) for evidence boundaries and failure recovery.
+only. Gaps never enters `Workspace`, design context, exports, or MCP. A reviewed Proposal
+can be applied to canonical records only through `server/applicationStore.ts`: an approved
+revision named by number and hash, rechecked under the workspace write lock, written
+through a journaled transaction that rolls back or is recovered at startup, and recorded
+in an editor-only receipt. See [Gaps](GAPS.md) for evidence boundaries and failure
+recovery and [Proposals](PROPOSALS.md) for the apply transaction.
 
 The abstraction is provider-neutral; the argument contract is not yet general. Monet
 invokes the command as:

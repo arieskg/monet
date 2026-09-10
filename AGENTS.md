@@ -45,10 +45,17 @@ No database, no hosted service, no model API. Files on disk, and MCP over stdio.
 - **MCP stays read-only and thin.** No write tools, no remote transport, no auth,
   and no client-specific instructions. Conformance review is a read: `review_design_usage`
   validates protocol input and calls `shared/review.ts`, which never touches the workspace.
-- **Gaps and Proposals are editor-only and never write canonical records.** `gaps/` and
-  `proposals/` hold private product evidence and reviewed change intents. They stay out of
-  `Workspace`, exports, and MCP, and `server/proposalStore.ts` projects changes in memory for
-  validation only. Apply is a separate, unbuilt phase; do not add a canonical write behind approval.
+- **Gaps and Proposals are editor-only; only Apply writes canonical records.** `gaps/`,
+  `proposals/`, and `applications/` hold private product evidence, reviewed change intents, and
+  receipts. They stay out of `Workspace`, exports, and MCP, and `server/proposalStore.ts` projects
+  changes in memory for validation only. The one canonical write is `server/applicationStore.ts`:
+  an approved revision named by number and hash, rechecked under the workspace write lock, written
+  through a journal that is rolled back or recovered at startup. Do not add another write behind
+  approval, widen its target table without a proven save and restore path, or let anything a
+  provider produced reach it.
+- **Canonical writes are serialized.** Every save in `server/fileStore.ts` runs behind
+  `server/writeLock.ts`; a new write path must too, and must not call a locked function from inside
+  another locked one.
 - **Conformance measures evidence, never source.** `shared/review.ts` parses no code and knows no
   framework. A check either measures what the caller submitted or reports it unverifiable; it never
   infers a violation from missing information, and a concept Monet has no scale or decision for is

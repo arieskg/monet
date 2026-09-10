@@ -189,10 +189,12 @@ Fixture providers test the transport and UI; they do not evaluate model quality.
 
 ## Proposal V2
 
-Phase 1 (proposal drafting, review, and approval) is documented in
-[PROPOSALS.md](PROPOSALS.md). It builds on this release exactly as planned:
+Proposals (drafting, review, and approval) and Apply are documented in
+[PROPOSALS.md](PROPOSALS.md). They build on this release exactly as planned:
 separately persisted, editable typed change sets linked to a Gap diagnosis and
 workspace fingerprint, approval bound to an exact revision, prospective
-validation, and stale-review protection. Apply, journaling, and recoverable
-multi-record application remain unbuilt; V1 and Phase 1 together still write no
-canonical record from a Gap.
+validation, stale-review protection, and a journaled, recoverable application
+of the approved revision that leaves a receipt. The Gap record itself, its
+screenshot, and the diagnosis never reach a canonical record: Apply writes only
+the approved values, and its decision-log entry names the proposal and the
+records changed, nothing from the report.
