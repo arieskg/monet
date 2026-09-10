@@ -9,6 +9,7 @@ export interface WorkspaceReader {
 }
 
 export interface MonetService {
+  readonly profileId?: string;
   getWorkspace(themeId?: string, mode?: ThemeMode): Promise<Workspace>;
   listFoundations(): Promise<Foundation[]>;
   getFoundation(id: string): Promise<Foundation | null>;
@@ -264,12 +265,12 @@ export function createMonetService(reader: WorkspaceReader): MonetService {
       // light resolution is loaded solely to name that case and is the same list when mode is light.
       const lightTokens = workspace.activeMode === "light" ? workspace.resolvedTokens : (await read(request.themeId, "light")).resolvedTokens;
       const theme = workspace.themes.find((item) => item.id === workspace.activeThemeId) ?? null;
-      return reviewUsages(request, {
+      return { ...reviewUsages(request, {
         theme: theme ? { id: theme.id, name: theme.name } : null,
         tokens: workspace.resolvedTokens, lightTokens,
         components: joinComponents(workspace),
         mode: workspace.activeMode, modes: workspace.modes,
-      });
+      }), ...(workspace.profile ? { profile: workspace.profile, knowledgeFingerprint: workspace.knowledgeFingerprint } : {}) };
     },
     async getDesignContext(request = {}) {
       const query = request.query?.trim() ?? "";
@@ -511,6 +512,7 @@ export function createMonetService(reader: WorkspaceReader): MonetService {
       notices.push(...capabilityNotices(query, resolvedTokens, theme, workspace.activeMode, workspace.modes));
 
       return {
+        ...(workspace.profile ? { profile: workspace.profile, knowledgeFingerprint: workspace.knowledgeFingerprint } : {}),
         query,
         theme,
         mode: workspace.activeMode,

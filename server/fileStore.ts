@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, unlink } from "node:fs/promises";
 import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { GAP_IMAGE_LIMIT, gapInputSchema, gapReviewInputSchema, type Gap, type GapDiagnosisResponse, type GapHumanReview, type GapImage, type GapSummary } from "../shared/gaps.js";
 import { diagnoseGap, gapKnowledge, knowledgeFingerprint } from "./gapDiagnosis.js";
 import type { ComponentDecision, Foundation, MappingConfidence, MappingMatchType, MappingStatus, MarkdownDocument, Principle, PrimitiveDecision, Reference, ReferenceCollectionAnalysis, ReferenceSuggestionStatus, ReferenceType, Source, SourceMapping, Status, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./model.js";
@@ -8,7 +8,7 @@ import { THEME_MODES } from "../shared/model.js";
 import { analyzeReference, analyzeReferenceCollection } from "./referenceAnalysis.js";
 import { generateSourceMappings, type MappingRefreshResult } from "./sourceMapping.js";
 import { normalizeFoundation, normalizeTokens, resolveThemeTokens, resolveTokens, themeModes } from "./tokens.js";
-import { workspaceRoot } from "./workspace.js";
+import { workspaceRoot, workspaceScope, withProfile, profileOwnership, assertProfileOwnership, assertProjectBinding } from "./workspace.js";
 import { assertWorkspaceWrite, withWorkspaceRead, withWorkspaceWrite } from "./writeLock.js";
 import { atomicWrite, syncDirectory } from "./durableFiles.js";
 
@@ -17,8 +17,8 @@ const MAPPING_STATUSES: MappingStatus[] = ["mapped", "needs_review", "unmapped",
 const MAPPING_CONFIDENCES: MappingConfidence[] = ["high", "medium", "low", "none"];
 const MAPPING_MATCH_TYPES: MappingMatchType[] = ["exact", "equivalent", "variant", "composition", "related"];
 /**
- * Every read and write goes through the active workspace root rather than a path baked in at
- * import time, so `MONET_ROOT` or `--root` can point Monet at any workspace before it starts.
+ * Reads and writes resolve the immutable request/job Profile scope. The ambient root remains
+ * a compatibility fallback for single-profile CLI callers and existing fixtures only.
  */
 const root = workspaceRoot;
 /**
@@ -275,7 +275,7 @@ async function readThemes(): Promise<{ themes: Theme[]; defaultThemeId: string }
   try {
     const config = await readJson<{ default_theme?: unknown }>(path.join(directory, "config.json"));
     if (typeof config.default_theme === "string" && themes.some((theme) => theme.id === config.default_theme)) defaultThemeId = config.default_theme;
-  } catch { /* initializeStore creates the config; tolerate older workspaces. */ }
+  } catch (error) { if (!isMissing(error)) throw error; }
   return { themes, defaultThemeId };
 }
 
@@ -304,7 +304,7 @@ async function readWorkspace(requestedThemeId?: string, requestedMode?: ThemeMod
   const sources = (await readJsonOrEmpty<Source[]>(path.join(root(), "sources", "registry.json"), [])).map((source) => ({ ...source, mappings: (Array.isArray(source.mappings) ? source.mappings : []).map(sourceMapping) }));
   const references = (await readJsonOrEmpty<Reference[]>(path.join(root(), "references", "registry.json"), [])).map((reference) => normalizeReference(reference, cleanId(reference.id), reference, false));
   const referenceAnalysis = await readJsonOrEmpty<ReferenceCollectionAnalysis>(path.join(root(), "references", "analysis.json"), EMPTY_REFERENCE_ANALYSIS);
-  return {
+  const workspace: Workspace = {
     principles: sortDocuments(await readPrinciplesDirectory(path.join(root(), "principles"))),
     foundations: sortDocuments(foundations),
     taxonomy: await readJsonOrEmpty<TaxonomyCategory[]>(path.join(root(), "taxonomy", "components.json"), []),
@@ -325,7 +325,13 @@ async function readWorkspace(requestedThemeId?: string, requestedMode?: ThemeMod
     resolvedTokens: resolution.tokens,
     tokenIssues: resolution.issues,
     filesRoot: root(),
+    ...(workspaceScope().identity ? { profile: { id: workspaceScope().identity!.id, name: workspaceScope().identity!.name } } : {}),
   };
+  if (workspace.profile) workspace.knowledgeFingerprint = createHash("sha256").update(JSON.stringify({
+    decisions: gapKnowledge(workspace), defaultThemeId: workspace.defaultThemeId,
+    sources: workspace.sources, references: workspace.references, referenceAnalysis: workspace.referenceAnalysis,
+  })).digest("hex");
+  return workspace;
 }
 
 /** Rewrites every derived file from the canonical records. Unlocked; callers hold the write lock or run before the service listens. */
@@ -401,7 +407,7 @@ export async function writeExports(): Promise<void> {
       await unlink(path.join(root(), "tokens", "themes", `${theme.id}.${mode}.json`)).catch(() => undefined);
     }
   }
-  await writeJson(path.join(root(), "design-system.json"), { ...workspace, filesRoot: undefined, decisionLog: undefined });
+  await writeJson(path.join(root(), "design-system.json"), { ...workspace, profile: undefined, knowledgeFingerprint: undefined, filesRoot: undefined, decisionLog: undefined });
 }
 
 export const regenerateExports = serialized(writeExports);
@@ -821,7 +827,7 @@ export const saveReferenceAnalysis = serialized(async (input: ReferenceCollectio
   return next;
 });
 
-export async function readReferenceAsset(id: string): Promise<{ contents: Buffer; mediaType: string; filename: string }> {
+async function readReferenceAssetInScope(id: string): Promise<{ contents: Buffer; mediaType: string; filename: string }> {
   const safeId = cleanId(id);
   const workspace = await loadWorkspace();
   const reference = workspace.references.find((item) => item.id === safeId);
@@ -852,11 +858,14 @@ export function decodeGapImage(dataUrl: string): { bytes: Buffer; mediaType: Gap
 async function readStoredGap(id: string, directory = root()): Promise<StoredGap> {
   const gap = await readJson<StoredGap>(path.join(directory, "gaps", `${cleanId(id)}.json`));
   if (gap.version !== 1 || gap.id !== id || !gap.created_at || !gap.report) throw new Error("Invalid Gap record.");
+  assertProfileOwnership(gap);
+  if (gap.diagnosis) assertProfileOwnership(gap.diagnosis);
+  if (gap.review) assertProfileOwnership(gap.review);
   gapInputSchema.omit({ image: true }).parse(gap.report);
   return gap;
 }
 
-export async function listGaps(): Promise<GapSummary[]> {
+async function listGapsInScope(): Promise<GapSummary[]> {
   const files = await readDirectoryOrEmpty(path.join(root(), "gaps"));
   const gaps = await Promise.all(files.filter((f) => f.endsWith(".json")).map((f) => readStoredGap(f.slice(0, -5))));
   return gaps.sort((a, b) => b.created_at.localeCompare(a.created_at)).map((g) => ({
@@ -865,49 +874,58 @@ export async function listGaps(): Promise<GapSummary[]> {
   }));
 }
 
-export async function getGap(id: string): Promise<Gap> { return publicGap(await readStoredGap(id)); }
+async function getGapInScope(id: string): Promise<Gap> { return publicGap(await readStoredGap(id)); }
 
-export async function createGap(input: unknown): Promise<Gap> {
+async function createGapInScope(input: unknown): Promise<Gap> {
   const { image, ...report } = gapInputSchema.parse(input);
+  assertProjectBinding(report.project);
+  if (report.provenance) {
+    // Resolve at handoff time: Surface storage itself uses this store to create the Gap.
+    const { assertSurfaceProvenance } = await import("./surfaceStore.js");
+    await assertSurfaceProvenance(report.provenance);
+  }
   let savedImage: StoredGap["image"] = null;
   if (image) {
     const decoded = decodeGapImage(image.data_url);
     savedImage = { data_url: image.data_url, media_type: decoded.mediaType, bytes: decoded.bytes.length,
       filename: path.basename(image.filename).replace(/[\x00-\x1f\x7f]/g, "") || "screenshot" };
   }
-  const gap: StoredGap = { version: 1, id: randomUUID(), created_at: new Date().toISOString(), report, image: savedImage, diagnosis: null };
+  const gap: StoredGap = { version: 1, ...profileOwnership(), id: randomUUID(), created_at: new Date().toISOString(), report, image: savedImage, diagnosis: null };
   await writeJson(path.join(root(), "gaps", `${gap.id}.json`), gap);
   return publicGap(gap);
 }
 
 const gapAnalyses = new Set<string>();
-export async function deleteGap(id: string): Promise<void> {
-  const file = path.join(root(), "gaps", `${cleanId(id)}.json`);
-  if (gapAnalyses.has(file)) throw new Error("This Gap is already being diagnosed. Reload in a moment.");
-  // Share the diagnosis lock: a completing run must not recreate deleted evidence.
+async function withGapLock<T>(id: string, work: () => Promise<T>): Promise<T> {
+  const scope = workspaceScope(), file = path.join(scope.root, "gaps", `${cleanId(id)}.json`);
+  if (gapAnalyses.has(file)) throw new Error("This Gap is already being diagnosed or reviewed. Reload in a moment.");
   gapAnalyses.add(file);
-  try { await unlink(file); } finally { gapAnalyses.delete(file); }
+  try { return await withProfile(scope, work); } finally { gapAnalyses.delete(file); }
+}
+async function deleteGapInScope(id: string): Promise<void> {
+  await readStoredGap(id);
+  await unlink(path.join(root(), "gaps", `${cleanId(id)}.json`));
 }
 
-export async function diagnoseSavedGap(id: string): Promise<GapDiagnosisResponse> {
-  const directory = root();
-  const file = path.join(directory, "gaps", `${cleanId(id)}.json`);
-  if (gapAnalyses.has(file)) throw new Error("This Gap is already being diagnosed. Reload in a moment.");
-  gapAnalyses.add(file);
-  try {
-    const gap = await readStoredGap(id, directory);
-    const workspace = await loadWorkspace(gap.report.theme_id, gap.report.mode);
-    const decoded = gap.image ? decodeGapImage(gap.image.data_url) : null;
-    const image = decoded ? { bytes: decoded.bytes, extension: decoded.mediaType === "image/png" ? "png" as const : decoded.mediaType === "image/jpeg" ? "jpg" as const : "webp" as const } : undefined;
-    const diagnosis = await diagnoseGap(publicGap(gap), workspace, image);
+async function diagnoseSavedGapInScope(id: string): Promise<GapDiagnosisResponse> {
+  const file = path.join(root(), "gaps", `${cleanId(id)}.json`);
+  const { gap, workspace } = await withWorkspaceRead(async () => {
+    const gap = await readStoredGap(id);
+    return { gap, workspace: await loadWorkspace(gap.report.theme_id, gap.report.mode) };
+  });
+  const decoded = gap.image ? decodeGapImage(gap.image.data_url) : null;
+  const image = decoded ? { bytes: decoded.bytes, extension: decoded.mediaType === "image/png" ? "png" as const : decoded.mediaType === "image/jpeg" ? "jpg" as const : "webp" as const } : undefined;
+  const diagnosis = { ...await diagnoseGap(publicGap(gap), workspace, image), ...profileOwnership() };
+  // Provider work owns a fixed snapshot, not the canonical queue. Re-enter the guard before
+  // publishing; concurrent knowledge changes are disclosed by the original fingerprint.
+  return withWorkspaceRead(async () => {
     if (gap.diagnosis && gap.diagnosis.ai.status !== "failed" && (diagnosis.ai.status === "failed" || (gap.diagnosis.ai.status === "complete" && diagnosis.ai.status === "unavailable"))) {
       return { ...publicGap(gap), failed_retry: diagnosis };
     }
-    // A human review classifies one diagnosis; a new diagnosis needs a new review.
-    const next = { ...gap, diagnosis, review: null };
+    const next = { ...gap, ...profileOwnership(), diagnosis, review: null };
     await writeJson(file, next);
     return publicGap(next);
-  } finally { gapAnalyses.delete(file); }
+  });
 }
 
 /**
@@ -916,12 +934,9 @@ export async function diagnoseSavedGap(id: string): Promise<GapDiagnosisResponse
  * the no-provider route to a Proposal: the deterministic diagnosis cannot classify a Gap as
  * missing or weak guidance, so the reviewer does, on the record.
  */
-export async function saveGapReview(id: string, input: unknown): Promise<Gap> {
+async function saveGapReviewInScope(id: string, input: unknown): Promise<Gap> {
   const review = gapReviewInputSchema.parse(input);
   const file = path.join(root(), "gaps", `${cleanId(id)}.json`);
-  if (gapAnalyses.has(file)) throw new Error("This Gap is being diagnosed. Reload in a moment and review the new diagnosis.");
-  gapAnalyses.add(file);
-  try {
     const gap = await readStoredGap(id);
     if (!gap.diagnosis) throw new Error("Diagnose the Gap before reviewing it.");
     const knowledge = gapKnowledge(await loadWorkspace());
@@ -933,14 +948,13 @@ export async function saveGapReview(id: string, input: unknown): Promise<Gap> {
     if (unknown) throw new Error(`Cited record ${unknown} does not exist.`);
     if (review.classification === "conflicting_guidance" && keys.length < 2) throw new Error("Conflicting guidance needs two distinct cited records.");
     if (gap.diagnosis.conformance.findings.some((finding) => finding.level === "error") && !review.acknowledges_measured_errors) throw new Error("This diagnosis measured conformance errors. Acknowledge them to record a review; a review does not excuse them.");
-    const saved: GapHumanReview = { ...review, record_keys: keys, created_at: new Date().toISOString(), diagnosis_created_at: gap.diagnosis.created_at, workspace_fingerprint: fingerprint };
-    const next = { ...gap, review: saved };
+    const saved: GapHumanReview = { ...review, ...profileOwnership(), record_keys: keys, created_at: new Date().toISOString(), diagnosis_created_at: gap.diagnosis.created_at, workspace_fingerprint: fingerprint };
+    const next = { ...gap, ...profileOwnership(), review: saved };
     await writeJson(file, next);
     return publicGap(next);
-  } finally { gapAnalyses.delete(file); }
 }
 
-export async function readGapImage(id: string): Promise<{ contents: Buffer; mediaType: string }> {
+async function readGapImageInScope(id: string): Promise<{ contents: Buffer; mediaType: string }> {
   const gap = await readStoredGap(id);
   if (!gap.image) throw new Error("This Gap has no screenshot.");
   const decoded = decodeGapImage(gap.image.data_url);
@@ -952,7 +966,7 @@ export async function readGapImage(id: string): Promise<{ contents: Buffer; medi
  * new design system rather than failing on the first missing file. Existing files are never
  * touched; only what is absent is created.
  */
-export const initializeStore = serialized(async (): Promise<void> => {
+export const initializeStore = serialized(async (compatibilityTheme = true): Promise<void> => {
   const directories = ["decisions", "tokens", "primitives", "themes", "foundations", "principles", "patterns", "taxonomy", "components", "sources", "gaps", "proposals", "applications", "surfaces"];
   await Promise.all([
     ...directories.map((name) => mkdir(path.join(root(), name), { recursive: true })),
@@ -969,16 +983,18 @@ export const initializeStore = serialized(async (): Promise<void> => {
   ];
   for (const [file, value] of seeds) {
     try { await readFile(path.join(root(), ...file), "utf8"); }
-    catch { await writeJson(path.join(root(), ...file), value); }
+    catch (error) { if (!isMissing(error)) throw error; await writeJson(path.join(root(), ...file), value); }
   }
   try { await readFile(path.join(root(), "references", "registry.json"), "utf8"); }
-  catch { await writeJson(path.join(root(), "references", "registry.json"), []); }
+  catch (error) { if (!isMissing(error)) throw error; await writeJson(path.join(root(), "references", "registry.json"), []); }
   try { await readFile(path.join(root(), "references", "analysis.json"), "utf8"); }
-  catch { await writeJson(path.join(root(), "references", "analysis.json"), EMPTY_REFERENCE_ANALYSIS); }
+  catch (error) { if (!isMissing(error)) throw error; await writeJson(path.join(root(), "references", "analysis.json"), EMPTY_REFERENCE_ANALYSIS); }
+  if (compatibilityTheme) {
   try { await readFile(path.join(root(), "themes", "default.json"), "utf8"); }
-  catch { await writeJson(path.join(root(), "themes", "default.json"), { id: "default", name: "Default", overrides: {}, updated_at: new Date().toISOString() }); }
+  catch (error) { if (!isMissing(error)) throw error; await writeJson(path.join(root(), "themes", "default.json"), { id: "default", name: "Default", overrides: {}, updated_at: new Date().toISOString() }); }
   try { await readFile(path.join(root(), "themes", "config.json"), "utf8"); }
-  catch { await writeJson(path.join(root(), "themes", "config.json"), { default_theme: "default" }); }
+  catch (error) { if (!isMissing(error)) throw error; await writeJson(path.join(root(), "themes", "config.json"), { default_theme: "default" }); }
+  }
   const foundationFiles = (await readdir(path.join(root(), "foundations"))).filter((name) => name.endsWith(".json"));
   for (const name of foundationFiles) {
     const file = path.join(root(), "foundations", name);
@@ -991,9 +1007,26 @@ export const initializeStore = serialized(async (): Promise<void> => {
       readFile(path.join(root(), "design-system.json"), "utf8"),
       readFile(path.join(root(), "tokens", "tokens.json"), "utf8"),
     ]);
-  } catch {
+  } catch (error) {
+    if (!isMissing(error)) throw error;
     await writeExports();
   }
 });
 
 export { atomicWrite, cleanId, isMissing, parseFrontmatter, parsePrinciple, readDirectoryOrEmpty, readJson, renderFrontmatter, renderPrinciple, writeJson };
+
+export const listGaps = (...args: Parameters<typeof listGapsInScope>): ReturnType<typeof listGapsInScope> => withWorkspaceRead(() => listGapsInScope(...args));
+
+export const getGap = (...args: Parameters<typeof getGapInScope>): ReturnType<typeof getGapInScope> => withWorkspaceRead(() => getGapInScope(...args));
+
+export const createGap = (...args: Parameters<typeof createGapInScope>): ReturnType<typeof createGapInScope> => withWorkspaceRead(() => createGapInScope(...args));
+
+export const deleteGap = (...args: Parameters<typeof deleteGapInScope>): ReturnType<typeof deleteGapInScope> => withGapLock(args[0], () => withWorkspaceRead(() => deleteGapInScope(...args)));
+
+export const diagnoseSavedGap = (...args: Parameters<typeof diagnoseSavedGapInScope>): ReturnType<typeof diagnoseSavedGapInScope> => withGapLock(args[0], () => diagnoseSavedGapInScope(...args));
+
+export const saveGapReview = (...args: Parameters<typeof saveGapReviewInScope>): ReturnType<typeof saveGapReviewInScope> => withGapLock(args[0], () => withWorkspaceRead(() => saveGapReviewInScope(...args)));
+
+export const readGapImage = (...args: Parameters<typeof readGapImageInScope>): ReturnType<typeof readGapImageInScope> => withWorkspaceRead(() => readGapImageInScope(...args));
+
+export const readReferenceAsset = (...args: Parameters<typeof readReferenceAssetInScope>): ReturnType<typeof readReferenceAssetInScope> => withWorkspaceRead(() => readReferenceAssetInScope(...args));

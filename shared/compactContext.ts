@@ -32,6 +32,7 @@ export interface CompactComponent {
 export interface CompactReference { id: string; title: string; source: string; annotation: string; summary: string; tags: string[]; uri: string }
 
 export interface CompactDesignContext {
+  profile?: { id: string; name: string }; knowledgeFingerprint?: string;
   query: string;
   coverage: RetrievalCoverage;
   notices: ContextNotice[];
@@ -151,6 +152,7 @@ export function toCompactContext(context: DesignContext): CompactDesignContext {
   const overrides = themeOverrides(context.resolvedTokens);
   const issues = context.tokenIssues.map((issue) => `${issue.token}: ${issue.message}`);
   return {
+    ...(context.profile ? { profile: context.profile, knowledgeFingerprint: context.knowledgeFingerprint } : {}),
     query: context.query,
     coverage: context.coverage,
     notices: context.notices,

@@ -24,7 +24,7 @@ test.beforeAll(async () => {
     { id: "text", name: "color.text", foundation: "color", type: "color", level: "semantic", value: "#25231c", modes: { dark: "#f3eee4" }, description: "Text", order: 1 },
     { id: "accent", name: "color.accent", foundation: "color", type: "color", level: "semantic", value: "#805328", modes: { dark: "#a06b38" }, description: "Accent", order: 2 },
   ] }));
-  service = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: path.resolve(import.meta.dirname, "../.."), env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0", MONET_EDITOR_ORIGIN: editor, MONET_AI_COMMAND: "" }, stdio: ["ignore", "pipe", "pipe"] });
+  service = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: path.resolve(import.meta.dirname, "../.."), env: { ...process.env, MONET_ROOT: directory, MONET_LIBRARY: path.join(directory, "../" + path.basename(directory) + "-library"), MONET_PORT: "0", MONET_EDITOR_ORIGIN: editor, MONET_AI_COMMAND: "" }, stdio: ["ignore", "pipe", "pipe"] });
   apiUrl = await new Promise<string>((resolve, reject) => {
     let output = "", errors = ""; const timer = setTimeout(() => reject(new Error("Service timed out")), 15000);
     service.stderr!.on("data", (data) => { errors += data; }); service.on("exit", () => { clearTimeout(timer); reject(new Error(errors)); });
@@ -50,7 +50,7 @@ test("imports, maps, saves, reloads modes and copies evidence to Gaps in the rea
   const applied = page.frameLocator('iframe[title^="Monet"]');
   await expect(applied.locator("body")).toHaveCSS("background-color", "rgb(255, 249, 237)");
   await expect(page.frameLocator('iframe[title^="Original"]').locator("body")).toHaveCSS("background-color", "rgb(255, 255, 255)");
-  await page.getByRole("button", { name: "Save Surface", exact: true }).click(); await expect(page).toHaveURL(/\/surfaces\/[a-f0-9-]+$/);
+  await page.getByRole("button", { name: "Save Surface", exact: true }).click(); await expect(page).toHaveURL(/\/surfaces\/[a-f0-9-]+(?:\?profile=[a-f0-9-]+)?$/);
   await expect(page.getByRole("combobox", { name: "Target mode", exact: true })).toBeVisible({ timeout: 8000 }); await page.getByRole("combobox", { name: "Target mode", exact: true }).selectOption("dark"); await page.getByRole("button", { name: "Save comparison revision" }).click();
   await expect(page.frameLocator('iframe[title^="Monet"]').locator("body")).toHaveCSS("background-color", "rgb(17, 34, 51)");
   await page.reload(); await expect(page.getByLabel("Saved comparison revision")).toHaveValue("2");
@@ -82,9 +82,50 @@ test("hostile captures cannot run code, fetch assets, navigate or access the par
   await page.evaluate(({ original }) => { const iframe = document.createElement("iframe"); iframe.id = "security-probe"; iframe.setAttribute("sandbox", ""); iframe.srcdoc = original; document.body.appendChild(iframe); }, preview);
   const frame = page.frameLocator("#security-probe"); await expect(frame.getByText("Safe content")).toBeVisible();
   await frame.getByText("Escape", { exact: true }).click(); await frame.getByRole("button", { name: "Submit" }).click();
-  expect(page.url()).toBe(`${editor}/surfaces`); expect(dialogs).toBe(0); expect(outgoing).toEqual([]);
+  expect(new URL(page.url()).pathname).toBe("/surfaces"); expect(dialogs).toBe(0); expect(outgoing).toEqual([]);
   const access = await page.locator("#security-probe").evaluate((el: HTMLIFrameElement) => { try { return el.contentWindow!.document.body.innerHTML; } catch { return "opaque"; } }); expect(access).toBe("opaque");
   // Defense in depth: even an accidentally introduced script is blocked by both CSP and sandbox.
   await page.evaluate(() => { const frame = document.querySelector<HTMLIFrameElement>("#security-probe")!; frame.srcdoc = frame.srcdoc + '<script>parent.document.body.textContent="PWNED"</script>'; });
   await expect(frame.getByText("Safe content")).toBeVisible(); await expect(page.getByRole("heading", { name: "Surfaces", exact: true })).toBeVisible();
+});
+
+
+test("creates and switches Profiles, preserves navigation binding and discards late responses", async ({ page, request }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto(`${editor}/`);
+  await expect(page.getByRole("combobox", { name: "Profile", exact: true })).toBeVisible();
+  const originalId = await page.getByRole("combobox", { name: "Profile", exact: true }).inputValue();
+  await page.getByRole("button", { name: "New profile", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Create independent profile" });
+  await dialog.getByLabel("Name", { exact: true }).fill("Independent browser profile");
+  await dialog.getByLabel("Start with", { exact: true }).selectOption("scratch");
+  await dialog.getByRole("button", { name: "Create profile", exact: true }).click();
+  await expect(page.getByRole("combobox", { name: "Profile", exact: true })).not.toHaveValue(originalId);
+  const secondId = await page.getByRole("combobox", { name: "Profile", exact: true }).inputValue();
+  expect(new URL(page.url()).searchParams.get("profile")).toBe(secondId);
+  await page.getByRole("link", { name: "Principles", exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/principles\\?profile=${secondId}`));
+  await page.reload(); await expect(page.getByRole("combobox", { name: "Profile", exact: true })).toHaveValue(secondId);
+  await page.getByRole("link", { name: "Agent context", exact: true }).click();
+  await expect(page.getByText("MONET_PROFILE_ID", { exact: false }).first()).toBeVisible();
+  await expect(page.locator(".agent-page")).toContainText(secondId);
+  const created = await request.post(`${apiUrl}/api/profiles/${originalId}/gaps`, { data: { problem: "Late private original evidence" } });
+  const gap = await created.json();
+  await page.goto(`${editor}/gaps/${gap.id}?profile=${originalId}`);
+  await expect(page.getByRole("button", { name: "Diagnose", exact: true })).toBeVisible();
+  let release!: () => void, reached!: () => void;
+  const gate = new Promise<void>((r) => { release = r; }), started = new Promise<void>((r) => { reached = r; });
+  await page.route(`**/api/profiles/${originalId}/gap-diagnoses/${gap.id}`, async (route) => {
+    const response = await route.fetch(); reached(); await gate;
+    await route.fulfill({ response }).catch(() => undefined); // Old document may have been discarded already.
+  });
+  await page.getByRole("button", { name: "Diagnose", exact: true }).click(); await started;
+  await page.getByRole("combobox", { name: "Profile", exact: true }).selectOption(secondId);
+  await expect(page.getByRole("combobox", { name: "Profile", exact: true })).toHaveValue(secondId);
+  release();
+  await page.getByRole("link", { name: "Gaps", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "What did Monet miss?" })).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("Late private original evidence");
+  expect(await (await request.get(`${apiUrl}/api/profiles/${secondId}/gaps`)).json()).toEqual([]);
+  expect((await (await request.get(`${apiUrl}/api/profiles/${originalId}/gaps/${gap.id}`)).json()).diagnosis.profile_id).toBe(originalId);
 });

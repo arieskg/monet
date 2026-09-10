@@ -1,3 +1,4 @@
+import type { ProfileIdentity, ProfileLibrary, ProfileRegistration } from "../shared/profiles";
 import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
 import type { Gap, GapDiagnosisResponse, GapInput, GapReviewInput, GapSummary } from "../shared/gaps";
 import type { ApplicationReceipt, ApplyErrorKind, ApplyPlan, ApplyResult, GapProposalOverview, ProposalDraftResponse, ProposalRevisionInput, ProposalSummary, ProposalView } from "../shared/proposals";
@@ -9,21 +10,26 @@ export interface ReferenceSaveInput extends Reference { asset_data_url?: string;
 export interface SourceRefreshResult { source: Source; discovered: number; mapped: number; needs_review: number; unmapped: number }
 
 /** Facts about the running installation that the workspace records themselves do not carry. */
-export interface Environment { root: string; appRoot: string; bundled: boolean; aiConfigured: boolean; aiVariable: string; aiImages?: boolean }
+export interface Environment { profile?: ProfileIdentity; root: string; appRoot: string; bundled: boolean; aiConfigured: boolean; aiVariable: string; aiImages?: boolean }
 
 /** A failed request. An Apply refusal or rollback also says which gate refused it and carries the receipt, when writing had started. */
 export class ApiError extends Error {
   constructor(message: string, public status: number, public kind?: ApplyErrorKind | "refresh_failed", public receipt: ApplicationReceipt | null = null) { super(message); }
 }
 
+/** Each document has an immutable API binding. Switching uses a new document so stale closures
+ * and pending promises cannot address, repopulate, or mutate the next Profile's UI. */
+export function createProfileApi(profileId?: string) {
+const scoped = (path: string) => profileId ? path.replace(/^\/api/, `/api/profiles/${encodeURIComponent(profileId)}`) : path;
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, { ...init, headers: { "content-type": "application/json", ...init?.headers } });
+  const response = await fetch(scoped(path), { ...init, headers: { "content-type": "application/json", ...(profileId ? { "x-monet-profile": profileId } : {}), ...init?.headers } });
+  if (profileId && response.headers.get("x-monet-profile") && response.headers.get("x-monet-profile") !== profileId) throw new ApiError("Response belongs to another Profile.", 409);
   const value = await response.json() as { error?: string; kind?: ApplyErrorKind; receipt?: ApplicationReceipt | null };
   if (!response.ok) throw new ApiError(value.error ?? `Request failed (${response.status}).`, response.status, value.kind, value.receipt ?? null);
   return value as T;
 }
 
-export const api = {
+return {
   surfaces: () => request<SurfaceSummary[]>("/api/surfaces"),
   surface: (id: string, revision?: number) => request<SurfacePreview>(`/api/surfaces/${encodeURIComponent(id)}${revision ? `?revision=${revision}` : ""}`),
   previewSurface: (input: SurfaceInput, selection: SurfaceSelection) => request<SurfacePreview>("/api/surface-previews", { method: "POST", body: JSON.stringify({ input, selection }) }),
@@ -37,7 +43,7 @@ export const api = {
   diagnoseGap: (id: string) => request<GapDiagnosisResponse>("/api/gap-diagnoses/" + encodeURIComponent(id), { method: "POST" }),
   deleteGap: (id: string) => request<{ ok: boolean }>("/api/gaps/" + encodeURIComponent(id), { method: "DELETE" }),
   saveGapReview: (id: string, value: GapReviewInput) => request<Gap>("/api/gap-reviews/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
-  gapImageUrl: (id: string) => "/api/gap-images/" + encodeURIComponent(id),
+  gapImageUrl: (id: string) => scoped("/api/gap-images/" + encodeURIComponent(id)),
   // Proposals review and approve typed change sets; none of these routes writes a canonical record.
   proposals: (gapId?: string) => request<ProposalSummary[]>(`/api/proposals${gapId ? `?gap=${encodeURIComponent(gapId)}` : ""}`),
   gapProposals: (gapId: string) => request<GapProposalOverview>("/api/gap-proposals/" + encodeURIComponent(gapId)),
@@ -82,5 +88,20 @@ export const api = {
   deleteReference: (id: string) => request("/api/references/" + encodeURIComponent(id), { method: "DELETE" }),
   analyzeReferences: () => request<ReferenceCollectionAnalysis>("/api/reference-collection-analysis", { method: "POST" }),
   saveReferenceAnalysis: (value: ReferenceCollectionAnalysis) => request<ReferenceCollectionAnalysis>("/api/reference-collection-analysis", { method: "PUT", body: JSON.stringify(value) }),
-  referenceAssetUrl: (id: string) => "/api/reference-assets/" + encodeURIComponent(id),
+  referenceAssetUrl: (id: string) => scoped("/api/reference-assets/" + encodeURIComponent(id)),
 };
+
+}
+export const api = createProfileApi(typeof window === "undefined" ? undefined : new URLSearchParams(window.location.search).get("profile") ?? undefined);
+export const profileApi = {
+  async rename(id: string, name: string): Promise<void> {
+    const response = await fetch(`/api/profile-names/${encodeURIComponent(id)}`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ name }) });
+    if (!response.ok) throw new Error("Unable to rename Profile.");
+  },
+  async list(): Promise<ProfileLibrary> { const response = await fetch("/api/profiles"); if (!response.ok) throw new Error("Unable to load Profiles."); return response.json() as Promise<ProfileLibrary>; },
+  async create(input: { name: string; kind: "scratch" | "monet-starter" | "fork"; sourceProfileId?: string; includeReferences?: boolean }): Promise<ProfileRegistration> {
+    const response = await fetch("/api/profiles", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
+    const result = await response.json() as ProfileRegistration & { error?: string }; if (!response.ok) throw new Error(result.error ?? "Unable to create Profile."); return result;
+  },
+};
+export function switchProfile(id: string): void { window.location.assign(`/?profile=${encodeURIComponent(id)}`); }

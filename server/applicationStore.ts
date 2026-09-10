@@ -13,7 +13,7 @@ import { atomicWrite, cleanId, isMissing, loadWorkspace, readDirectoryOrEmpty, r
 import { gapKnowledge, knowledgeFingerprint } from "./gapDiagnosis.js";
 import { proposalInternals as proposals } from "./proposalStore.js";
 import { validateWorkspace } from "./validate.js";
-import { workspaceRoot } from "./workspace.js";
+import { workspaceRoot, workspaceScope, profileOwnership, assertProfileOwnership } from "./workspace.js";
 import { blockWorkspace, clearRecoveryBlock, recoveryBlock, withWorkspaceRead, withWorkspaceRecovery, withWorkspaceWrite, WorkspaceUnavailableError } from "./writeLock.js";
 import { durableRemove } from "./durableFiles.js";
 
@@ -41,6 +41,7 @@ export class ApplyError extends Error {
 
 interface JournalFile { path: string; action: "update" | "create"; /** base64 of the bytes before the transaction; null when the file did not exist. */ before: string | null; before_hash: string | null }
 interface Journal {
+  profile_id?: string; scope_version?: 2;
   version: 1; application_id: string; proposal_id: string; gap_id: string; revision: number; hash: string; started_at: string;
   records: ApplicationRecord[]; files: JournalFile[]; derived: string[];
   /** Validation errors that existed before the transaction, so a rollback can tell restored from broken. */
@@ -117,6 +118,7 @@ async function buildPlan(proposal: Proposal, gap: Gap | null, ctx: Context, appl
   const staleness = proposals.staleness(proposal, gap, ctx);
   const integrity = proposals.integrity(proposal);
   const blockers: ApplyBlocker[] = applyBlockers({ ...proposal, staleness, integrity });
+  if (workspaceScope().identity && proposal.status !== "applied" && ((proposal.approval && !proposal.approval.profile_id) || (proposals.latest(proposal) && !proposals.latest(proposal)!.profile_id))) blockers.push({ kind: "state", message: "Save and approve a new Profile-bound revision before applying this historical proposal." });
   const revision = proposal.approval ? proposal.revisions.find((item) => item.number === proposal.approval!.revision) ?? null : proposals.latest(proposal) ?? null;
   const changes = revision?.changes ?? [];
   const unsupported = changes.flatMap((change) => { const support = applySupport(change); return support.supported ? [] : [{ target: change.target, field: change.field, reason: support.reason }]; });
@@ -150,14 +152,18 @@ export async function planApplication(id: string): Promise<ApplyPlan> {
   });
 }
 
+/** Receipts are atomic audit metadata and remain inspectable during blocked recovery. They
+ * never grant canonical access, and every receipt is still checked against its Profile. */
 export async function listApplications(proposalId?: string): Promise<ApplicationReceipt[]> {
   const files = (await readDirectoryOrEmpty(path.join(root(), APPLICATIONS))).filter((name) => name.endsWith(".json") && !name.endsWith(".journal.json"));
   const receipts = await Promise.all(files.map((name) => readJson<ApplicationReceipt>(path.join(root(), APPLICATIONS, name))));
+  receipts.forEach(assertProfileOwnership);
   return receipts.filter((receipt) => receipt.version === 1 && typeof receipt.id === "string" && (!proposalId || receipt.proposal_id === proposalId)).sort((a, b) => b.started_at.localeCompare(a.started_at));
 }
 
 export async function getApplication(id: string): Promise<ApplicationReceipt> {
   const receipt = await readJson<ApplicationReceipt>(receiptPath(cleanId(id)));
+  assertProfileOwnership(receipt);
   if (receipt.version !== 1 || receipt.id !== id) throw new Error("Invalid application receipt.");
   return receipt;
 }
@@ -249,7 +255,7 @@ async function restore(journal: Journal): Promise<{ restored: boolean; files: Ap
 }
 
 function receiptFrom(journal: Journal, outcome: ApplicationReceipt["outcome"], extra: Partial<ApplicationReceipt>): ApplicationReceipt {
-  return { version: 1, id: journal.application_id, proposal_id: journal.proposal_id, gap_id: journal.gap_id, revision: journal.revision, hash: journal.hash, outcome, started_at: journal.started_at, finished_at: new Date().toISOString(),
+  return { version: 1, ...(journal.profile_id ? { profile_id: journal.profile_id, scope_version: 2 as const } : {}), id: journal.application_id, proposal_id: journal.proposal_id, gap_id: journal.gap_id, revision: journal.revision, hash: journal.hash, outcome, started_at: journal.started_at, finished_at: new Date().toISOString(),
     recovered: false, failure: null, restored: true, records: journal.records, files: [], derived: journal.derived, validation: null, knowledge_fingerprint_before: journal.knowledge_fingerprint_before, knowledge_fingerprint_after: null, ...extra };
 }
 
@@ -274,9 +280,10 @@ const applying = new Map<string, Promise<unknown>>();
  */
 export async function applyProposal(id: string, input: unknown): Promise<ApplyResult> {
   const { revision, hash } = applySchema.parse(input);
-  const run = (applying.get(id) ?? Promise.resolve()).catch(() => undefined).then(() => withWorkspaceWrite(() => proposals.withLock(id, () => applyLocked(id, revision, hash))));
-  applying.set(id, run);
-  try { return await run; } finally { if (applying.get(id) === run) applying.delete(id); }
+  const key = `${root()}:${id}`;
+  const run = (applying.get(key) ?? Promise.resolve()).catch(() => undefined).then(() => withWorkspaceWrite(() => proposals.withLock(id, () => applyLocked(id, revision, hash))));
+  applying.set(key, run);
+  try { return await run; } finally { if (applying.get(key) === run) applying.delete(key); }
 }
 
 async function applyLocked(id: string, revision: number, hash: string): Promise<ApplyResult> {
@@ -315,7 +322,7 @@ async function transaction(proposal: Proposal, approved: ProposalRevision, gap: 
     files.push({ path: relative, action: bytes === null ? "create" : "update", before: bytes?.toString("base64") ?? null, before_hash: bytes ? sha256(bytes) : null });
   }
   const baseline = validateWorkspace(ctx.workspace).filter((finding) => finding.level === "error").map(describe);
-  const journal: Journal = { version: 1, application_id, proposal_id: proposal.id, gap_id: proposal.gap_id, revision: approved.number, hash: approved.hash, started_at, records: plan.records, files, derived: plan.derived, baseline_errors: baseline, knowledge_fingerprint_before: ctx.fingerprint };
+  const journal: Journal = { version: 1, ...profileOwnership(), application_id, proposal_id: proposal.id, gap_id: proposal.gap_id, revision: approved.number, hash: approved.hash, started_at, records: plan.records, files, derived: plan.derived, baseline_errors: baseline, knowledge_fingerprint_before: ctx.fingerprint };
   // Before the first canonical write, the before bytes are on disk. A failure here changes nothing.
   await durableWrite(journalPath(application_id), `${JSON.stringify(journal, null, 2)}\n`);
   return commit(proposal, approved, gap, ctx, journal, plan, entry);
@@ -388,7 +395,7 @@ const hashSchema = z.string().regex(/^[a-f0-9]{64}$/);
 const canonicalPath = z.string().regex(/^(?:(?:principles|patterns)\/[a-z0-9][a-z0-9-]{0,79}\.md|components\/decisions\.json|decisions\/[a-z0-9][a-z0-9-]*-proposal-[a-z0-9-]+\.md)$/);
 const derivedPath = z.string().regex(/^(?:DESIGN_SYSTEM\.md|design-system\.json|tokens\/(?:themes\/)?[a-z0-9][a-z0-9.-]*\.json)$/);
 const journalSchema = z.object({
-  version: z.literal(1), application_id: idSchema, proposal_id: idSchema, gap_id: idSchema,
+  version: z.literal(1), profile_id: z.string().uuid().optional(), scope_version: z.literal(2).optional(), application_id: idSchema, proposal_id: idSchema, gap_id: idSchema,
   revision: z.number().int().positive(), hash: hashSchema, started_at: z.string(),
   records: z.array(z.object({ key: z.string(), operation: z.enum(["amend", "create"]), title: z.string(), route: z.string(), fields: z.array(z.string()) })),
   files: z.array(z.object({ path: canonicalPath, action: z.enum(["update", "create"]), before: z.string().nullable(), before_hash: hashSchema.nullable() })).min(1),
@@ -397,6 +404,7 @@ const journalSchema = z.object({
 
 function verifyJournal(raw: unknown, name: string): Journal {
   const journal = journalSchema.parse(raw);
+  assertProfileOwnership(journal);
   if (`${journal.application_id}.journal.json` !== name || new Set(journal.files.map((file) => file.path)).size !== journal.files.length) throw new Error("Journal identity or file list is inconsistent.");
   for (const file of journal.files) {
     if (file.before === null) {
@@ -410,7 +418,8 @@ function verifyJournal(raw: unknown, name: string): Journal {
 }
 
 function verifyReceiptIdentity(journal: Journal, receipt: ApplicationReceipt): void {
-  if (receipt.version !== 1 || receipt.id !== journal.application_id || receipt.proposal_id !== journal.proposal_id || receipt.gap_id !== journal.gap_id || receipt.revision !== journal.revision || receipt.hash !== journal.hash
+  assertProfileOwnership(receipt);
+  if (receipt.profile_id !== journal.profile_id || receipt.scope_version !== journal.scope_version || receipt.version !== 1 || receipt.id !== journal.application_id || receipt.proposal_id !== journal.proposal_id || receipt.gap_id !== journal.gap_id || receipt.revision !== journal.revision || receipt.hash !== journal.hash
     || receipt.started_at !== journal.started_at || receipt.knowledge_fingerprint_before !== journal.knowledge_fingerprint_before || typeof receipt.recovered !== "boolean" || !Number.isFinite(Date.parse(receipt.finished_at))
     || !valuesEqual(receipt.records, journal.records) || !valuesEqual(receipt.derived, journal.derived)
     || !Array.isArray(receipt.files) || receipt.files.length !== journal.files.length || new Set(receipt.files.map((file) => file.path)).size !== receipt.files.length) throw new Error("Receipt and journal disagree.");
@@ -422,7 +431,7 @@ function verifyReceiptIdentity(journal: Journal, receipt: ApplicationReceipt): v
 
 function verifyProposalIdentity(journal: Journal, proposal: Proposal, receipt?: ApplicationReceipt): void {
   const approved = proposals.latest(proposal);
-  if (!approved || approved.number !== journal.revision || approved.hash !== journal.hash || proposals.revisionHash(approved) !== journal.hash
+  if (approved?.profile_id !== journal.profile_id || proposal.approval?.profile_id !== journal.profile_id || !approved || approved.number !== journal.revision || approved.hash !== journal.hash || proposals.revisionHash(approved) !== journal.hash
     || proposal.gap_id !== journal.gap_id || proposal.approval?.revision !== journal.revision || proposal.approval.hash !== journal.hash
     || (proposal.status !== "approved" && !(receipt?.outcome === "applied" && proposal.status === "applied"))
     || (proposal.status === "applied" ? proposal.application?.id !== receipt?.id || proposal.application?.applied_at !== receipt?.finished_at : Boolean(proposal.application))

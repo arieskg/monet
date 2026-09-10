@@ -49,7 +49,7 @@ export type ReferenceSuggestionStatus = "pending" | "approved" | "dismissed";
 export interface ReferencePreference { id: string; title: string; observation: string; evidence_reference_ids: string[]; confidence: "high" | "medium" | "low" }
 export interface ReferenceSuggestion { id: string; target_type: ReferenceSuggestionTarget; target_id: string | null; title: string; proposal: string; rationale: string; evidence_reference_ids: string[]; status: ReferenceSuggestionStatus }
 export interface ReferenceCollectionAnalysis { summary: string; recurring_preferences: ReferencePreference[]; suggestions: ReferenceSuggestion[]; analyzed_at: string }
-export interface Workspace { principles: Principle[]; foundations: Foundation[]; taxonomy: TaxonomyCategory[]; primitiveTaxonomy: TaxonomyCategory[]; primitives: PrimitiveDecision[]; components: ComponentDecision[]; patterns: MarkdownDocument[]; sources: Source[]; references: Reference[]; referenceAnalysis: ReferenceCollectionAnalysis; decisionLog: MarkdownDocument[]; themes: Theme[]; defaultThemeId: string; activeThemeId: string; /** The mode `resolvedTokens` were resolved in. */ activeMode: ThemeMode; /** Modes the active theme can be resolved in; light is always present. */ modes: ThemeMode[]; baseResolvedTokens: ResolvedToken[]; resolvedTokens: ResolvedThemeToken[]; tokenIssues: TokenIssue[]; filesRoot: string }
+export interface Workspace { profile?: { id: string; name: string }; knowledgeFingerprint?: string; principles: Principle[]; foundations: Foundation[]; taxonomy: TaxonomyCategory[]; primitiveTaxonomy: TaxonomyCategory[]; primitives: PrimitiveDecision[]; components: ComponentDecision[]; patterns: MarkdownDocument[]; sources: Source[]; references: Reference[]; referenceAnalysis: ReferenceCollectionAnalysis; decisionLog: MarkdownDocument[]; themes: Theme[]; defaultThemeId: string; activeThemeId: string; /** The mode `resolvedTokens` were resolved in. */ activeMode: ThemeMode; /** Modes the active theme can be resolved in; light is always present. */ modes: ThemeMode[]; baseResolvedTokens: ResolvedToken[]; resolvedTokens: ResolvedThemeToken[]; tokenIssues: TokenIssue[]; filesRoot: string }
 
 export interface DesignContextRequest { query?: string; themeId?: string; /** Resolution mode. When omitted, a query that asks for dark mode resolves dark if the theme supports it. */ mode?: ThemeMode; principleIds?: string[]; foundationIds?: string[]; patternIds?: string[]; componentIds?: string[]; referenceIds?: string[] }
 /** Whether task-specific guidance was actually found, as opposed to falling back to global principles. */
@@ -63,7 +63,7 @@ export interface RetrievalProvenance { entity_type: RetrievalEntityType; entity_
 export interface RankedReference { reference: Reference; match: RetrievalProvenance }
 /** Resolved values of one token in every mode the theme supports, listed only where the modes differ. */
 export type ModeVariants = Record<string, Partial<Record<ThemeMode, string | number | null>>>;
-export interface DesignContext { query: string; theme: Theme | null; /** The mode `resolvedTokens` were resolved in. */ mode: ThemeMode; /** Modes the theme supports. */ modes: ThemeMode[]; /** Tokens in this context whose resolved value differs between modes. */ modeVariants: ModeVariants; coverage: RetrievalCoverage; notices: ContextNotice[]; principles: Principle[]; foundations: Foundation[]; patterns: MarkdownDocument[]; components: Component[]; references: Reference[]; resolvedTokens: ResolvedThemeToken[]; tokenIssues: TokenIssue[]; retrieval: RetrievalProvenance[]; warnings: string[] }
+export interface DesignContext { profile?: { id: string; name: string }; knowledgeFingerprint?: string; query: string; theme: Theme | null; /** The mode `resolvedTokens` were resolved in. */ mode: ThemeMode; /** Modes the theme supports. */ modes: ThemeMode[]; /** Tokens in this context whose resolved value differs between modes. */ modeVariants: ModeVariants; coverage: RetrievalCoverage; notices: ContextNotice[]; principles: Principle[]; foundations: Foundation[]; patterns: MarkdownDocument[]; components: Component[]; references: Reference[]; resolvedTokens: ResolvedThemeToken[]; tokenIssues: TokenIssue[]; retrieval: RetrievalProvenance[]; warnings: string[] }
 
 /**
  * Design conformance review. The calling agent describes what it built as a list of observations;
@@ -131,7 +131,7 @@ export interface DesignReviewCoverage {
   /** The check ids that ran against this evidence. */
   checks: string[];
 }
-export interface DesignReview {
+export interface DesignReview { profile?: { id: string; name: string }; knowledgeFingerprint?: string;
   theme: { id: string; name: string; mode: ThemeMode; modes: ThemeMode[] } | null;
   coverage: DesignReviewCoverage;
   /** States what this result does and does not establish, so absence of findings is not read as conformance. */

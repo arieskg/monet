@@ -1,15 +1,18 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import path from "node:path";
-import { analyzeReferences, analyzeSavedReference, deleteMarkdown, deleteReference, deleteSource, deleteTheme, duplicateTheme, initializeStore, loadWorkspace, mergePrimitive, readReferenceAsset, refreshSourceMappings, saveComponents, saveFoundation, saveMarkdown, savePrinciple, savePrimitive, savePrimitiveTaxonomy, saveReference, saveReferenceAnalysis, saveSource, saveTheme, setDefaultTheme, type ReferenceSaveInput } from "./fileStore.js";
+import { analyzeReferences, analyzeSavedReference, deleteMarkdown, deleteReference, deleteSource, deleteTheme, duplicateTheme, mergePrimitive, readReferenceAsset, refreshSourceMappings, saveComponents, saveFoundation, saveMarkdown, savePrinciple, savePrimitive, savePrimitiveTaxonomy, saveReference, saveReferenceAnalysis, saveSource, saveTheme, setDefaultTheme, type ReferenceSaveInput } from "./fileStore.js";
 import type { ComponentDecision, Foundation, MarkdownDocument, Principle, PrimitiveDecision, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode } from "./model.js";
 import { THEME_MODES } from "../shared/model.js";
-import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "./workspace.js";
+import { isBundledWorkspace, resolveWorkspaceRoot, withProfile, workspaceScope } from "./workspace.js";
 import { AI_COMMAND_VARIABLE, providerConfigured } from "./aiProvider.js";
-import { createMonetService } from "../shared/service.js";
+import { createProfileService } from "./profileService.js";
+import { ProfileRegistry } from "./profileRegistry.js";
+import { protectApi } from "./apiProtection.js";
+import { withWorkspaceRead } from "./writeLock.js";
 import { createGap, deleteGap, diagnoseSavedGap, getGap, listGaps, readGapImage, saveGapReview } from "./fileStore.js";
 import { providerSupportsImages } from "./aiProvider.js";
 import { approveProposal, createProposal, draftProposalWithAi, gapProposalOverview, getProposal, listProposals, rebaseProposal, rejectProposal, saveProposalRevision, supersedeProposal } from "./proposalStore.js";
-import { ApplyError, applyProposal, getApplication, listApplications, planApplication, recoverApplications } from "./applicationStore.js";
+import { ApplyError, applyProposal, getApplication, listApplications, planApplication } from "./applicationStore.js";
 import { WorkspaceUnavailableError } from "./writeLock.js";
 import { ZodError } from "zod";
 import { previewSurface, saveSurface, listSurfaces, getSurface, reviseSurface, deleteSurface, surfaceToGap, surfaceRevisionQuery } from "./surfaceStore.js";
@@ -17,25 +20,18 @@ import { SURFACE_BODY_LIMIT } from "../shared/surfaces.js";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
 const workspaceDirectory = resolveWorkspaceRoot();
-setWorkspaceRoot(workspaceDirectory);
+const profiles = new ProfileRegistry();
+await profiles.open(workspaceDirectory);
+const defaultProfileId = await profiles.profileForRoot(workspaceDirectory);
 
 const PORT = Number(process.env.MONET_PORT ?? 43141);
 const MAX_BODY = 512 * 1024;
-const monet = createMonetService({ loadWorkspace });
+
 
 function respond(response: ServerResponse, status: number, value: unknown): void {
   const body = JSON.stringify(value);
   response.writeHead(status, { "content-type": "application/json; charset=utf-8", "content-length": Buffer.byteLength(body), "cache-control": "no-store", "x-content-type-options": "nosniff" });
   response.end(body);
-}
-
-function allowedOrigin(request: IncomingMessage): boolean {
-  const origin = request.headers.origin;
-  if (!origin) return true;
-  try {
-    const url = new URL(origin);
-    return (url.hostname === "127.0.0.1" || url.hostname === "localhost") && (url.protocol === "http:" || url.protocol === "https:");
-  } catch { return false; }
 }
 
 async function body(request: IncomingMessage, maxSize = MAX_BODY): Promise<unknown> {
@@ -55,19 +51,13 @@ function match(pathname: string, prefix: string): string | null {
   return pathname.startsWith(prefix) ? decodeURIComponent(pathname.slice(prefix.length)) : null;
 }
 
-const server = createServer(async (request, response) => {
+async function handleProfileRequest(request: IncomingMessage, response: ServerResponse, url: URL) {
+  const monet = createProfileService(workspaceScope());
   try {
-    if (!allowedOrigin(request)) return respond(response, 403, { error: "Monet only accepts requests from a local browser origin." });
-    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+
     // Surface imports are JSON only. Browser requests must originate in the configured editor;
     // opaque sandbox origins and cross-site fetches never reach an import or mutation.
     if (url.pathname.startsWith("/api/surface")) {
-      const host = request.headers.host ?? "";
-      const origin = request.headers.origin;
-      const editor = process.env.MONET_EDITOR_ORIGIN ?? "http://127.0.0.1:43140";
-      const local = /^127\.0\.0\.1:\d+$/.test(host) || /^localhost:\d+$/.test(host);
-      if (!local || request.headers["sec-fetch-site"] === "cross-site" || origin && ![editor, "http://" + host].includes(origin)) return respond(response, 403, { error: "Surfaces only accepts requests from this Monet editor." });
-      if (request.method !== "GET" && request.headers["content-type"]?.split(";")[0] !== "application/json") return respond(response, 415, { error: "Surface requests require application/json." });
       if (url.pathname === "/api/surface-previews" && request.method === "POST") return respond(response, 200, await previewSurface(await body(request, SURFACE_BODY_LIMIT)));
       if (url.pathname === "/api/surfaces") {
         if (request.method === "GET") return respond(response, 200, await listSurfaces());
@@ -149,10 +139,11 @@ const server = createServer(async (request, response) => {
       // Editor-only. The workspace records themselves say nothing about where they came from or
       // whether the optional provider is configured, and the onboarding surfaces need both.
       return respond(response, 200, {
-        root: workspaceDirectory,
+        root: workspaceScope().root,
+        profile: workspaceScope().identity,
         // Where `pnpm mcp` has to be run from, which is not the workspace when MONET_ROOT is set.
         appRoot: path.resolve(import.meta.dirname, ".."),
-        bundled: isBundledWorkspace(workspaceDirectory),
+        bundled: isBundledWorkspace(workspaceScope().root),
         aiConfigured: providerConfigured(),
         aiVariable: AI_COMMAND_VARIABLE,
         aiImages: providerSupportsImages(),
@@ -215,15 +206,39 @@ const server = createServer(async (request, response) => {
     const detail = error instanceof ApplyError ? { kind: error.kind, receipt: error.receipt } : error instanceof WorkspaceUnavailableError ? { kind: error.kind } : {};
     respond(response, (error as NodeJS.ErrnoException)?.code === "ENOENT" ? 404 : status ?? (message === "Invalid record id." ? 400 : 500), { error: (error as NodeJS.ErrnoException)?.code === "ENOENT" ? "Record not found." : message, ...detail });
   }
-});
-
-// An application interrupted by a crash is rolled back or completed before any request can edit the workspace.
-for (const recovery of await recoverApplications()) {
-  console.log(`Recovered application ${recovery.application_id} for proposal ${recovery.proposal_id}: ${recovery.outcome === "completed" ? "completed" : recovery.restored ? "rolled back, every record restored" : `rolled back, restore NOT verified (${recovery.failure ?? "unknown"})`}`);
 }
-await initializeStore();
+
+const server = createServer(async (request, response) => {
+  try {
+    protectApi(request);
+    const url = new URL(request.url ?? "/", "http://127.0.0.1");
+    if (url.pathname === "/api/profiles") {
+      if (request.method === "GET") return respond(response, 200, { ...profiles.list(), defaultProfileId });
+      if (request.method === "POST") return respond(response, 201, await profiles.create(await body(request)));
+    }
+    const nameId = match(url.pathname, "/api/profile-names/");
+    if (nameId && request.method === "PUT") {
+      const value = await body(request) as { name?: string };
+      return respond(response, 200, await profiles.renameProfile(nameId, value.name ?? ""));
+    }
+    const route = /^\/api\/profiles\/([a-z0-9-]+)(\/.*)$/.exec(url.pathname);
+    const profileId = route?.[1] ?? defaultProfileId;
+    // Legacy routes are permanently bound to the workspace chosen at startup, never UI selection.
+    if (route) url.pathname = "/api" + route[2];
+    const asserted = request.headers["x-monet-profile"];
+    if (asserted && asserted !== profileId) return respond(response, 409, { error: "Request Profile does not match its route." });
+    const scope = await profiles.scope(profileId);
+    response.setHeader("x-monet-profile", profileId);
+    await withProfile(scope, async () => {
+      await withWorkspaceRead(async () => undefined); // All routes respect unresolved recovery, including private mutations.
+      await handleProfileRequest(request, response, url);
+    });
+  } catch (error) {
+    respond(response, error instanceof ZodError ? 400 : (error as { status?: number }).status ?? 503, { error: error instanceof Error ? error.message : "Profile unavailable.", ...(error instanceof WorkspaceUnavailableError ? { kind: error.kind } : {}) });
+  }
+});
 server.listen(PORT, "127.0.0.1", () => {
   const address = server.address();
   console.log(`Monet file service: http://127.0.0.1:${typeof address === "object" && address ? address.port : PORT}`);
-  console.log(`Workspace: ${workspaceDirectory}${isBundledWorkspace(workspaceDirectory) ? " (bundled starter workspace — set MONET_ROOT to use your own)" : ""}`);
+  console.log(`Original workspace: ${workspaceDirectory}`);
 });

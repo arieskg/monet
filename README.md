@@ -42,17 +42,21 @@ Open **http://127.0.0.1:43140**. The editor's file service runs on loopback port
 Both ports must be free; stop an earlier dev server with **Ctrl+C** before restarting.
 
 Explore **Overview → Principles / Foundations / Components / Patterns → Preview**.
-The bundled workspace is example data, not a required design style. Before editing,
-stop the server and copy it from the repository root to a destination that does not exist:
+The bundled workspace is example data, not a required design style. Use the sidebar's
+**New Profile → Monet starter** to create your own independent copy, or choose
+**Empty profile** to begin with no design decisions. To start at a custom empty or
+not-yet-created directory, stop the server and run:
 
 ```bash
-cp -r monet ~/my-design-system
 MONET_ROOT=~/my-design-system pnpm dev
 ```
 
 Monet is the application; **a workspace is your directory of design-system records**.
-An empty directory also works. The UI explains how to start with principles and
-foundations; copying the example is the quickest way to get a full component catalog.
+The editor initializes a scratch Profile with directories, empty registries and exports;
+no Theme is required. The UI explains how to start with principles and foundations.
+Choose the Monet starter when you want a full example component catalog immediately.
+Existing workspaces enroll in place; use Profile creation to fork an already enrolled
+workspace rather than copying its identity file.
 See the [workspace guide](docs/WORKSPACE.md) for the file contract and manual editing.
 
 ## Connect a coding agent
@@ -145,3 +149,7 @@ Run `pnpm check` before contributing: it builds, lints, tests, and validates the
 
 [MIT](LICENSE). Monet is a clone-and-run application. The package remains `private` to
 prevent accidental npm publication; that does not restrict use under its license.
+
+### Independent Profiles
+
+Monet can manage independent design Profiles in one local library. Create a Profile from the Monet starter, start empty, or fork current knowledge from the sidebar. Each Profile owns its modes, decisions, Sources, References and private evidence. Existing Themes remain optional compatibility data. See [Profiles V1](docs/PROFILES.md) for enrollment, storage, fixed MCP bindings and migration details.

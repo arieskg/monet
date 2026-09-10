@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { mappingsNeedingReview, searchWorkspace } from "../domain";
 import { isSearchResultVisible } from "../featureVisibility";
+import { ProfilePicker } from "./ProfilePicker";
 import { Modal } from "./Modal";
 import { AppearanceSwitch } from "./AppearanceSwitch";
 import { useWorkspace } from "../WorkspaceContext";
@@ -46,6 +47,11 @@ export function Layout() {
   const [open, setOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const input = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    if (!environment?.profile) return;
+    const search = new URLSearchParams(location.search);
+    if (search.get("profile") !== environment.profile.id) { search.set("profile", environment.profile.id); void navigate({ pathname: location.pathname, search: search.toString(), hash: location.hash }, { replace: true }); }
+  }, [environment?.profile, location, navigate]);
   const results = useMemo(() => workspace ? searchWorkspace(workspace, query).filter((result) => isSearchResultVisible(result.type)) : [], [workspace, query]);
   // A count badge should mean "you have work waiting". On the bundled example that work is not the
   // reader's, and it would be the only badge a first-time user ever sees, so it stays off there.
@@ -67,6 +73,7 @@ export function Layout() {
   return <div className="app-shell">
     <aside className="sidebar">
       <NavLink to="/" className="brand" aria-label="Monet home"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink>
+      <ProfilePicker />
       <button className="search-trigger" onClick={() => { setOpen(true); requestAnimationFrame(() => input.current?.focus()); }}><span>Search the system</span><kbd>⌘ K</kbd></button>
       <SidebarNavigation reviewCount={reviewCount} />
       <SidebarFooter />
@@ -75,7 +82,7 @@ export function Layout() {
       {editingBlocked && <div className="state-panel" role={error ? "alert" : "status"}><h2>{loading ? "Applying and refreshing Monet…" : "Editing is paused"}</h2><p>{error || "Canonical editors will reopen when the current workspace has been loaded."}</p>{!loading && <button className="button" onClick={() => void reload()}>Reload workspace</button>}</div>}
       {(!editingBlocked || location.pathname.startsWith("/proposals/")) && <Outlet />}
     </main>
-    {menuOpen && <Modal className="mobile-navigation-backdrop" label="Mobile navigation" onClose={() => setMenuOpen(false)}><aside className="mobile-navigation" id="mobile-navigation"><header><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button className="dialog-close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>×</button></header><SidebarNavigation reviewCount={reviewCount} /><SidebarFooter /></aside></Modal>}
+    {menuOpen && <Modal className="mobile-navigation-backdrop" label="Mobile navigation" onClose={() => setMenuOpen(false)}><aside className="mobile-navigation" id="mobile-navigation"><header><NavLink to="/" className="brand"><img className="brand-mark" src={monetLogo} alt="" /><b>Monet</b></NavLink><button className="dialog-close" type="button" aria-label="Close navigation" onClick={() => setMenuOpen(false)}>×</button></header><ProfilePicker /><SidebarNavigation reviewCount={reviewCount} /><SidebarFooter /></aside></Modal>}
     {open && <Modal className="search-backdrop" label="Search Monet" onClose={() => setOpen(false)}><section className="search-dialog"><div className="search-input-row"><span aria-hidden="true">⌕</span><input autoFocus ref={input} aria-label="Search the design system" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search principles, foundations, components…" /><button className="dialog-close" type="button" aria-label="Close search" onClick={() => setOpen(false)}>×</button></div><div className="search-results">{!query && <div className="search-hint"><b>Find design knowledge</b><p>Try “layout”, “button”, “menu”, or an upstream item name.</p></div>}{query && results.length === 0 && <div className="search-hint"><b>No matches</b><p>Try a broader concept or alias.</p></div>}{results.map((result) => <button key={`${result.type}-${result.id}`} onClick={() => { void navigate(result.route); }}><span><small>{result.type}</small><b>{result.title}</b><p>{result.description}</p></span><i aria-hidden="true">→</i></button>)}</div></section></Modal>}
   </div>;
 }

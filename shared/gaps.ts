@@ -1,3 +1,4 @@
+import { projectEvidenceSchema, type ProfileOwned } from "./profiles.js";
 import { z } from "zod";
 import type { DesignReview, RetrievalProvenance } from "./model.js";
 
@@ -20,6 +21,8 @@ export const gapInputSchema = z.object({
   context: z.string().trim().max(4000).default(""), expected: z.string().trim().max(4000).default(""),
   notes: z.string().trim().max(6000).default(""), original_query: z.string().trim().max(500).default(""),
   delivered_guidance: z.string().trim().max(12000).default(""),
+  project: projectEvidenceSchema.optional(),
+  provenance: z.object({ profile_id: z.string().uuid(), surface_id: z.string().uuid(), revision: z.number().int().positive(), run_hash: z.string().regex(/^[a-f0-9]{64}$/), snapshot_hash: z.string().regex(/^[a-f0-9]{64}$/) }).strict().optional(),
   theme_id: z.string().trim().regex(/^[a-z0-9][a-z0-9-]{0,79}$/).optional(), mode: z.enum(["light", "dark"]).optional(),
   usages: z.array(gapUsageSchema).max(200).default([]),
   image: z.object({ data_url: z.string().max(Math.ceil(GAP_IMAGE_LIMIT * 4 / 3) + 100), filename: shortText }).strict().optional(),
@@ -36,7 +39,7 @@ export interface GapFinding {
   basis?: "monet_rule" | "wcag_floor";
   contradiction?: boolean;
 }
-export interface GapDiagnosis {
+export interface GapDiagnosis extends ProfileOwned {
   version: 1; created_at: string; workspace_fingerprint: string;
   conclusion: string; findings: GapFinding[];
   /** AI prose never replaces a measured error headline. Optional for saved V1 records. */
@@ -65,14 +68,14 @@ export const gapReviewInputSchema = z.object({
   acknowledges_measured_errors: z.boolean().default(false),
 }).strict();
 export type GapReviewInput = z.input<typeof gapReviewInputSchema>;
-export interface GapHumanReview extends z.output<typeof gapReviewInputSchema> {
+export interface GapHumanReview extends z.output<typeof gapReviewInputSchema>, ProfileOwned {
   created_at: string;
   /** The diagnosis this review classified; a later diagnosis makes the review inert. */
   diagnosis_created_at: string;
   workspace_fingerprint: string;
 }
 /** Editor-only feedback. Deliberately not part of Workspace or DesignContext. */
-export interface Gap {
+export interface Gap extends ProfileOwned {
   version: 1; id: string; created_at: string; report: GapReport; image: GapImage | null;
   diagnosis: GapDiagnosis | null;
   /** Optional human review of the latest diagnosis. Absent on V1 records. */

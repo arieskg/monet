@@ -41,7 +41,7 @@ async function expectBytesUnchanged(file: string, before: Buffer): Promise<void>
 async function startService(directory: string, wrapper: string): Promise<{ child: ChildProcess; url: string; output: () => string }> {
   const child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], {
     cwd: path.resolve(import.meta.dirname, ".."),
-    env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0", MONET_AI_COMMAND: wrapper, MONET_CODEX_EXECUTABLE: "", MONET_AI_IMAGES: "" },
+    env: { ...process.env, MONET_ROOT: directory, MONET_LIBRARY: path.join(directory, "../" + path.basename(directory) + "-library"), MONET_PORT: "0", MONET_AI_COMMAND: wrapper, MONET_CODEX_EXECUTABLE: "", MONET_AI_IMAGES: "" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let output = "";
@@ -198,7 +198,7 @@ it("refuses to listen when startup recovery cannot regenerate exports", async ()
     await writeFile(path.join(directory, relative), "Uncommitted bytes.\n");
     await rm(path.join(directory, "DESIGN_SYSTEM.md"));
     await mkdir(path.join(directory, "DESIGN_SYSTEM.md")); // Real filesystem failure, no mocked server.
-    child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: process.cwd(), env: { ...process.env, MONET_ROOT: directory, MONET_PORT: "0" }, stdio: ["ignore", "pipe", "pipe"] });
+    child = spawn(process.execPath, ["--import", "tsx", "server/index.ts"], { cwd: process.cwd(), env: { ...process.env, MONET_ROOT: directory, MONET_LIBRARY: path.join(directory, "../" + path.basename(directory) + "-library"), MONET_PORT: "0" }, stdio: ["ignore", "pipe", "pipe"] });
     let output = ""; let error = "";
     child.stdout!.on("data", (chunk) => { output += String(chunk); });
     child.stderr!.on("data", (chunk) => { error += String(chunk); });

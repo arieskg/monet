@@ -31,7 +31,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:mcp": "vitest run mcp/server.test.ts",
+    "test:mcp": "vitest run mcp",
     "check": "pnpm run build && pnpm run lint && pnpm run test && pnpm run validate",
     "test:surfaces:browser": "playwright test -c tests/surfaces/playwright.config.ts"
   },

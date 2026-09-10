@@ -45,11 +45,12 @@ export function AgentContextPage() {
   const coverage = componentDecisionCoverage(workspace);
   const appRoot = environment?.appRoot ?? "/absolute/path/to/monet";
   const workspaceRoot = environment?.root ?? "/absolute/path/to/your-design-system";
-  const clientConfig = JSON.stringify({ mcpServers: { monet: { command: "pnpm", args: ["--dir", appRoot, "mcp"], env: { MONET_ROOT: workspaceRoot } } } }, null, 2);
+  const clientConfig = JSON.stringify({ mcpServers: { monet: { command: "pnpm", args: ["--dir", appRoot, "mcp"], env: { MONET_ROOT: workspaceRoot, ...(environment?.profile ? { MONET_PROFILE_ID: environment.profile.id } : {}) } } } }, null, 2);
 
   return <div className="page agent-page">
     <PageHeader eyebrow="Model Context Protocol" title="Agent context" description="The other half of Monet. The pages in Design system decide what this product looks like; this is how a coding agent reads those decisions while it builds, and how it checks its work afterwards." />
 
+    {environment?.profile && <p><b>{environment.profile.name}</b> · Profile <code>{environment.profile.id}</code>. This connection stays bound to this Profile when you switch the editor.</p>}
     <section className="agent-loop" aria-label="The build loop">
       <ol>
         <li><b>get_design_context</b><small>Ask Monet</small></li>
@@ -64,7 +65,7 @@ export function AgentContextPage() {
       <div className="section-heading"><span className="eyebrow">Setup</span><h2>Connect a client</h2><p>Monet speaks MCP on stdin and stdout and is client-neutral: any client that can launch a local stdio server works. Start it from a terminal, or let your client launch it.</p></div>
       <div className="agent-connect-grid">
         <div>
-          <CopyBlock label="Run it yourself" language="bash" value={`MONET_ROOT=${shellQuote(workspaceRoot)} pnpm --dir ${shellQuote(appRoot)} mcp`} />
+          <CopyBlock label="Run it yourself" language="bash" value={`MONET_ROOT=${shellQuote(workspaceRoot)}${environment?.profile ? ` MONET_PROFILE_ID=${shellQuote(environment.profile.id)}` : ""} pnpm --dir ${shellQuote(appRoot)} mcp`} />
           <p className="agent-note">Both are filled in from the workspace this window has open{environment?.bundled ? " — the bundled example. Point Monet at your own workspace first if you have one." : "."} The same snippet lives in <code>mcp.example.json</code>, and <code>docs/MCP.md</code> documents every resource and argument.</p>
         </div>
         <CopyBlock label="Client configuration" language="json" value={clientConfig} />

@@ -1471,3 +1471,17 @@ html { color: var(--ink); background: var(--canvas); }
 .surface-issues input { flex: none; margin-top: 4px; }
 .surface-issues span { overflow-wrap: anywhere; }
 @media (max-width: 700px) { .surface-import-columns, .surface-panes { grid-template-columns: minmax(0, 1fr); } .surface-panel, .surface-import { padding: 16px; } }
+
+.profile-picker { padding: 0 16px 14px; display: grid; gap: 8px; }
+.profile-picker label, .profile-dialog label { display: grid; gap: 6px; }
+.profile-picker select { width: 100%; min-width: 0; }
+.profile-dialog { width: min(520px, 90vw); padding: 28px; border-radius: 16px; background: var(--surface, #fff); color: var(--ink); display: grid; gap: 16px; }
+
+.profile-dialog-backdrop { padding: 6vh 20px; background: rgb(20 30 40 / .45); backdrop-filter: blur(3px); }
+.profile-dialog-backdrop .profile-dialog { margin: 0 auto; border: 1px solid var(--line); box-shadow: var(--shadow-dialog); }
+.profile-dialog-backdrop::backdrop { background: rgb(20 30 40 / .45); backdrop-filter: blur(3px); }
+
+.profile-picker > label { color: var(--muted); font-size: var(--font-xs); }
+.profile-picker select { color: var(--ink); font-size: var(--font-xs); }
+.profile-actions { display: flex; gap: 6px; }
+.profile-actions .button { flex: 1; padding-inline: 6px; }

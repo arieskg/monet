@@ -1,15 +1,16 @@
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { loadWorkspace } from "../server/fileStore.js";
-import { isBundledWorkspace, resolveWorkspaceRoot, setWorkspaceRoot } from "../server/workspace.js";
-import { createMonetService } from "../shared/service.js";
+import { readOnlyProfileScope, legacyProfileId } from "../server/profileRegistry.js";
+import { createProfileService } from "../server/profileService.js";
+import { isBundledWorkspace, resolveWorkspaceRoot, resolveExpectedProfileId } from "../server/workspace.js";
 import { createMonetMcpServer } from "./server.js";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
 const root = resolveWorkspaceRoot();
-setWorkspaceRoot(root);
+const expected = resolveExpectedProfileId();
+const scope = await readOnlyProfileScope(root, expected);
 
-const service = createMonetService({ loadWorkspace });
-const handle = serveStdio(() => createMonetMcpServer(service), {
+const service = createProfileService(scope);
+const handle = serveStdio(() => createMonetMcpServer(service, scope.identity?.id ?? legacyProfileId(scope.root)), {
   onerror: (error) => console.error("Monet MCP error:", error.message),
 });
 

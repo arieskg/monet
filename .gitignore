@@ -16,3 +16,6 @@ monet/applications/
 
 # Imported static product evidence.
 monet/surfaces/
+
+# Stable local identity created when the starter is enrolled; never ship a user Profile ID.
+monet/profile.json

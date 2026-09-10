@@ -17,18 +17,25 @@ passed directly to `pnpm mcp`, `pnpm validate`, or `pnpm dev:server`.
 
 ## Starting your own
 
-Stop any running dev server with Ctrl+C. From the Monet repository root, copy the
-starter to a destination that does not already exist, then restart with your copy:
+Use **New Profile → Monet starter** in the editor for an independent copy of Monet's
+example knowledge, or **Copy current profile’s knowledge** for an independent copy of your current
+Profile. Existing Themes are copied compatibility data, never required for a Profile.
+Do not copy an enrolled `profile.json` to create another identity; use a fork.
+
+For a scratch Profile at a custom path, stop any running dev server with Ctrl+C and run:
 
 ```bash
-cp -r monet ~/my-design-system
 MONET_ROOT=~/my-design-system pnpm dev
 ```
 
 Starting from an empty directory also works. A record set that is not on disk yet
 reads as empty, so the UI, the MCP server, and `validate` all treat a new workspace
-as new rather than broken. The file service materializes the directories on first
-run — the read-only surfaces never write.
+as new rather than broken. The file service initializes a scratch Profile with directories,
+empty taxonomy/decision/Source/Reference registries and generated exports on first run.
+It does not add a Theme or example design decisions. The read-only surfaces never write.
+The root may be absent or already empty; populated existing roots enroll without rewriting
+their records or exports. A scratch initialization interrupted before registration resumes
+with its original identity at the next editor startup.
 
 ```bash
 mkdir ~/my-design-system

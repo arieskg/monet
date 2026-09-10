@@ -1,6 +1,7 @@
 import { McpServer, ProtocolError, ProtocolErrorCode, ResourceNotFoundError, ResourceTemplate } from "@modelcontextprotocol/server";
 import * as z from "zod/v4";
 import { THEME_MODES, type Component, type DesignContext, type Reference, type ResolvedThemeToken, type Theme, type ThemeMode } from "../shared/model.js";
+import { themeModes } from "../shared/tokens.js";
 import { resourceUri, toCompactContext } from "../shared/compactContext.js";
 import type { MonetService } from "../shared/service.js";
 
@@ -10,6 +11,7 @@ const idSchema = z.string().trim().regex(ID_PATTERN, "Use a lowercase Monet reco
 const idsSchema = z.array(idSchema).max(100).optional();
 
 export const designContextInputSchema = z.object({
+  profileId: idSchema.optional().describe("Assertion of this connection’s bound Profile; never retargets the connection."),
   query: z.string().trim().min(1).max(500).optional().describe("Natural-language design task or concept to match."),
   principleIds: idsSchema.describe("Exact Principle IDs to include."),
   foundationIds: idsSchema.describe("Exact Foundation IDs to include."),
@@ -22,6 +24,7 @@ export const designContextInputSchema = z.object({
 }).strict();
 
 export const referenceSearchInputSchema = z.object({
+  profileId: idSchema.optional().describe("Assertion of this connection’s bound Profile; never retargets the connection."),
   query: z.string().trim().min(1).max(500).describe("Text to match against reference titles, annotations, notes, domains, tags, and retrieval text."),
 }).strict();
 
@@ -39,6 +42,7 @@ const usageSchema = z.object({
 }).strict();
 
 export const designReviewInputSchema = z.object({
+  profileId: idSchema.optional(),
   usages: z.array(usageSchema).min(1).max(200).describe("What you observed in the implementation. Monet checks these and nothing else."),
   themeId: idSchema.optional().describe("Theme ID used to resolve tokens."),
   mode: z.enum(THEME_MODES as [ThemeMode, ...ThemeMode[]]).optional().describe("Mode the evidence was observed in: light (default) or dark."),
@@ -141,13 +145,12 @@ function listedResource(uri: string, name: string, description: string) {
 }
 
 export async function buildCatalog(service: MonetService) {
-  const [principles, foundations, patterns, components, themes, references, workspace] = await Promise.all([
-    service.listPrinciples(), service.listFoundations(), service.listPatterns(), service.listComponents(),
-    service.listThemes(), service.listReferences(), service.getWorkspace(),
-  ]);
-  const themeModes = await Promise.all(themes.map(async (theme) => [theme.id, (await service.getWorkspace(theme.id)).modes] as const));
-  const modesById = new Map(themeModes);
+  const workspace = await service.getWorkspace();
+  const { principles, foundations, patterns, themes, references } = workspace;
+  const components = workspace.taxonomy.flatMap((category) => category.entries.map((entry) => ({ ...entry, decision: workspace.components.find((d) => d.id === entry.id) ?? null })));
+  const modesById = new Map(themes.map((theme) => [theme.id, themeModes(workspace.foundations, theme)]));
   return {
+    ...(workspace.profile ? { profile: workspace.profile, knowledgeFingerprint: workspace.knowledgeFingerprint } : {}),
     principles: principles.map((item) => ({ id: item.id, title: item.title })),
     foundations: foundations.map((item) => ({ id: item.id, name: item.name, status: item.status })),
     patterns: patterns.map((item) => ({ id: item.id, title: item.title, summary: item.summary, status: item.status })),
@@ -169,98 +172,112 @@ function templateMode(uri: URL, value: string | string[] | undefined): ThemeMode
   return value as ThemeMode;
 }
 
-export function createMonetMcpServer(service: MonetService): McpServer {
+export function createMonetMcpServer(service: MonetService, profileId = service.profileId): McpServer {
+  if (service.profileId && service.profileId !== profileId) throw new Error("MCP binding does not match its Profile service.");
+  function assertProfile(asserted?: string) { if (asserted && asserted !== profileId) throw new ProtocolError(ProtocolErrorCode.InvalidParams, "Profile assertion does not match this bound connection."); }
+  function qualified(value: unknown): unknown {
+    if (!profileId) return value;
+    if (typeof value === "string" && value.startsWith("monet://") && !value.startsWith("monet://profiles/")) return value.replace("monet://", `monet://profiles/${profileId}/`);
+    if (Array.isArray(value)) return value.map(qualified);
+    if (value && typeof value === "object") return Object.fromEntries(Object.entries(value).map(([key, v]) => [key, key === "uri" && typeof v === "string" && v.startsWith("monet://") && !v.startsWith("monet://profiles/") ? v.replace("monet://", `monet://profiles/${profileId}/`) : qualified(v)]));
+    return value;
+  }
+  const deliver = (value: unknown) => ({ ...(qualified(value) as object), ...(profileId ? { profileId } : {}) });
+  const toolResult = (value: unknown) => jsonToolResult(deliver(value));
+  const resourceResult = (uri: URL, value: unknown) => jsonResource(uri, deliver(value));
   const server = new McpServer(SERVER_INFO, {
     instructions: "Monet is a read-only design-context provider. Call get_design_context with a natural design task to get a compact design brief, then read the monet:// resource it cites for any record you need in full. Check `coverage` and `notices` before relying on the result: Monet reports when it has no task-specific opinion, when a concept is catalogued but undecided, and when a request needs a capability it does not have. After building the UI, call review_design_usage with the colours, dimensions, tokens, components, and rendered foreground/background pairs you actually used, to have them checked against the same records; say what each pair carries with `usage`, because Monet applies a contrast minimum only where you declare one or it documents the pairing.",
   });
 
+  for (const prefix of profileId ? [`monet://profiles/${profileId}/`, "monet://"] : ["monet://"]) {
+    const scopedUri = (kind: Parameters<typeof resourceUri>[0], id: string) => resourceUri(kind, id).replace("monet://", prefix);
   server.registerResource(
-    "monet-catalog",
-    "monet://catalog",
+    `monet-catalog-${prefix}`,
+    `${prefix}catalog`,
     { title: "Monet catalog", description: "Compact index of canonical Monet design records.", mimeType: "application/json" },
-    async (uri) => jsonResource(uri, await buildCatalog(service)),
+    async (uri) => resourceResult(uri, await buildCatalog(service)),
   );
 
   server.registerResource(
-    "monet-principle",
-    new ResourceTemplate("monet://principles/{id}", {
-      list: async () => ({ resources: (await service.listPrinciples()).map((item) => listedResource(resourceUri("principles", item.id), item.title, "Monet design principle")) }),
+    `monet-principle-${prefix}`,
+    new ResourceTemplate(`${prefix}principles/{id}`, {
+      list: async () => ({ resources: (await service.listPrinciples()).map((item) => listedResource(scopedUri("principles", item.id), item.title, "Monet design principle")) }),
     }),
     { title: "Monet principle", description: "One canonical Monet design principle.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
-      return jsonResource(uri, await requireRecord(uri, "principle", id, (recordId) => service.getPrinciple(recordId)));
+      return resourceResult(uri, await requireRecord(uri, "principle", id, (recordId) => service.getPrinciple(recordId)));
     },
   );
 
   server.registerResource(
-    "monet-foundation",
-    new ResourceTemplate("monet://foundations/{id}", {
-      list: async () => ({ resources: (await service.listFoundations()).map((item) => listedResource(resourceUri("foundations", item.id), item.name, item.description)) }),
+    `monet-foundation-${prefix}`,
+    new ResourceTemplate(`${prefix}foundations/{id}`, {
+      list: async () => ({ resources: (await service.listFoundations()).map((item) => listedResource(scopedUri("foundations", item.id), item.name, item.description)) }),
     }),
     { title: "Monet foundation", description: "One canonical Foundation with its base token records.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
-      return jsonResource(uri, await requireRecord(uri, "foundation", id, (recordId) => service.getFoundation(recordId)));
+      return resourceResult(uri, await requireRecord(uri, "foundation", id, (recordId) => service.getFoundation(recordId)));
     },
   );
 
   server.registerResource(
-    "monet-pattern",
-    new ResourceTemplate("monet://patterns/{id}", {
-      list: async () => ({ resources: (await service.listPatterns()).map((item) => listedResource(resourceUri("patterns", item.id), item.title, item.summary)) }),
+    `monet-pattern-${prefix}`,
+    new ResourceTemplate(`${prefix}patterns/{id}`, {
+      list: async () => ({ resources: (await service.listPatterns()).map((item) => listedResource(scopedUri("patterns", item.id), item.title, item.summary)) }),
     }),
     { title: "Monet pattern", description: "One canonical multi-component Monet pattern.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
-      return jsonResource(uri, await requireRecord(uri, "pattern", id, (recordId) => service.getPattern(recordId)));
+      return resourceResult(uri, await requireRecord(uri, "pattern", id, (recordId) => service.getPattern(recordId)));
     },
   );
 
   server.registerResource(
-    "monet-component",
-    new ResourceTemplate("monet://components/{id}", {
-      list: async () => ({ resources: (await service.listComponents()).map((item) => listedResource(resourceUri("components", item.id), item.name, item.description)) }),
+    `monet-component-${prefix}`,
+    new ResourceTemplate(`${prefix}components/{id}`, {
+      list: async () => ({ resources: (await service.listComponents()).map((item) => listedResource(scopedUri("components", item.id), item.name, item.description)) }),
     }),
     { title: "Monet component", description: "Canonical component taxonomy joined to its optional design decision.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
       const component = await requireRecord(uri, "component", id, (recordId) => service.getComponent(recordId));
-      return jsonResource(uri, publicComponent(component));
+      return resourceResult(uri, publicComponent(component));
     },
   );
 
   server.registerResource(
-    "monet-theme",
-    new ResourceTemplate("monet://themes/{id}", {
-      list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(resourceUri("themes", item.id), item.name, "Monet Foundation token overrides")) }),
+    `monet-theme-${prefix}`,
+    new ResourceTemplate(`${prefix}themes/{id}`, {
+      list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(scopedUri("themes", item.id), item.name, "Monet Foundation token overrides")) }),
     }),
     { title: "Monet theme", description: "One override-only Monet theme, with any mode-specific overrides it carries.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
-      return jsonResource(uri, await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId)));
+      return resourceResult(uri, await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId)));
     },
   );
 
   server.registerResource(
-    "monet-theme-tokens",
-    new ResourceTemplate("monet://themes/{id}/tokens", {
-      list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(`monet://themes/${item.id}/tokens`, `${item.name} resolved tokens (light)`, "Resolved token values with base/mode/theme provenance, in light mode")) }),
+    `monet-theme-tokens-${prefix}`,
+    new ResourceTemplate(`${prefix}themes/{id}/tokens`, {
+      list: async () => ({ resources: (await service.listThemes()).map((item) => listedResource(`${prefix}themes/${item.id}/tokens`, `${item.name} resolved tokens (light)`, "Resolved token values with base/mode/theme provenance, in light mode")) }),
     }),
     { title: "Resolved Monet theme tokens", description: "Resolved Foundation tokens and provenance for one theme in light mode. The response lists the modes the theme supports; monet://themes/{id}/tokens/{mode} resolves another mode.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
       const theme = await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId));
-      return jsonResource(uri, await getThemeTokens(service, theme));
+      return resourceResult(uri, await getThemeTokens(service, theme));
     },
   );
 
   server.registerResource(
-    "monet-theme-mode-tokens",
-    new ResourceTemplate("monet://themes/{id}/tokens/{mode}", {
+    `monet-theme-mode-tokens-${prefix}`,
+    new ResourceTemplate(`${prefix}themes/{id}/tokens/{mode}`, {
       list: async () => ({ resources: (await Promise.all((await service.listThemes()).map(async (item) => {
         const modes = (await service.getWorkspace(item.id)).modes.filter((mode) => mode !== "light");
-        return modes.map((mode) => listedResource(`monet://themes/${item.id}/tokens/${mode}`, `${item.name} resolved tokens (${mode})`, `Resolved token values with base/mode/theme provenance, in ${mode} mode`));
+        return modes.map((mode) => listedResource(`${prefix}themes/${item.id}/tokens/${mode}`, `${item.name} resolved tokens (${mode})`, `Resolved token values with base/mode/theme provenance, in ${mode} mode`));
       }))).flat() }),
     }),
     { title: "Resolved Monet theme tokens for one mode", description: "Resolved Foundation tokens and provenance for one theme in one mode (light or dark). A mode the theme does not support resolves as light and says so in `mode`.", mimeType: "application/json" },
@@ -268,22 +285,29 @@ export function createMonetMcpServer(service: MonetService): McpServer {
       const id = templateId(uri, variables.id);
       const mode = templateMode(uri, variables.mode);
       const theme = await requireRecord(uri, "theme", id, (recordId) => service.getTheme(recordId));
-      return jsonResource(uri, await getThemeTokens(service, theme, mode));
+      return resourceResult(uri, await getThemeTokens(service, theme, mode));
     },
   );
 
   server.registerResource(
-    "monet-reference",
-    new ResourceTemplate("monet://references/{id}", {
-      list: async () => ({ resources: (await service.listReferences()).map((item) => listedResource(resourceUri("references", item.id), item.title, item.annotation)) }),
+    `monet-reference-${prefix}`,
+    new ResourceTemplate(`${prefix}references/{id}`, {
+      list: async () => ({ resources: (await service.listReferences()).map((item) => listedResource(scopedUri("references", item.id), item.title, item.annotation)) }),
     }),
     { title: "Monet reference", description: "One visual-reference memory record without internal file paths.", mimeType: "application/json" },
     async (uri, variables) => {
       const id = templateId(uri, variables.id);
       const reference = await requireRecord(uri, "reference", id, (recordId) => service.getReference(recordId));
-      return jsonResource(uri, publicReference(reference));
+      return resourceResult(uri, publicReference(reference));
     },
   );
+
+  }
+  if (profileId) server.registerResource("profile-mode-tokens", new ResourceTemplate(`monet://profiles/${profileId}/tokens/{mode}`, { list: undefined }),
+    { title: "Profile tokens by mode", mimeType: "application/json" }, async (uri, variables) => {
+      const mode = templateMode(uri, variables.mode), workspace = await service.getWorkspace(undefined, mode);
+      return resourceResult(uri, { profile: workspace.profile, knowledgeFingerprint: workspace.knowledgeFingerprint, mode: workspace.activeMode, requestedMode: mode, modes: workspace.modes, tokens: workspace.resolvedTokens, tokenIssues: workspace.tokenIssues });
+    });
 
   server.registerTool(
     "get_design_context",
@@ -293,12 +317,13 @@ export function createMonetMcpServer(service: MonetService): McpServer {
       inputSchema: designContextInputSchema,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ detail, ...input }) => {
+    async ({ detail, profileId: asserted, ...input }) => {
+      assertProfile(asserted);
       if (input.themeId && !(await service.getTheme(input.themeId))) {
         throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Unknown Monet theme ID: ${input.themeId}`);
       }
       const context = await service.getDesignContext(input);
-      return jsonToolResult(detail === "full" ? publicDesignContext(context) : toCompactContext(context));
+      return toolResult(detail === "full" ? publicDesignContext(context) : toCompactContext(context));
     },
   );
 
@@ -310,11 +335,12 @@ export function createMonetMcpServer(service: MonetService): McpServer {
       inputSchema: designReviewInputSchema,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async (input) => {
+    async ({ profileId: asserted, ...input }) => {
+      assertProfile(asserted);
       if (input.themeId && !(await service.getTheme(input.themeId))) {
         throw new ProtocolError(ProtocolErrorCode.InvalidParams, `Unknown Monet theme ID: ${input.themeId}`);
       }
-      return jsonToolResult(await service.reviewDesignUsage(input));
+      return toolResult(await service.reviewDesignUsage(input));
     },
   );
 
@@ -326,12 +352,13 @@ export function createMonetMcpServer(service: MonetService): McpServer {
       inputSchema: referenceSearchInputSchema,
       annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
     },
-    async ({ query }) => {
+    async ({ query, profileId: asserted }) => {
+      assertProfile(asserted);
       const references = (await service.searchReferences(query)).map(({ reference, match }) => ({
         ...publicReference(reference),
         retrieval: match,
       }));
-      return jsonToolResult({ query, count: references.length, references });
+      return toolResult({ query, count: references.length, references });
     },
   );
 
