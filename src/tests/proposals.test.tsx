@@ -224,6 +224,8 @@ describe("Proposal review surfaces", () => {
     expect(notice("validation", receipt({ outcome: "rolled_back" }))).toContain("failed validation, and every file was restored");
     expect(notice("write_failed", receipt({ outcome: "rolled_back" }))).toContain("rolled back: every file was restored to its previous bytes");
     expect(notice("write_failed", receipt({ outcome: "rolled_back", restored: false }))).toContain("restore could not be verified. Restart Monet");
+    expect(notice("refresh_failed", receipt({}))).toContain("Applied successfully; workspace refresh failed");
+    expect(notice("refresh_failed", receipt({}))).not.toContain("bookkeeping");
     expect(notice("write_failed", receipt({}))).toContain("proposal record could not be updated. Restart Monet to finish the bookkeeping");
     expect(notice("unsupported", null)).toContain("cannot write. Nothing was written.");
     expect(notice("integrity", null)).toContain("integrity check");

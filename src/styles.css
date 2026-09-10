@@ -1442,3 +1442,32 @@ html { color: var(--ink); background: var(--canvas); }
 .decision-applications li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); gap: var(--space-3); align-items: center; padding: var(--space-3) 0; border-top: 1px solid var(--line); }
 .decision-applications li > span:last-child { grid-column: 1 / -1; color: var(--muted); }
 .decision-applications time { color: var(--muted); white-space: nowrap; }
+
+/* Imported Surfaces stay inside opaque, script-free frames; these styles affect only the editor. */
+.surfaces-page { max-width: 1600px; }
+.surface-notice { padding: 14px 18px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); line-height: 1.6; }
+.surface-panel, .surface-import { margin: 24px 0; padding: 24px; border: 1px solid var(--line); border-radius: 12px; min-width: 0; }
+.surfaces-page label { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; font-size: 13px; }
+.surfaces-page input:not([type=checkbox]), .surfaces-page select, .surfaces-page textarea { border: 1px solid var(--line); background: var(--surface); color: inherit; border-radius: 6px; padding: 9px 12px; max-width: 100%; }
+.surfaces-page textarea { resize: vertical; min-height: 76px; }
+.surface-import-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.surface-import-columns textarea { font-family: monospace; }
+.surface-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.surface-toolbar input[type=number] { width: 120px; }
+.surface-panes { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.surface-pane { min-width: 0; }
+.surface-pane h3 { font-size: 13px; margin-bottom: 12px; }
+.surface-viewport { overflow: auto; max-height: 900px; border: 1px solid var(--line); background: #fff; }
+.surface-viewport iframe { display: block; border: 0; background: #fff; }
+.surface-screenshot { max-width: 100%; max-height: 700px; object-fit: contain; }
+.surface-mappings { max-height: 460px; overflow: auto; }
+.surface-mappings table { width: 100%; border-collapse: collapse; text-align: left; }
+.surface-mappings td, .surface-mappings th { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.surface-mappings small { display: block; margin-top: 6px; overflow-wrap: anywhere; }
+.surface-mappings code { overflow-wrap: anywhere; }
+.surface-mappings select { width: 100%; min-width: 180px; }
+.surface-issues { max-height: 340px; overflow: auto; margin: 12px 0; border-block: 1px solid var(--line); }
+.surface-issues label, .surfaces-page .surface-check { flex-direction: row; align-items: flex-start; gap: 12px; }
+.surface-issues input { flex: none; margin-top: 4px; }
+.surface-issues span { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .surface-import-columns, .surface-panes { grid-template-columns: minmax(0, 1fr); } .surface-panel, .surface-import { padding: 16px; } }

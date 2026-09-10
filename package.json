@@ -32,23 +32,31 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:mcp": "vitest run mcp/server.test.ts",
-    "check": "pnpm run build && pnpm run lint && pnpm run test && pnpm run validate"
+    "check": "pnpm run build && pnpm run lint && pnpm run test && pnpm run validate",
+    "test:surfaces:browser": "playwright test -c tests/surfaces/playwright.config.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.0.0",
     "@vitejs/plugin-react": "5.2.0",
+    "css-tree": "3.2.1",
+    "parse5": "8.0.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router-dom": "7.18.2",
+    "sanitize-html": "2.17.7",
+    "sharp": "0.35.4",
     "vite": "7.3.6",
     "zod": "4.4.3"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
     "@modelcontextprotocol/client": "2.0.0",
+    "@playwright/test": "1.63.0",
+    "@types/css-tree": "3.2.0",
     "@types/node": "24.13.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.4",
+    "@types/sanitize-html": "2.16.1",
     "concurrently": "9.2.4",
     "eslint": "9.39.5",
     "eslint-plugin-react-hooks": "5.2.0",

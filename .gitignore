@@ -13,3 +13,6 @@ monet/gaps/
 monet/proposals/
 # Apply receipts and journals are per-workspace audit records, not starter guidance.
 monet/applications/
+
+# Imported static product evidence.
+monet/surfaces/
