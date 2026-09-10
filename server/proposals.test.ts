@@ -29,6 +29,15 @@ const canonicalFiles = ["components/decisions.json", "taxonomy/components.json",
 async function canonicalSnapshot(): Promise<Map<string, Buffer>> {
   return new Map(await Promise.all(canonicalFiles.map(async (file) => [file, await readFile(path.join(directory, file))] as const)));
 }
+/** Byte-exact comparison via Buffer.equals: vitest's toEqual walks every byte of the ~2MB snapshot as an object key and takes seconds, which timed out CI. */
+async function expectCanonicalUnchanged(snapshot: Map<string, Buffer>): Promise<void> {
+  for (const [file, bytes] of snapshot) {
+    const current = await readFile(path.join(directory, file));
+    if (current.equals(bytes)) continue;
+    expect(current.toString("utf8"), `${file} changed`).toBe(bytes.toString("utf8"));
+    expect.fail(`${file} changed in bytes that do not show as text`);
+  }
+}
 
 async function diagnosedGap(raw: Analysis = eligibleAnalysis(), problem = "Secondary actions on cards read as plain text"): Promise<Gap> {
   vi.stubEnv("MONET_AI_COMMAND", "provider");
@@ -123,7 +132,7 @@ describe("Proposal revisions", () => {
     expect(await listProposals(gap.id)).toEqual([expect.objectContaining({ id: created.id, revision: 1, approved_revision: null, summary: "Make secondary actions recognizable" })]);
 
     await regenerateExports();
-    for (const [file, bytes] of snapshot) expect(await readFile(path.join(directory, file)), file).toEqual(bytes);
+    await expectCanonicalUnchanged(snapshot);
     expect(JSON.stringify(await loadWorkspace())).toBe(workspaceBefore);
     expect(JSON.stringify(await loadWorkspace())).not.toContain("Secondary actions on a card or tile");
   });
@@ -219,7 +228,7 @@ describe("Proposal approval, staleness, and closure", () => {
     expect(revised.revisions[1]!.hash).not.toBe(revision.hash);
     const snapshot = await canonicalSnapshot();
     expect(JSON.stringify(await loadWorkspace())).not.toContain("Card actions need a visible affordance");
-    for (const [file, bytes] of snapshot) expect(await readFile(path.join(directory, file))).toEqual(bytes);
+    await expectCanonicalUnchanged(snapshot);
   });
 
   it("detects changed, missing, re-diagnosed, and deleted bases and blocks approval until a new revision", async () => {

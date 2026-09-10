@@ -28,6 +28,14 @@ process.stdin.on("end", () => {
 });
 `;
 
+/** Byte-exact comparison via Buffer.equals: vitest's toEqual walks every byte of these large files as an object key and takes seconds on CI. */
+async function expectBytesUnchanged(file: string, before: Buffer): Promise<void> {
+  const current = await readFile(file);
+  if (current.equals(before)) return;
+  expect(current.toString("utf8"), `${file} changed`).toBe(before.toString("utf8"));
+  expect.fail(`${file} changed in bytes that do not show as text`);
+}
+
 it("drives a proposal from diagnosis to approval over HTTP without touching canonical files", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "monet-proposal-http-"));
   await cp(BUNDLED_WORKSPACE, directory, { recursive: true, filter: (source) => !/\/(gaps|proposals)(\/|$)/.test(source) });
@@ -89,8 +97,8 @@ it("drives a proposal from diagnosis to approval over HTTP without touching cano
     expect((await fetch(`${url}/api/proposals/does-not-exist`)).status).toBe(404);
     expect((await fetch(`${url}/api/proposal-revisions/${proposal.id}`, { method: "POST", headers: json, body: JSON.stringify({ summary: "", changes: [] }) })).status).toBe(400);
 
-    expect(await readFile(path.join(directory, "components", "decisions.json"))).toEqual(decisionsBefore);
-    expect(await readFile(path.join(directory, "DESIGN_SYSTEM.md"))).toEqual(exportBefore);
+    await expectBytesUnchanged(path.join(directory, "components", "decisions.json"), decisionsBefore);
+    await expectBytesUnchanged(path.join(directory, "DESIGN_SYSTEM.md"), exportBefore);
     expect((await (await fetch(`${url}/api/workspace`)).text())).not.toContain("Secondary means visibly a button");
   } finally {
     if (child.exitCode === null && child.signalCode === null) { const exited = once(child, "exit"); child.kill(); await exited; }
