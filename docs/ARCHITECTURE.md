@@ -225,3 +225,11 @@ resolution and Conformance; saved snapshots and mapping revisions use atomic
 `surfaces/<id>.json` records and the existing workspace access boundary. Selected
 evidence can be copied into Gaps without diagnosis or canonical writes. See
 [Surfaces](SURFACES.md) for its import contract, limits and security tests.
+
+Local Project Connection (Surfaces V1.1) adds Profile-bound `projects/<id>.json` records,
+bounded deterministic discovery (`server/projectDiscovery.ts`), a throwaway loopback static
+server, an isolated Playwright capture (`server/projectCapture.ts`) whose output is shape-validated
+and then sanitized like any pasted capture, and a memory ledger that hands a capture id, not
+HTML, to the editor. Provenance is attested by the service and stored on the Surface. Optional
+provider help (screen finding, friendlier names) is validated against the deterministic
+inventory. See [Local Project Connection](PROJECTS.md).

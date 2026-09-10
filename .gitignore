@@ -14,8 +14,9 @@ monet/proposals/
 # Apply receipts and journals are per-workspace audit records, not starter guidance.
 monet/applications/
 
-# Imported static product evidence.
+# Imported static product evidence and local project connections.
 monet/surfaces/
+monet/projects/
 
 # Stable local identity created when the starter is enrolled; never ship a user Profile ID.
 monet/profile.json

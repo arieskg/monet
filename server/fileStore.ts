@@ -882,7 +882,7 @@ async function createGapInScope(input: unknown): Promise<Gap> {
   if (report.provenance) {
     // Resolve at handoff time: Surface storage itself uses this store to create the Gap.
     const { assertSurfaceProvenance } = await import("./surfaceStore.js");
-    await assertSurfaceProvenance(report.provenance);
+    await assertSurfaceProvenance(report.provenance, report.project);
   }
   let savedImage: StoredGap["image"] = null;
   if (image) {

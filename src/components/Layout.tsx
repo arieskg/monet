@@ -14,7 +14,7 @@ import { useWorkspace } from "../WorkspaceContext";
 const sections = [
   { label: "Design system", icon: "design-system", links: [["/principles", "Principles"], ["/foundations", "Foundations"], ["/components", "Components"], ["/patterns", "Patterns"], ["/themes", "Themes"]] },
   { label: "Inspiration", icon: "inspiration", links: [["/sources", "Sources"], ["/references", "References"]] },
-  { label: "Build with it", icon: "build", links: [["/preview", "Preview"], ["/surfaces", "Surfaces"], ["/agent", "Agent context"], ["/gaps", "Gaps"], ["/export", "Export"]] },
+  { label: "Build with it", icon: "build", links: [["/preview", "Preview"], ["/surfaces", "Surfaces"], ["/projects", "Projects"], ["/agent", "Agent context"], ["/gaps", "Gaps"], ["/export", "Export"]] },
 ] as const;
 
 const monetLogo = "/monet-logo.png";

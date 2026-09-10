@@ -1,6 +1,6 @@
 import path from "node:path";
 import { AsyncLocalStorage } from "node:async_hooks";
-import type { ProfileIdentity, ProfileOwned, ProjectEvidenceBinding } from "../shared/profiles.js";
+import type { ProfileIdentity, ProfileOwned, ProjectBinding, ProjectEvidenceBinding } from "../shared/profiles.js";
 
 /**
  * Where Monet reads and writes design-system records.
@@ -55,7 +55,14 @@ export function setWorkspaceRoot(root: string): void {
 export { BUNDLED_WORKSPACE };
 
 /** Immutable scope captured by a bound service, request or provider job. Never UI selection. */
-export interface ProfileScope { readonly root: string; readonly identity?: ProfileIdentity; readonly verify?: () => Promise<void>; readonly assertProject?: (binding: ProjectEvidenceBinding) => void }
+export interface ProfileScope {
+  readonly root: string; readonly identity?: ProfileIdentity; readonly verify?: () => Promise<void>;
+  readonly assertProject?: (binding: ProjectEvidenceBinding) => void;
+  /** Registry-backed Project binding operations for this Profile only (Surfaces V1.1 connection layer). */
+  readonly bindProject?: (id: string, name: string) => Promise<ProjectBinding>;
+  readonly projectBinding?: (id: string) => ProjectBinding | undefined;
+  readonly checkProjectRoot?: (root: string) => void;
+}
 const profileContext = new AsyncLocalStorage<ProfileScope>();
 export function workspaceScope(): ProfileScope { return profileContext.getStore() ?? Object.freeze({ root: current }); }
 export function withProfile<T>(scope: ProfileScope, work: () => T): T {

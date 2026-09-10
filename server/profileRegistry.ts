@@ -23,7 +23,7 @@ const librarySchema = z.object({ version: z.literal(1), originalProfileId: id, p
 type Library = z.infer<typeof librarySchema>;
 const MANIFEST = "profile.json";
 const KNOWLEDGE = ["principles", "foundations", "taxonomy", "components", "primitives", "patterns", "themes", "sources"];
-const OWNED_PATHS = [...KNOWLEDGE, "references", "decisions", "tokens", "gaps", "proposals", "applications", "surfaces", "DESIGN_SYSTEM.md", "design-system.json", "STARTER-LICENSE.txt", MANIFEST];
+const OWNED_PATHS = [...KNOWLEDGE, "references", "decisions", "tokens", "gaps", "proposals", "applications", "surfaces", "projects", "DESIGN_SYSTEM.md", "design-system.json", "STARTER-LICENSE.txt", MANIFEST];
 const missing = (e: unknown) => (e as NodeJS.ErrnoException).code === "ENOENT";
 const conflict = (message: string) => Object.assign(new Error(message), { status: 409 });
 async function json(file: string): Promise<unknown> { return JSON.parse(await readFile(file, "utf8")); }
@@ -152,7 +152,12 @@ export class ProfileRegistry {
     if (await realpath(entry.root) !== entry.root) throw conflict("Registered Profile root moved or became a symlink.");
     const scope = await readOnlyProfileScope(entry.root, profileId);
     await scope.verify?.();
-    return Object.freeze({ ...scope, assertProject: (binding: import("../shared/profiles.js").ProjectEvidenceBinding) => this.assertBinding(binding.project_id, profileId, binding.binding_revision) });
+    return Object.freeze({ ...scope, assertProject: (binding: import("../shared/profiles.js").ProjectEvidenceBinding) => this.assertBinding(binding.project_id, profileId, binding.binding_revision),
+      // The library is application storage, not Profile storage: its write runs outside the Profile's own root guard.
+      bindProject: (id: string, name: string) => withProfile(Object.freeze({ root: this.directory }), () => this.bindProject({ id, name, profileId, bindingRevision: 1 })),
+      projectBinding: (id: string) => { const project = this.data.projects.find((p) => p.id === id && p.profileId === profileId); return project ? { ...project } : undefined; },
+      // Project directories are inspected and served during capture; Profile storage and the library are never project content.
+      checkProjectRoot: (root: string) => { if (overlap(root, path.resolve(this.directory)) || this.data.profiles.some((p) => overlap(root, p.root))) throw conflict("A project directory cannot contain or live inside a Profile or the Monet library."); } });
   }
   async create(raw: unknown): Promise<ProfileRegistration> {
     const input = z.object({ name: identitySchema.shape.name, kind: z.enum(["scratch", "monet-starter", "fork"]), sourceProfileId: id.optional(), includeReferences: z.boolean().default(false) }).strict().parse(raw);

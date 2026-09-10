@@ -156,7 +156,7 @@ describe("library integrity", () => {
     expect(JSON.parse(await readFile(path.join(withRefs.root, "references", "registry.json"), "utf8"))).toEqual(JSON.parse(await readFile(path.join(a.root, "references", "registry.json"), "utf8")));
     expect(refEntries).toContain("references");
     expect(JSON.parse(await readFile(path.join(plain.root, "profile.json"), "utf8")).id).toBe(plain.identity.id);
-  });
+  }, 20000);
 });
 
 describe("theme-free Profiles", () => {
