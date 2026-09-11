@@ -1,3 +1,4 @@
+import { PresetOrigin } from "../components/PresetOrigin";
 import { useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { PageHeader } from "../components/Common";
@@ -51,6 +52,7 @@ export function AgentContextPage() {
     <PageHeader eyebrow="Model Context Protocol" title="Agent context" description="The other half of Monet. The pages in Design system decide what this product looks like; this is how a coding agent reads those decisions while it builds, and how it checks its work afterwards." />
 
     {environment?.profile && <p><b>{environment.profile.name}</b> · Profile <code>{environment.profile.id}</code>. This connection stays bound to this Profile when you switch the editor.</p>}
+    <PresetOrigin />
     <section className="agent-loop" aria-label="The build loop">
       <ol>
         <li><b>get_design_context</b><small>Ask Monet</small></li>

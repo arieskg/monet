@@ -43,8 +43,9 @@ Both ports must be free; stop an earlier dev server with **Ctrl+C** before resta
 
 Explore **Overview → Principles / Foundations / Components / Patterns → Preview**.
 The bundled workspace is example data, not a required design style. Use the sidebar's
-**New Profile → Monet starter** to create your own independent copy, or choose
-**Empty profile** to begin with no design decisions. To start at a custom empty or
+**New Profile → Monet Starter** to create your own independent copy, choose
+**Blank** to begin with no design decisions, or choose **Preset** for a curated
+Radix, Carbon or USWDS starting point. [Explore Preset Profiles](docs/PRESETS.md). To start at a custom empty or
 not-yet-created directory, stop the server and run:
 
 ```bash
@@ -93,6 +94,9 @@ Monet supports local stdio clients without client-specific behavior.
 
 ## What you get
 
+- **Independent Preset Profiles:** inspect Radix Product, Carbon Product or USWDS
+  Public Service, then create an editable local copy with retained source and license
+  provenance. Creation works offline and later catalog changes never update your copy.
 - **Reusable decisions:** principles, foundations, semantic tokens, component and primitive
   records, patterns, themes, and saved visual references in Markdown and JSON.
 - **Task-specific context:** deterministic retrieval and compact briefs with links to full

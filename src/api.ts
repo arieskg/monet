@@ -1,3 +1,4 @@
+import type { PresetDetail, PresetSummary, PresetReceipt, ProfileSeed } from "../shared/presets";
 import type { ProfileIdentity, ProfileLibrary, ProfileRegistration } from "../shared/profiles";
 import type { ComponentDecision, Foundation, MarkdownDocument, PrimitiveDecision, Principle, Reference, ReferenceCollectionAnalysis, Source, TaxonomyCategory, Theme, ThemeMode, Workspace } from "./domain";
 import type { Gap, GapDiagnosisResponse, GapInput, GapReviewInput, GapSummary } from "../shared/gaps";
@@ -76,6 +77,7 @@ return {
   applyPlan: (id: string) => request<ApplyPlan>("/api/proposal-applications/" + encodeURIComponent(id)),
   applyProposal: (id: string, value: { revision: number; hash: string }) => request<ApplyResult>("/api/proposal-applications/" + encodeURIComponent(id), { method: "POST", body: JSON.stringify(value) }),
   applications: () => request<ApplicationReceipt[]>("/api/applications"),
+  presetOrigin: () => request<PresetReceipt | null>("/api/preset-origin"),
   environment: () => request<Environment>("/api/environment"),
   workspace: (themeId?: string, mode?: ThemeMode) => {
     const params = new URLSearchParams();
@@ -122,7 +124,9 @@ export const profileApi = {
     if (!response.ok) throw new Error("Unable to rename Profile.");
   },
   async list(): Promise<ProfileLibrary> { const response = await fetch("/api/profiles"); if (!response.ok) throw new Error("Unable to load Profiles."); return response.json() as Promise<ProfileLibrary>; },
-  async create(input: { name: string; kind: "scratch" | "monet-starter" | "fork"; sourceProfileId?: string; includeReferences?: boolean }): Promise<ProfileRegistration> {
+  async presets(): Promise<PresetSummary[]> { const r = await fetch("/api/presets"); if (!r.ok) throw new Error("Unable to load bundled presets."); return r.json() as Promise<PresetSummary[]>; },
+  async preset(id: string): Promise<PresetDetail> { const r = await fetch(`/api/presets/${encodeURIComponent(id)}`); if (!r.ok) throw new Error("Unable to inspect this preset."); return r.json() as Promise<PresetDetail>; },
+  async create(input: ProfileSeed | { name: string; kind: "fork"; sourceProfileId: string; includeReferences?: boolean }): Promise<ProfileRegistration> {
     const response = await fetch("/api/profiles", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(input) });
     const result = await response.json() as ProfileRegistration & { error?: string }; if (!response.ok) throw new Error(result.error ?? "Unable to create Profile."); return result;
   },

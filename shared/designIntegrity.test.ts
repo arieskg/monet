@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadWorkspace } from "../server/fileStore.js";
+import { validateWorkspace } from "../server/validate.js";
 import { joinComponents, createMonetService } from "./service.js";
 import { preferenceViolations } from "./preferences.js";
 import { resolveThemeTokens } from "./tokens.js";
@@ -270,6 +271,18 @@ describe("Monet token contracts", () => {
 
   it.each(MODE_TOKENS)("holds every colour contract validate enforces in %s mode, so the suite and validate agree", (mode, tokens) => {
     expect(contrastFailures(tokens, mode).map((failure) => `${failure.foreground} on ${failure.background} is ${failure.ratio.toFixed(2)}:1`)).toEqual([]);
+  });
+
+  it("detects unreadable dark text and broken dark references in a Profile without Themes", () => {
+    const profile = structuredClone(workspace);
+    profile.themes = []; profile.defaultThemeId = "";
+    const foreground = profile.foundations.flatMap((f) => f.tokens).find((t) => t.name === "color.foreground")!;
+    foreground.modes = { dark: "{color.surface}" };
+    const dark = resolveThemeTokens(profile.foundations, null, "dark");
+    expect(contrastFailures(dark.tokens, "dark").some((f) => f.foreground === "color.foreground" && f.background === "color.surface" && f.ratio === 1)).toBe(true);
+    expect(validateWorkspace(profile).some((f) => f.level === "error" && /Profile \(dark\): color.foreground on color.surface/.test(f.detail))).toBe(true);
+    foreground.modes = { dark: "{missing.dark.token}" };
+    expect(validateWorkspace(profile).some((f) => f.level === "error" && f.detail.includes("Profile (dark)") && f.detail.includes("missing.dark.token"))).toBe(true);
   });
 
   it("keeps the light status text roles identical to their fills, so light mode did not change", () => {

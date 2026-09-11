@@ -1,0 +1,2177 @@
+{
+  "manifest": {
+    "package_version": 1,
+    "monet_schema": 1,
+    "id": "carbon-product",
+    "name": "Carbon Product",
+    "version": "1.0.0",
+    "adaptation_version": "1.0.0",
+    "description": "Square controls and disciplined hierarchy for complex, data-rich tools.",
+    "best_for": [
+      "Data-heavy applications",
+      "Dashboards and admin",
+      "Enterprise tools"
+    ],
+    "characteristics": [
+      "Blue accent",
+      "Square controls",
+      "Productive typography",
+      "8px mini-unit spacing"
+    ],
+    "supported_modes": [
+      "light",
+      "dark"
+    ],
+    "upstream": {
+      "name": "Carbon",
+      "repository": "https://github.com/carbon-design-system/carbon",
+      "documentation": "https://carbondesignsystem.com/",
+      "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3"
+    },
+    "license": "Apache-2.0",
+    "attribution": "Adapted by Monet from Carbon. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled.",
+    "notices": [
+      {
+        "title": "carbon-design-system/carbon — LICENSE",
+        "source_url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/LICENSE",
+        "text": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"{}\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright 2015 IBM Corp.\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License.\n"
+      },
+      {
+        "title": "carbon-design-system/carbon-website — LICENSE",
+        "source_url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/LICENSE",
+        "text": "                                 Apache License\n                           Version 2.0, January 2004\n                        http://www.apache.org/licenses/\n\n   TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n   1. Definitions.\n\n      \"License\" shall mean the terms and conditions for use, reproduction,\n      and distribution as defined by Sections 1 through 9 of this document.\n\n      \"Licensor\" shall mean the copyright owner or entity authorized by\n      the copyright owner that is granting the License.\n\n      \"Legal Entity\" shall mean the union of the acting entity and all\n      other entities that control, are controlled by, or are under common\n      control with that entity. For the purposes of this definition,\n      \"control\" means (i) the power, direct or indirect, to cause the\n      direction or management of such entity, whether by contract or\n      otherwise, or (ii) ownership of fifty percent (50%) or more of the\n      outstanding shares, or (iii) beneficial ownership of such entity.\n\n      \"You\" (or \"Your\") shall mean an individual or Legal Entity\n      exercising permissions granted by this License.\n\n      \"Source\" form shall mean the preferred form for making modifications,\n      including but not limited to software source code, documentation\n      source, and configuration files.\n\n      \"Object\" form shall mean any form resulting from mechanical\n      transformation or translation of a Source form, including but\n      not limited to compiled object code, generated documentation,\n      and conversions to other media types.\n\n      \"Work\" shall mean the work of authorship, whether in Source or\n      Object form, made available under the License, as indicated by a\n      copyright notice that is included in or attached to the work\n      (an example is provided in the Appendix below).\n\n      \"Derivative Works\" shall mean any work, whether in Source or Object\n      form, that is based on (or derived from) the Work and for which the\n      editorial revisions, annotations, elaborations, or other modifications\n      represent, as a whole, an original work of authorship. For the purposes\n      of this License, Derivative Works shall not include works that remain\n      separable from, or merely link (or bind by name) to the interfaces of,\n      the Work and Derivative Works thereof.\n\n      \"Contribution\" shall mean any work of authorship, including\n      the original version of the Work and any modifications or additions\n      to that Work or Derivative Works thereof, that is intentionally\n      submitted to Licensor for inclusion in the Work by the copyright owner\n      or by an individual or Legal Entity authorized to submit on behalf of\n      the copyright owner. For the purposes of this definition, \"submitted\"\n      means any form of electronic, verbal, or written communication sent\n      to the Licensor or its representatives, including but not limited to\n      communication on electronic mailing lists, source code control systems,\n      and issue tracking systems that are managed by, or on behalf of, the\n      Licensor for the purpose of discussing and improving the Work, but\n      excluding communication that is conspicuously marked or otherwise\n      designated in writing by the copyright owner as \"Not a Contribution.\"\n\n      \"Contributor\" shall mean Licensor and any individual or Legal Entity\n      on behalf of whom a Contribution has been received by Licensor and\n      subsequently incorporated within the Work.\n\n   2. Grant of Copyright License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      copyright license to reproduce, prepare Derivative Works of,\n      publicly display, publicly perform, sublicense, and distribute the\n      Work and such Derivative Works in Source or Object form.\n\n   3. Grant of Patent License. Subject to the terms and conditions of\n      this License, each Contributor hereby grants to You a perpetual,\n      worldwide, non-exclusive, no-charge, royalty-free, irrevocable\n      (except as stated in this section) patent license to make, have made,\n      use, offer to sell, sell, import, and otherwise transfer the Work,\n      where such license applies only to those patent claims licensable\n      by such Contributor that are necessarily infringed by their\n      Contribution(s) alone or by combination of their Contribution(s)\n      with the Work to which such Contribution(s) was submitted. If You\n      institute patent litigation against any entity (including a\n      cross-claim or counterclaim in a lawsuit) alleging that the Work\n      or a Contribution incorporated within the Work constitutes direct\n      or contributory patent infringement, then any patent licenses\n      granted to You under this License for that Work shall terminate\n      as of the date such litigation is filed.\n\n   4. Redistribution. You may reproduce and distribute copies of the\n      Work or Derivative Works thereof in any medium, with or without\n      modifications, and in Source or Object form, provided that You\n      meet the following conditions:\n\n      (a) You must give any other recipients of the Work or\n          Derivative Works a copy of this License; and\n\n      (b) You must cause any modified files to carry prominent notices\n          stating that You changed the files; and\n\n      (c) You must retain, in the Source form of any Derivative Works\n          that You distribute, all copyright, patent, trademark, and\n          attribution notices from the Source form of the Work,\n          excluding those notices that do not pertain to any part of\n          the Derivative Works; and\n\n      (d) If the Work includes a \"NOTICE\" text file as part of its\n          distribution, then any Derivative Works that You distribute must\n          include a readable copy of the attribution notices contained\n          within such NOTICE file, excluding those notices that do not\n          pertain to any part of the Derivative Works, in at least one\n          of the following places: within a NOTICE text file distributed\n          as part of the Derivative Works; within the Source form or\n          documentation, if provided along with the Derivative Works; or,\n          within a display generated by the Derivative Works, if and\n          wherever such third-party notices normally appear. The contents\n          of the NOTICE file are for informational purposes only and\n          do not modify the License. You may add Your own attribution\n          notices within Derivative Works that You distribute, alongside\n          or as an addendum to the NOTICE text from the Work, provided\n          that such additional attribution notices cannot be construed\n          as modifying the License.\n\n      You may add Your own copyright statement to Your modifications and\n      may provide additional or different license terms and conditions\n      for use, reproduction, or distribution of Your modifications, or\n      for any such Derivative Works as a whole, provided Your use,\n      reproduction, and distribution of the Work otherwise complies with\n      the conditions stated in this License.\n\n   5. Submission of Contributions. Unless You explicitly state otherwise,\n      any Contribution intentionally submitted for inclusion in the Work\n      by You to the Licensor shall be under the terms and conditions of\n      this License, without any additional terms or conditions.\n      Notwithstanding the above, nothing herein shall supersede or modify\n      the terms of any separate license agreement you may have executed\n      with Licensor regarding such Contributions.\n\n   6. Trademarks. This License does not grant permission to use the trade\n      names, trademarks, service marks, or product names of the Licensor,\n      except as required for reasonable and customary use in describing the\n      origin of the Work and reproducing the content of the NOTICE file.\n\n   7. Disclaimer of Warranty. Unless required by applicable law or\n      agreed to in writing, Licensor provides the Work (and each\n      Contributor provides its Contributions) on an \"AS IS\" BASIS,\n      WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or\n      implied, including, without limitation, any warranties or conditions\n      of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A\n      PARTICULAR PURPOSE. You are solely responsible for determining the\n      appropriateness of using or redistributing the Work and assume any\n      risks associated with Your exercise of permissions under this License.\n\n   8. Limitation of Liability. In no event and under no legal theory,\n      whether in tort (including negligence), contract, or otherwise,\n      unless required by applicable law (such as deliberate and grossly\n      negligent acts) or agreed to in writing, shall any Contributor be\n      liable to You for damages, including any direct, indirect, special,\n      incidental, or consequential damages of any character arising as a\n      result of this License or out of the use or inability to use the\n      Work (including but not limited to damages for loss of goodwill,\n      work stoppage, computer failure or malfunction, or any and all\n      other commercial damages or losses), even if such Contributor\n      has been advised of the possibility of such damages.\n\n   9. Accepting Warranty or Additional Liability. While redistributing\n      the Work or Derivative Works thereof, You may choose to offer,\n      and charge a fee for, acceptance of support, warranty, indemnity,\n      or other liability obligations and/or rights consistent with this\n      License. However, in accepting such obligations, You may act only\n      on Your own behalf and on Your sole responsibility, not on behalf\n      of any other Contributor, and only if You agree to indemnify,\n      defend, and hold each Contributor harmless for any liability\n      incurred by, or claims asserted against, such Contributor by reason\n      of your accepting any such warranty or additional liability.\n\n   END OF TERMS AND CONDITIONS\n\n   APPENDIX: How to apply the Apache License to your work.\n\n      To apply the Apache License to your work, attach the following\n      boilerplate notice, with the fields enclosed by brackets \"{}\"\n      replaced with your own identifying information. (Don't include\n      the brackets!)  The text should be enclosed in the appropriate\n      comment syntax for the file format. We also recommend that a\n      file or class name and description of purpose be included on the\n      same \"printed page\" as the copyright notice for easier\n      identification within third-party archives.\n\n   Copyright 2018 IBM Corp.\n\n   Licensed under the Apache License, Version 2.0 (the \"License\");\n   you may not use this file except in compliance with the License.\n   You may obtain a copy of the License at\n\n       http://www.apache.org/licenses/LICENSE-2.0\n\n   Unless required by applicable law or agreed to in writing, software\n   distributed under the License is distributed on an \"AS IS\" BASIS,\n   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n   See the License for the specific language governing permissions and\n   limitations under the License.\n"
+      },
+      {
+        "title": "Adaptation and source notices",
+        "source_url": "https://github.com/carbon-design-system/carbon/tree/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "text": "Copyright IBM Corp. 2018, 2026 (token/type source files); Copyright IBM Corp. 2016, 2026 (type mixins and text input); Copyright IBM Corp. 2016, 2023 (button variables); Copyright IBM Corp. 2021 (box-shadow utility). Modified by Monet: selected and renamed records, resolved color aliases, converted mini-units, condensed guidance, and flattened White/Gray 100 into modes. No upstream NOTICE file was present in the inspected Carbon and Carbon website source trees."
+      }
+    ],
+    "omissions": [
+      "White and Gray 100 are flattened into Profile modes; alternate Gray 10/90 configurations are omitted.",
+      "One layer context is selected. Recursive layer switching and dynamic theme algorithms are not represented.",
+      "IBM Plex family references retain upstream fallbacks; font binaries are not included, so installed fonts affect appearance.",
+      "No components, icons, pictograms, brand assets or runtime accessibility behavior are bundled.",
+      "Productive fixed typography is selected; expressive/fluid type, full responsive grids and motion choreography remain references.",
+      "Only five component decisions and two compositions are included.",
+      "Inherited light-mode link and error text on layer 01 each measure about 4.55:1: above the 4.5:1 text floor, below Monet’s 4.75:1 margin. These produce two validation warnings; upstream colors are preserved."
+    ],
+    "sources": [
+      {
+        "id": "source-001",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/LICENSE",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "037b3e9eaff51477b270e9082f54b99175e4dd893548654f00995045b68294b8",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-002",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/LICENSE",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "7749dad2a05e8128db54576d334a14c117ca7b1ed882205d2b729ec736ccb6c6",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-003",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/colors/src/colors.ts",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "a4fb17169acbec6b9e4899d4acd5b73e0b9aff6635b751684de91c8f416f4e2f",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-004",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/white.json",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "c9b0898828b16d2823ed00614b29e937818fff1efcc73127b52f7c4034fcc58f",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-005",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/g100.json",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "6119ced0cd39f3fbabecc6e93fa1765d3874d48fce9469818fd84f24b4f069f4",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-006",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/layout/src/dtcg/layout.json",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "b337e0e6c8ee8be4845f0a8b2fa0320930bd2999ffbd53c83748afb12723e821",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-007",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/fontFamily.ts",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "433150c88e95926de09b5f82865a1dba49476e18be7349a0792ef1d54fe9ef0a",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-008",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/styles.ts",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "c6a491d1233ad3af8cfc08681a86780f2a1a2b1865cdac5eb9375dcb556fbbdf",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-009",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/scale.ts",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "c379f62d305ff79158d73a28d2460512cc3232de13812a3baf3dd19f20ced070",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-010",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/motion/src/dtcg/motion.json",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "8edbd403e467f7d8ef0259512e89008cc54da898917149cc5272277ee221fbf1",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-011",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/utilities/_box-shadow.scss",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "7735475f98fd1aaff7d70c266f95d1ac56a35a590a89df97710f715054b87f3d",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-012",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/elements/2x-grid/overview.mdx",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "07cea221d05999c85abbadc14b4b53bfdbf9e38b9bb1c8d3002d7fd745579c4a",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-013",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "260dbeea15b32edcb36f279fd99abc9102f9d14e58c0ef44ede0890f50fdca9d",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-014",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/data-table/usage.mdx",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "d6a83072910f149427043500ba742e55e4efd67e311aa8d595d2f780adaf1520",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-015",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/components/button.json",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "56d85c6538f45449901b98da4358169c7b01a2d5b2e6f6f496ac268a1831ea36",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-016",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/fontWeight.ts",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "69ab0e6a58e327013648c0ba67b9619d73f5820a33fada229170f52c832af63b",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-017",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/button/_mixins.scss",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "8921fa3146bca26cabbaddf3fd4ae86d37b4d7876e3b3fc9442b59a4ece254e3",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-018",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/button/_vars.scss",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "d4e765624450fd96ab6e7f857976f8d2e0068ac1ce63a82b2ecbb338ba854980",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-019",
+        "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss",
+        "revision": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+        "sha256": "126d6108a0c640128f48e9706114f130ec02557acf614ddbb778cef1931b28ce",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-020",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "2eeae3b90ccce8593630c0f0af0579d7f09d56a6da9a394fa2da4a50d085941d",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-021",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "719ba9377c6ae9b5b77b3efe8f97971d1f9333f56f8ff66c50937e6d7470d137",
+        "license": "Apache-2.0"
+      },
+      {
+        "id": "source-022",
+        "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/notification/usage.mdx",
+        "revision": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+        "sha256": "5f5651a9a85ced5e880d8a0beb8e0dc1bd04745fa43ed958f9c58a0a8c9eeae4",
+        "license": "Apache-2.0"
+      }
+    ],
+    "provenance": [
+      {
+        "record": "principle:structured-rhythm",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "principle:clear-task-hierarchy",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-013",
+          "source-014"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "foundation:color",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve Carbon aliases into literal colors, selecting layer 01. Keep support-icon colors separate from text-error colors. Semantic aliases identify the chosen context rather than implying all Carbon layer combinations are identical."
+      },
+      {
+        "record": "token:color.background",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.surface",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.surface.hover",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.carbon.layer-selected-01",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.foreground",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.foreground.muted",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.link",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.border",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.carbon.border-strong-01",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.focus",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.input",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.danger.foreground",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.carbon.support-success",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.carbon.support-warning",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.carbon.support-error",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.on.primary",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Resolve upstream alias and select layer 01 when applicable; normalize the semantic name."
+      },
+      {
+        "record": "token:color.primary",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-003",
+          "source-015"
+        ],
+        "explanation": "Value from blue60 button token; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.primary.hover",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-003",
+          "source-015"
+        ],
+        "explanation": "Value from blue60Hover button token; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.primary.pressed",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-003",
+          "source-015"
+        ],
+        "explanation": "Value from blue80 button token; token name normalized for Monet."
+      },
+      {
+        "record": "foundation:typography",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007",
+          "source-008",
+          "source-009"
+        ],
+        "explanation": "Use the productive body scale for application content. Keep font families as references, with upstream fallbacks. This package does not install IBM Plex. Fluid/expressive styles and cap-height adjustments are outside this subset."
+      },
+      {
+        "record": "token:font.size.1",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.2",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.3",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.4",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.5",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.6",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.7",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.8",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.9",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.10",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.11",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.12",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.13",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.14",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.15",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.16",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.size.17",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009"
+        ],
+        "explanation": "Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling."
+      },
+      {
+        "record": "token:font.family.sans",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from sans; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.family.mono",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from mono; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.weight.regular",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-016"
+        ],
+        "explanation": "Value from regular; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.weight.semibold",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-016"
+        ],
+        "explanation": "Value from semibold; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.md",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-008",
+          "source-009"
+        ],
+        "explanation": "Productive bodyLong01/bodyShort01 size."
+      },
+      {
+        "record": "token:font.size.heading",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-008",
+          "source-009"
+        ],
+        "explanation": "Monet section heading choice from the productive scale."
+      },
+      {
+        "record": "token:font.line-height.body",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from bodyLong01.lineHeight; token name normalized for Monet."
+      },
+      {
+        "record": "foundation:spacing",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Convert the structured mini-unit multipliers using the documented 8px mini-unit. Retain rem output to respect browser font sizing."
+      },
+      {
+        "record": "token:space.01",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.02",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.03",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.04",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.05",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.06",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.07",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.08",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.09",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.10",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.11",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.12",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "token:space.13",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "8px mini-unit times source multiplier, expressed in rem at 16px reference root."
+      },
+      {
+        "record": "foundation:radius",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-017"
+        ],
+        "explanation": "Select the square Carbon button/input treatment; any nonzero radius token elsewhere in Carbon does not redefine this control choice."
+      },
+      {
+        "record": "token:radius.control",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-018",
+          "source-017"
+        ],
+        "explanation": "Value from $button-border-radius: 0; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.card",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Monet preview uses square panels to illustrate this productive configuration."
+      },
+      {
+        "record": "foundation:elevation",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-011",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Use the published 0 2px 6px shadow utility and mode-specific shadow color. Structural containers should not receive arbitrary additional shadow layers."
+      },
+      {
+        "record": "token:shadow.overlay",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-011",
+          "source-003",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Inline the mode-specific Carbon shadow color into its box-shadow utility."
+      },
+      {
+        "record": "foundation:motion",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Retain the published duration scale and productive standard/entrance/exit curves. The tokens do not implement reduced motion or choreograph transitions; implement those behaviors in the target application."
+      },
+      {
+        "record": "token:motion.duration.fast-01",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from duration.fast.01; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.duration.fast-02",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from duration.fast.02; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.duration.moderate-01",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from duration.moderate.01; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.duration.moderate-02",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from duration.moderate.02; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.duration.slow-01",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from duration.slow.01; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.duration.slow-02",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from duration.slow.02; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.ease.standard",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from easing.standard.productive; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.ease.entrance",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from easing.entrance.productive; token name normalized for Monet."
+      },
+      {
+        "record": "token:motion.ease.exit",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from easing.exit.productive; token name normalized for Monet."
+      },
+      {
+        "record": "foundation:layout",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012",
+          "source-006"
+        ],
+        "explanation": "Use the 2x Grid to coordinate columns, gutters and the spacing of dense interfaces. This Profile gives the scale and guidance; responsive layout composition remains an application responsibility."
+      },
+      {
+        "record": "token:layout.mini-unit",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from 8px mini-unit; token name normalized for Monet."
+      },
+      {
+        "record": "foundation:borders",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-019",
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Use the chosen layer context for dividers. Carbon text inputs use a field fill and bottom border; do not turn every field into a rounded outlined control."
+      },
+      {
+        "record": "taxonomy:interface",
+        "kind": "monet-authored",
+        "sources": [],
+        "explanation": "Monet concept IDs and grouping; descriptions summarize the included decisions."
+      },
+      {
+        "record": "component:button",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-013",
+          "source-015"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:text-input",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-020",
+          "source-019"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:data-table",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-014"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:dialog",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-021"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:notification",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-022"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "pattern:data-table-actions",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-014",
+          "source-013",
+          "source-022"
+        ],
+        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+      },
+      {
+        "record": "pattern:transactional-dialog",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-021",
+          "source-020",
+          "source-013"
+        ],
+        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+      },
+      {
+        "record": "source:carbon-product",
+        "kind": "monet-authored",
+        "sources": [],
+        "explanation": "Monet packaging, attribution and component-to-source mapping metadata."
+      }
+    ]
+  },
+  "records": {
+    "principles": [
+      {
+        "id": "structured-rhythm",
+        "title": "Use a shared grid",
+        "body": "Organize layout with the 2x Grid and its 8px mini-unit. Align repeated content and controls; use the spacing scale to express grouping and separation.\n\nMonet adaptation: Carbon. [source-012](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/elements/2x-grid/overview.mdx)",
+        "order": 0,
+        "updated_at": ""
+      },
+      {
+        "id": "clear-task-hierarchy",
+        "title": "Make the main task clear",
+        "body": "Give a screen one principal action, with secondary and tertiary actions used according to their roles. In data views, make the title, toolbar and table structure understandable before adding interaction.\n\nMonet adaptation: Carbon. [source-013](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx) [source-014](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/data-table/usage.mdx)",
+        "order": 1,
+        "updated_at": ""
+      }
+    ],
+    "foundations": [
+      {
+        "id": "color",
+        "name": "Color",
+        "status": "selected",
+        "description": "Carbon White and Gray 100 semantic values.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Resolve Carbon aliases into literal colors, selecting layer 01. Keep support-icon colors separate from text-error colors. Semantic aliases identify the chosen context rather than implying all Carbon layer combinations are identical.",
+        "notes": "Provenance: [source-003](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/colors/src/colors.ts) [source-004](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/white.json) [source-005](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/g100.json)",
+        "order": 0,
+        "tokens": [
+          {
+            "id": "color-background",
+            "name": "color.background",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffffff",
+            "description": "Monet adaptation: background (White) / background (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 0,
+            "modes": {
+              "dark": "#161616"
+            }
+          },
+          {
+            "id": "color-surface",
+            "name": "color.surface",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#f4f4f4",
+            "description": "Monet adaptation: layer/01 (White) / layer/01 (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 1,
+            "modes": {
+              "dark": "#262626"
+            }
+          },
+          {
+            "id": "color-surface-hover",
+            "name": "color.surface.hover",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#e8e8e8",
+            "description": "Monet adaptation: layer/hover-01 (White) / layer/hover/01 (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 2,
+            "modes": {
+              "dark": "#333333"
+            }
+          },
+          {
+            "id": "color-carbon-layer-selected-01",
+            "name": "color.carbon.layer-selected-01",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#e0e0e0",
+            "description": "Monet adaptation: layer/selected-01 (White) / layer/selected/01 (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 3,
+            "modes": {
+              "dark": "#393939"
+            }
+          },
+          {
+            "id": "color-foreground",
+            "name": "color.foreground",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#161616",
+            "description": "Monet adaptation: text/primary (White) / text/primary (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 4,
+            "modes": {
+              "dark": "#f4f4f4"
+            }
+          },
+          {
+            "id": "color-foreground-muted",
+            "name": "color.foreground.muted",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#525252",
+            "description": "Monet adaptation: text/secondary (White) / text/secondary (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 5,
+            "modes": {
+              "dark": "#c6c6c6"
+            }
+          },
+          {
+            "id": "color-link",
+            "name": "color.link",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#0f62fe",
+            "description": "Monet adaptation: link/primary (White) / link/primary (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 6,
+            "modes": {
+              "dark": "#78a9ff"
+            }
+          },
+          {
+            "id": "color-border",
+            "name": "color.border",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#c6c6c6",
+            "description": "Monet adaptation: border/subtle-01 (White) / border/subtle/01 (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 7,
+            "modes": {
+              "dark": "#525252"
+            }
+          },
+          {
+            "id": "color-carbon-border-strong-01",
+            "name": "color.carbon.border-strong-01",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#8d8d8d",
+            "description": "Monet adaptation: border/strong-01 (White) / border/strong/01 (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 8,
+            "modes": {
+              "dark": "#6f6f6f"
+            }
+          },
+          {
+            "id": "color-focus",
+            "name": "color.focus",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#0f62fe",
+            "description": "Monet adaptation: focus (White) / focus (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 9,
+            "modes": {
+              "dark": "#ffffff"
+            }
+          },
+          {
+            "id": "color-input",
+            "name": "color.input",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#f4f4f4",
+            "description": "Monet adaptation: field/01 (White) / field/01 (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 10,
+            "modes": {
+              "dark": "#262626"
+            }
+          },
+          {
+            "id": "color-danger-foreground",
+            "name": "color.danger.foreground",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#da1e28",
+            "description": "Monet adaptation: text/error (White) / text/error (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 11,
+            "modes": {
+              "dark": "#ff8389"
+            }
+          },
+          {
+            "id": "color-carbon-support-success",
+            "name": "color.carbon.support-success",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#24a148",
+            "description": "Monet adaptation: support/success (White) / support/success (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 12,
+            "modes": {
+              "dark": "#42be65"
+            }
+          },
+          {
+            "id": "color-carbon-support-warning",
+            "name": "color.carbon.support-warning",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#f1c21b",
+            "description": "Monet adaptation: support/warning (White) / support/warning (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 13,
+            "modes": {
+              "dark": "#f1c21b"
+            }
+          },
+          {
+            "id": "color-carbon-support-error",
+            "name": "color.carbon.support-error",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#da1e28",
+            "description": "Monet adaptation: support/error (White) / support/error (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 14,
+            "modes": {
+              "dark": "#fa4d56"
+            }
+          },
+          {
+            "id": "color-on-primary",
+            "name": "color.on.primary",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffffff",
+            "description": "Monet adaptation: text/on-color (White) / text/on/color (Gray 100). Resolve upstream alias and select layer 01 when applicable; normalize the semantic name.",
+            "order": 15,
+            "modes": {
+              "dark": "#ffffff"
+            }
+          },
+          {
+            "id": "color-primary",
+            "name": "color.primary",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#0f62fe",
+            "description": "Upstream fact: blue60 button token. Value from blue60 button token; token name normalized for Monet.",
+            "order": 16,
+            "modes": {
+              "dark": "#0f62fe"
+            }
+          },
+          {
+            "id": "color-primary-hover",
+            "name": "color.primary.hover",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#0050e6",
+            "description": "Upstream fact: blue60Hover button token. Value from blue60Hover button token; token name normalized for Monet.",
+            "order": 17,
+            "modes": {
+              "dark": "#0050e6"
+            }
+          },
+          {
+            "id": "color-primary-pressed",
+            "name": "color.primary.pressed",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#002d9c",
+            "description": "Upstream fact: blue80 button token. Value from blue80 button token; token name normalized for Monet.",
+            "order": 18,
+            "modes": {
+              "dark": "#002d9c"
+            }
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "typography",
+        "name": "Typography",
+        "status": "selected",
+        "description": "Fixed productive type and upstream font fallbacks.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Use the productive body scale for application content. Keep font families as references, with upstream fallbacks. This package does not install IBM Plex. Fluid/expressive styles and cap-height adjustments are outside this subset.",
+        "notes": "Provenance: [source-007](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/fontFamily.ts) [source-008](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/styles.ts) [source-009](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/type/src/scale.ts)",
+        "order": 1,
+        "tokens": [
+          {
+            "id": "font-size-1",
+            "name": "font.size.1",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "0.75rem",
+            "description": "Monet adaptation: scale01. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 0
+          },
+          {
+            "id": "font-size-2",
+            "name": "font.size.2",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "0.875rem",
+            "description": "Monet adaptation: scale02. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 1
+          },
+          {
+            "id": "font-size-3",
+            "name": "font.size.3",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "1rem",
+            "description": "Monet adaptation: scale03. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 2
+          },
+          {
+            "id": "font-size-4",
+            "name": "font.size.4",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "1.125rem",
+            "description": "Monet adaptation: scale04. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 3
+          },
+          {
+            "id": "font-size-5",
+            "name": "font.size.5",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "1.25rem",
+            "description": "Monet adaptation: scale05. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 4
+          },
+          {
+            "id": "font-size-6",
+            "name": "font.size.6",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "1.5rem",
+            "description": "Monet adaptation: scale06. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 5
+          },
+          {
+            "id": "font-size-7",
+            "name": "font.size.7",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "1.75rem",
+            "description": "Monet adaptation: scale07. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 6
+          },
+          {
+            "id": "font-size-8",
+            "name": "font.size.8",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "2rem",
+            "description": "Monet adaptation: scale08. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 7
+          },
+          {
+            "id": "font-size-9",
+            "name": "font.size.9",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "2.25rem",
+            "description": "Monet adaptation: scale09. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 8
+          },
+          {
+            "id": "font-size-10",
+            "name": "font.size.10",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "2.625rem",
+            "description": "Monet adaptation: scale10. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 9
+          },
+          {
+            "id": "font-size-11",
+            "name": "font.size.11",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "3rem",
+            "description": "Monet adaptation: scale11. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 10
+          },
+          {
+            "id": "font-size-12",
+            "name": "font.size.12",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "3.375rem",
+            "description": "Monet adaptation: scale12. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 11
+          },
+          {
+            "id": "font-size-13",
+            "name": "font.size.13",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "3.75rem",
+            "description": "Monet adaptation: scale13. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 12
+          },
+          {
+            "id": "font-size-14",
+            "name": "font.size.14",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "4.25rem",
+            "description": "Monet adaptation: scale14. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 13
+          },
+          {
+            "id": "font-size-15",
+            "name": "font.size.15",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "4.75rem",
+            "description": "Monet adaptation: scale15. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 14
+          },
+          {
+            "id": "font-size-16",
+            "name": "font.size.16",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "5.25rem",
+            "description": "Monet adaptation: scale16. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 15
+          },
+          {
+            "id": "font-size-17",
+            "name": "font.size.17",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "5.75rem",
+            "description": "Monet adaptation: scale17. Convert the upstream pixel scale to rem at a 16px reference root; preserve user font scaling.",
+            "order": 16
+          },
+          {
+            "id": "font-family-sans",
+            "name": "font.family.sans",
+            "foundation": "typography",
+            "type": "font-family",
+            "level": "primitive",
+            "value": "'IBM Plex Sans', system-ui, -apple-system, BlinkMacSystemFont, '.SFNSText-Regular', sans-serif",
+            "description": "Upstream fact: sans. Value from sans; token name normalized for Monet.",
+            "order": 17
+          },
+          {
+            "id": "font-family-mono",
+            "name": "font.family.mono",
+            "foundation": "typography",
+            "type": "font-family",
+            "level": "primitive",
+            "value": "'IBM Plex Mono', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', Courier, monospace",
+            "description": "Upstream fact: mono. Value from mono; token name normalized for Monet.",
+            "order": 18
+          },
+          {
+            "id": "font-weight-regular",
+            "name": "font.weight.regular",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 400,
+            "description": "Upstream fact: regular. Value from regular; token name normalized for Monet.",
+            "order": 19
+          },
+          {
+            "id": "font-weight-semibold",
+            "name": "font.weight.semibold",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 600,
+            "description": "Upstream fact: semibold. Value from semibold; token name normalized for Monet.",
+            "order": 20
+          },
+          {
+            "id": "font-size-md",
+            "name": "font.size.md",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "semantic",
+            "value": "{font.size.2}",
+            "description": "Monet adaptation: font.size.2. Productive bodyLong01/bodyShort01 size.",
+            "order": 21
+          },
+          {
+            "id": "font-size-heading",
+            "name": "font.size.heading",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "semantic",
+            "value": "{font.size.6}",
+            "description": "Monet adaptation: font.size.6. Monet section heading choice from the productive scale.",
+            "order": 22
+          },
+          {
+            "id": "font-line-height-body",
+            "name": "font.line-height.body",
+            "foundation": "typography",
+            "type": "number",
+            "level": "primitive",
+            "value": 1.42857,
+            "description": "Upstream fact: bodyLong01.lineHeight. Value from bodyLong01.lineHeight; token name normalized for Monet.",
+            "order": 23
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "spacing",
+        "name": "Spacing",
+        "status": "selected",
+        "description": "Thirteen Carbon spacing steps.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Convert the structured mini-unit multipliers using the documented 8px mini-unit. Retain rem output to respect browser font sizing.",
+        "notes": "Provenance: [source-006](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/layout/src/dtcg/layout.json)",
+        "order": 2,
+        "tokens": [
+          {
+            "id": "space-01",
+            "name": "space.01",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "0.125rem",
+            "description": "Monet adaptation: spacing-01. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 0
+          },
+          {
+            "id": "space-02",
+            "name": "space.02",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "0.25rem",
+            "description": "Monet adaptation: spacing-02. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 1
+          },
+          {
+            "id": "space-03",
+            "name": "space.03",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "0.5rem",
+            "description": "Monet adaptation: spacing-03. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 2
+          },
+          {
+            "id": "space-04",
+            "name": "space.04",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "0.75rem",
+            "description": "Monet adaptation: spacing-04. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 3
+          },
+          {
+            "id": "space-05",
+            "name": "space.05",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "1rem",
+            "description": "Monet adaptation: spacing-05. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 4
+          },
+          {
+            "id": "space-06",
+            "name": "space.06",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "1.5rem",
+            "description": "Monet adaptation: spacing-06. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 5
+          },
+          {
+            "id": "space-07",
+            "name": "space.07",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "2rem",
+            "description": "Monet adaptation: spacing-07. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 6
+          },
+          {
+            "id": "space-08",
+            "name": "space.08",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "2.5rem",
+            "description": "Monet adaptation: spacing-08. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 7
+          },
+          {
+            "id": "space-09",
+            "name": "space.09",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "3rem",
+            "description": "Monet adaptation: spacing-09. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 8
+          },
+          {
+            "id": "space-10",
+            "name": "space.10",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "4rem",
+            "description": "Monet adaptation: spacing-10. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 9
+          },
+          {
+            "id": "space-11",
+            "name": "space.11",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "5rem",
+            "description": "Monet adaptation: spacing-11. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 10
+          },
+          {
+            "id": "space-12",
+            "name": "space.12",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "6rem",
+            "description": "Monet adaptation: spacing-12. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 11
+          },
+          {
+            "id": "space-13",
+            "name": "space.13",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "10rem",
+            "description": "Monet adaptation: spacing-13. 8px mini-unit times source multiplier, expressed in rem at 16px reference root.",
+            "order": 12
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "radius",
+        "name": "Radius",
+        "status": "selected",
+        "description": "Square productive controls.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Select the square Carbon button/input treatment; any nonzero radius token elsewhere in Carbon does not redefine this control choice.",
+        "notes": "Provenance: [source-017](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/button/_mixins.scss)",
+        "order": 3,
+        "tokens": [
+          {
+            "id": "radius-control",
+            "name": "radius.control",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "component",
+            "value": "0px",
+            "description": "Upstream fact: $button-border-radius: 0. Value from $button-border-radius: 0; token name normalized for Monet.",
+            "order": 0
+          },
+          {
+            "id": "radius-card",
+            "name": "radius.card",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "semantic",
+            "value": "{radius.control}",
+            "description": "Monet adaptation: radius.control. Monet preview uses square panels to illustrate this productive configuration.",
+            "order": 1
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "elevation",
+        "name": "Elevation",
+        "status": "selected",
+        "description": "Carbon box-shadow utility in both modes.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Use the published 0 2px 6px shadow utility and mode-specific shadow color. Structural containers should not receive arbitrary additional shadow layers.",
+        "notes": "Provenance: [source-011](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/utilities/_box-shadow.scss) [source-004](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/white.json) [source-005](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/g100.json)",
+        "order": 4,
+        "tokens": [
+          {
+            "id": "shadow-overlay",
+            "name": "shadow.overlay",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 2px 6px rgba(0, 0, 0, 0.3)",
+            "description": "Monet adaptation: box-shadow utility / shadow. Inline the mode-specific Carbon shadow color into its box-shadow utility.",
+            "order": 0,
+            "modes": {
+              "dark": "0 2px 6px rgba(0, 0, 0, 0.8)"
+            }
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "motion",
+        "name": "Motion",
+        "status": "selected",
+        "description": "Productive durations and easing.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Retain the published duration scale and productive standard/entrance/exit curves. The tokens do not implement reduced motion or choreograph transitions; implement those behaviors in the target application.",
+        "notes": "Provenance: [source-010](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/motion/src/dtcg/motion.json)",
+        "order": 5,
+        "tokens": [
+          {
+            "id": "motion-duration-fast-01",
+            "name": "motion.duration.fast-01",
+            "foundation": "motion",
+            "type": "duration",
+            "level": "primitive",
+            "value": "70ms",
+            "description": "Upstream fact: duration.fast.01. Value from duration.fast.01; token name normalized for Monet.",
+            "order": 0
+          },
+          {
+            "id": "motion-duration-fast-02",
+            "name": "motion.duration.fast-02",
+            "foundation": "motion",
+            "type": "duration",
+            "level": "primitive",
+            "value": "110ms",
+            "description": "Upstream fact: duration.fast.02. Value from duration.fast.02; token name normalized for Monet.",
+            "order": 1
+          },
+          {
+            "id": "motion-duration-moderate-01",
+            "name": "motion.duration.moderate-01",
+            "foundation": "motion",
+            "type": "duration",
+            "level": "primitive",
+            "value": "150ms",
+            "description": "Upstream fact: duration.moderate.01. Value from duration.moderate.01; token name normalized for Monet.",
+            "order": 2
+          },
+          {
+            "id": "motion-duration-moderate-02",
+            "name": "motion.duration.moderate-02",
+            "foundation": "motion",
+            "type": "duration",
+            "level": "primitive",
+            "value": "240ms",
+            "description": "Upstream fact: duration.moderate.02. Value from duration.moderate.02; token name normalized for Monet.",
+            "order": 3
+          },
+          {
+            "id": "motion-duration-slow-01",
+            "name": "motion.duration.slow-01",
+            "foundation": "motion",
+            "type": "duration",
+            "level": "primitive",
+            "value": "400ms",
+            "description": "Upstream fact: duration.slow.01. Value from duration.slow.01; token name normalized for Monet.",
+            "order": 4
+          },
+          {
+            "id": "motion-duration-slow-02",
+            "name": "motion.duration.slow-02",
+            "foundation": "motion",
+            "type": "duration",
+            "level": "primitive",
+            "value": "700ms",
+            "description": "Upstream fact: duration.slow.02. Value from duration.slow.02; token name normalized for Monet.",
+            "order": 5
+          },
+          {
+            "id": "motion-ease-standard",
+            "name": "motion.ease.standard",
+            "foundation": "motion",
+            "type": "cubic-bezier",
+            "level": "primitive",
+            "value": "cubic-bezier(0.2, 0, 0.38, 0.9)",
+            "description": "Upstream fact: easing.standard.productive. Value from easing.standard.productive; token name normalized for Monet.",
+            "order": 6
+          },
+          {
+            "id": "motion-ease-entrance",
+            "name": "motion.ease.entrance",
+            "foundation": "motion",
+            "type": "cubic-bezier",
+            "level": "primitive",
+            "value": "cubic-bezier(0, 0, 0.38, 0.9)",
+            "description": "Upstream fact: easing.entrance.productive. Value from easing.entrance.productive; token name normalized for Monet.",
+            "order": 7
+          },
+          {
+            "id": "motion-ease-exit",
+            "name": "motion.ease.exit",
+            "foundation": "motion",
+            "type": "cubic-bezier",
+            "level": "primitive",
+            "value": "cubic-bezier(0.2, 0, 1, 0.9)",
+            "description": "Upstream fact: easing.exit.productive. Value from easing.exit.productive; token name normalized for Monet.",
+            "order": 8
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "layout",
+        "name": "Layout",
+        "status": "selected",
+        "description": "8px mini-unit and 2x Grid.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Use the 2x Grid to coordinate columns, gutters and the spacing of dense interfaces. This Profile gives the scale and guidance; responsive layout composition remains an application responsibility.",
+        "notes": "Provenance: [source-012](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/elements/2x-grid/overview.mdx) [source-006](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/layout/src/dtcg/layout.json)",
+        "order": 6,
+        "tokens": [
+          {
+            "id": "layout-mini-unit",
+            "name": "layout.mini-unit",
+            "foundation": "layout",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "8px",
+            "description": "Upstream fact: 8px mini-unit. Value from 8px mini-unit; token name normalized for Monet.",
+            "order": 0
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "borders",
+        "name": "Borders",
+        "status": "selected",
+        "description": "Layer-aware dividers and input underlines.",
+        "rationale": "Monet adaptation of Carbon for this preset configuration.",
+        "guidance": "Use the chosen layer context for dividers. Carbon text inputs use a field fill and bottom border; do not turn every field into a rounded outlined control.",
+        "notes": "Provenance: [source-019](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss) [source-004](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/white.json) [source-005](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/g100.json)",
+        "order": 7,
+        "tokens": [],
+        "updated_at": ""
+      }
+    ],
+    "taxonomy": [
+      {
+        "id": "interface",
+        "name": "Interface",
+        "entries": [
+          {
+            "id": "button",
+            "name": "Button",
+            "category": "interface",
+            "description": "Explicit action hierarchy for productive interfaces.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "text-input",
+            "name": "Text input",
+            "category": "interface",
+            "description": "Labeled single-line entry with helper and error context.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "data-table",
+            "name": "Data table",
+            "category": "interface",
+            "description": "Structured comparison with opt-in row actions.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "dialog",
+            "name": "Dialog",
+            "category": "interface",
+            "description": "An interruption for a short, focused task.",
+            "aliases": [
+              "Modal"
+            ],
+            "relationships": []
+          },
+          {
+            "id": "notification",
+            "name": "Notification",
+            "category": "interface",
+            "description": "Status or feedback delivered with appropriate urgency.",
+            "aliases": [],
+            "relationships": []
+          }
+        ]
+      }
+    ],
+    "components": [
+      {
+        "id": "button",
+        "status": "selected",
+        "selection": {
+          "source": "carbon-product",
+          "source_component": "Button"
+        },
+        "preferences": {
+          "variant": "primary",
+          "radius": "token:radius.control",
+          "label_alignment": "left"
+        },
+        "behavior": {},
+        "rationale": "Explicit action hierarchy for productive interfaces.",
+        "notes": "Monet adaptation of Carbon: One primary action per screen, with documented exceptions for header/modal/side panel. Secondary is a paired negative action such as Cancel or Back; tertiary can stand alone. Ghost is least prominent; danger variants identify destructive actions. Text labels align left and accompanying icons right.\n\n[source-013](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx) [source-015](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/components/button.json)",
+        "use_when": [
+          "Principal action",
+          "A supported secondary, tertiary, ghost or danger action"
+        ],
+        "avoid_when": [
+          "Navigation links",
+          "An isolated secondary positive action"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "radius"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "text-input",
+        "status": "selected",
+        "selection": {
+          "source": "carbon-product",
+          "source_component": "Text input"
+        },
+        "preferences": {
+          "radius": "token:radius.control",
+          "border_treatment": "bottom"
+        },
+        "behavior": {},
+        "rationale": "Labeled single-line entry with helper and error context.",
+        "notes": "Monet adaptation of Carbon: Keep a visible label; placeholders are examples, not a label replacement. Show relevant helper text and an actionable invalid-state message. Disabled and read-only states have different behavior and must not be conflated.\n\n[source-020](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx) [source-019](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss)",
+        "use_when": [
+          "Short freeform input",
+          "Values not represented by a fixed choice list"
+        ],
+        "avoid_when": [
+          "Long text requiring a text area"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "borders"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "data-table",
+        "status": "selected",
+        "selection": {
+          "source": "carbon-product",
+          "source_component": "Data table"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "Structured comparison with opt-in row actions.",
+        "notes": "Monet adaptation of Carbon: Provide a descriptive title and column headers. Add toolbar/search, selection, sorting, expandable rows or pagination only when the task needs them. Batch actions apply to selected rows. Choose an appropriate documented row size; no universal density is imposed by this decision.\n\n[source-014](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/data-table/usage.mdx)",
+        "use_when": [
+          "Comparing records with common fields",
+          "Selecting records for batch actions"
+        ],
+        "avoid_when": [
+          "Page layout",
+          "Unstructured narrative"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "layout"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "dialog",
+        "status": "selected",
+        "selection": {
+          "source": "carbon-product",
+          "source_component": "Modal"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "An interruption for a short, focused task.",
+        "notes": "Monet adaptation of Carbon: Choose passive, transactional or danger modal according to the task. Provide a clear heading and closing behavior, preserve focus, and keep the work brief. Avoid nesting modals or using them as a substitute for a full workflow.\n\n[source-021](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx)",
+        "use_when": [
+          "Confirmation or short focused entry",
+          "A consequential decision requiring attention"
+        ],
+        "avoid_when": [
+          "Nested modals",
+          "Long workflows"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "elevation"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "notification",
+        "status": "selected",
+        "selection": {
+          "source": "carbon-product",
+          "source_component": "Notification"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "Status or feedback delivered with appropriate urgency.",
+        "notes": "Monet adaptation of Carbon: Use inline feedback in task context; choose a toast only for suitable transient communication. Provide meaningful text as well as status color/icon. Avoid unnecessary interruptions or multiple competing notifications.\n\n[source-022](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/notification/usage.mdx)",
+        "use_when": [
+          "Feedback after an operation",
+          "A task-relevant status change"
+        ],
+        "avoid_when": [
+          "Decorative messaging",
+          "Replacing field-level validation"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      }
+    ],
+    "patterns": [
+      {
+        "id": "data-table-actions",
+        "title": "Data table actions",
+        "summary": "Coordinate a table, toolbar and action feedback.",
+        "body": "Monet adaptation of Carbon guidance.\n\nName the data set and its columns. Add selection and batch actions only for a real multi-record task, distinguish toolbar actions from row actions, and communicate the result using appropriate notification feedback. Preserve row context and do not make all actions visually primary.\n\nSources: [source-014](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/data-table/usage.mdx) [source-013](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx) [source-022](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/notification/usage.mdx)",
+        "status": "selected",
+        "tags": [
+          "data",
+          "table",
+          "actions"
+        ],
+        "order": 0,
+        "updated_at": "",
+        "components": [
+          "data-table",
+          "button",
+          "notification"
+        ],
+        "foundations": [
+          "typography",
+          "spacing",
+          "layout",
+          "color"
+        ]
+      },
+      {
+        "id": "transactional-dialog",
+        "title": "Transactional dialog",
+        "summary": "Keep a focused transaction brief and understandable.",
+        "body": "Monet adaptation of Carbon guidance.\n\nUse a transactional modal for a short operation. Give inputs visible labels and actionable errors. Pair the principal action with a negative action in the documented modal arrangement. Use the danger treatment for a destructive transaction; do not nest dialogs.\n\nSources: [source-021](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx) [source-020](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx) [source-013](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx)",
+        "status": "selected",
+        "tags": [
+          "transactional",
+          "dialog"
+        ],
+        "order": 1,
+        "updated_at": "",
+        "components": [
+          "dialog",
+          "text-input",
+          "button"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "carbon-product",
+        "name": "Carbon — preset provenance",
+        "type": "reference",
+        "homepage": "https://carbondesignsystem.com/",
+        "repository": "https://github.com/carbon-design-system/carbon",
+        "framework": "Framework-independent Monet adaptation",
+        "package": "",
+        "license": "Apache-2.0",
+        "notes": "Adapted by Monet from Carbon. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset carbon-product@1.0.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
+        "enabled": true,
+        "mappings": [
+          {
+            "upstream": "Button",
+            "target_type": "component",
+            "canonical_id": "button",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Text input",
+            "target_type": "component",
+            "canonical_id": "text-input",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Data table",
+            "target_type": "component",
+            "canonical_id": "data-table",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/data-table/usage.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Modal",
+            "target_type": "component",
+            "canonical_id": "dialog",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Notification",
+            "target_type": "component",
+            "canonical_id": "notification",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/notification/usage.mdx",
+            "mapped_by": "manual"
+          }
+        ],
+        "updated_at": ""
+      }
+    ]
+  }
+}

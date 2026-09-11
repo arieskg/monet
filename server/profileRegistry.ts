@@ -11,11 +11,13 @@ import { recoverApplications } from "./applicationStore.js";
 import { withWorkspaceRead } from "./writeLock.js";
 import { validateWorkspace } from "./validate.js";
 import { instantiateMonetStarter } from "./monetStarter.js";
+import { presetSelectionSchema, profileSeedSchema } from "../shared/presets.js";
+import { PresetCatalog, instantiatePreset, PRESET_RECEIPT, PRESET_NOTICES, verifyPresetPublication } from "./presetCatalog.js";
 import { gapKnowledge, knowledgeFingerprint } from "./gapDiagnosis.js";
 
 const id = z.string().uuid();
 const identitySchema = z.object({ version: z.literal(1), id, name: z.string().trim().min(1).max(100), created_at: z.string().datetime(),
-  origin: z.object({ kind: z.enum(["enrolled", "scratch", "monet-starter", "fork"]), source_profile_id: id.optional(), source_fingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional(), starter_version: z.string().optional() }).strict() }).strict();
+  origin: z.object({ kind: z.enum(["enrolled", "scratch", "monet-starter", "fork", "preset"]), preset: presetSelectionSchema.optional(), preset_receipt_sha256: z.string().regex(/^[a-f0-9]{64}$/).optional(), source_profile_id: id.optional(), source_fingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional(), starter_version: z.string().optional() }).strict().refine((o) => o.kind !== "preset" || Boolean(o.preset && o.preset_receipt_sha256 && o.source_fingerprint === o.preset.sha256), "Preset identity requires matching snapshot provenance.").refine((o) => Boolean(o.preset) === Boolean(o.preset_receipt_sha256), "Incomplete preset provenance identity.") }).strict();
 const registrationSchema = z.object({ identity: identitySchema, root: z.string().min(1) }).strict();
 const pendingSchema = registrationSchema.extend({ stage: z.string().optional(), rename: z.boolean().optional() });
 const projectSchema = z.object({ id, name: z.string().trim().min(1).max(100), profileId: id, bindingRevision: z.number().int().positive() }).strict();
@@ -23,7 +25,7 @@ const librarySchema = z.object({ version: z.literal(1), originalProfileId: id, p
 type Library = z.infer<typeof librarySchema>;
 const MANIFEST = "profile.json";
 const KNOWLEDGE = ["principles", "foundations", "taxonomy", "components", "primitives", "patterns", "themes", "sources"];
-const OWNED_PATHS = [...KNOWLEDGE, "references", "decisions", "tokens", "gaps", "proposals", "applications", "surfaces", "projects", "DESIGN_SYSTEM.md", "design-system.json", "STARTER-LICENSE.txt", MANIFEST];
+const OWNED_PATHS = [...KNOWLEDGE, "references", "decisions", "tokens", "gaps", "proposals", "applications", "surfaces", "projects", "DESIGN_SYSTEM.md", "design-system.json", "STARTER-LICENSE.txt", PRESET_RECEIPT, PRESET_NOTICES, MANIFEST];
 const missing = (e: unknown) => (e as NodeJS.ErrnoException).code === "ENOENT";
 const conflict = (message: string) => Object.assign(new Error(message), { status: 409 });
 async function json(file: string): Promise<unknown> { return JSON.parse(await readFile(file, "utf8")); }
@@ -50,7 +52,7 @@ export async function verifyProfileTree(root: string): Promise<void> {
 export async function readOnlyProfileScope(root: string, expectedId?: string): Promise<ProfileScope> {
   const canonical = await realpath(root).catch((e) => { if (missing(e) && !expectedId) return path.resolve(root); throw e; });
   const parsedIdentity = await readProfileIdentity(canonical);
-  const identity = parsedIdentity ? Object.freeze({ ...parsedIdentity, origin: Object.freeze({ ...parsedIdentity.origin }) }) : undefined;
+  const identity = parsedIdentity ? Object.freeze({ ...parsedIdentity, origin: Object.freeze({ ...parsedIdentity.origin, ...(parsedIdentity.origin.preset ? { preset: Object.freeze({ ...parsedIdentity.origin.preset }) } : {}) }) }) : undefined;
   const inode = await lstat(canonical).catch((e) => { if (missing(e)) return undefined; throw e; });
   if (expectedId && identity?.id !== expectedId) throw conflict("Configured Profile ID does not match this workspace. No fallback is allowed.");
   return Object.freeze({ root: canonical, identity, verify: async () => {
@@ -65,7 +67,7 @@ export class ProfileRegistry {
   private chain: Promise<unknown> = Promise.resolve();
   private data!: Library;
   private unavailable = new Map<string, string>();
-  constructor(public directory = process.env.MONET_LIBRARY ?? path.join(os.homedir(), ".monet")) {}
+  constructor(public directory = process.env.MONET_LIBRARY ?? path.join(os.homedir(), ".monet"), public presets = new PresetCatalog()) {}
   private async save(data: Library) { await atomicWrite(path.join(this.directory, "library.json"), JSON.stringify(data, null, 2) + "\n"); this.data = structuredClone(data); }
   private exclusive<T>(work: () => Promise<T>): Promise<T> { const run = this.chain.then(async () => { if (await lstat(path.join(this.directory, "pending-profile.json")).then(() => true, (e) => { if (missing(e)) return false; throw e; })) throw conflict("Profile publication is pending. Restart to recover before changing the library."); return work(); }); this.chain = run.catch(() => undefined); return run; }
   private checkRoot(root: string, excluding?: string) {
@@ -84,10 +86,13 @@ export class ProfileRegistry {
         if (pending.root !== path.join(this.directory, "profiles", pending.identity.id) || pending.stage !== path.join(this.directory, "profiles", `.creating-${pending.identity.id}`)) throw conflict("Invalid staged Profile paths; evidence retained.");
         if (!await lstat(pending.root).then(() => true, (e) => { if (missing(e)) return false; throw e; })) {
           if ((await readProfileIdentity(pending.stage))?.id !== pending.identity.id) throw conflict("Incomplete Profile stage; evidence retained.");
-          await verifyProfileTree(pending.stage); await rename(pending.stage, pending.root); await syncDirectory(path.dirname(pending.root));
+          await verifyProfileTree(pending.stage);
+          if (pending.identity.origin.kind === "preset") await verifyPresetPublication(pending.stage, pending.identity);
+          await rename(pending.stage, pending.root); await syncDirectory(path.dirname(pending.root));
         }
       }
       if ((await readProfileIdentity(pending.root))?.id !== pending.identity.id) throw conflict("Incomplete Profile publication requires repair; pending evidence retained.");
+      if (pending.stage && pending.identity.origin.kind === "preset") await verifyPresetPublication(pending.root, pending.identity);
       this.checkRoot(pending.root, pending.identity.id);
       const existing = this.data.profiles.find((p) => p.identity.id === pending.identity.id);
       if (existing && existing.root !== pending.root) throw conflict("Pending Profile identity is already registered elsewhere.");
@@ -160,8 +165,7 @@ export class ProfileRegistry {
       checkProjectRoot: (root: string) => { if (overlap(root, path.resolve(this.directory)) || this.data.profiles.some((p) => overlap(root, p.root))) throw conflict("A project directory cannot contain or live inside a Profile or the Monet library."); } });
   }
   async create(raw: unknown, reservedId?: string): Promise<ProfileRegistration> {
-    const input = z.object({ name: identitySchema.shape.name, kind: z.enum(["scratch", "monet-starter", "fork"]), sourceProfileId: id.optional(), includeReferences: z.boolean().default(false) }).strict().parse(raw);
-    if ((input.kind === "fork") !== Boolean(input.sourceProfileId)) throw conflict("Only forks require a source Profile.");
+    const input = z.union([profileSeedSchema, z.object({ name: identitySchema.shape.name, kind: z.literal("fork"), sourceProfileId: id, includeReferences: z.boolean().default(false) }).strict()]).parse(raw);
     if (reservedId) id.parse(reservedId); // Internal durable onboarding reservation, never accepted by the Profile API.
     return this.exclusive(async () => {
       const profileId = reservedId ?? randomUUID(), root = path.resolve(this.directory, "profiles", profileId);
@@ -178,10 +182,15 @@ export class ProfileRegistry {
           await rm(stage, { recursive: true });
         }
       }
+      const preset = input.kind === "preset" ? await this.presets.load(input.preset) : null;
       await mkdir(stage, { recursive: true });
       let published = false;
       try {
         let origin: ProfileIdentity["origin"] = { kind: input.kind };
+        if (input.kind === "preset" && preset) {
+          const preset_receipt_sha256 = await instantiatePreset(stage, input.preset, preset);
+          origin = { kind: "preset", preset: input.preset, preset_receipt_sha256, source_fingerprint: input.preset.sha256 };
+        }
         if (input.kind === "monet-starter") origin = { kind: "monet-starter", ...await instantiateMonetStarter(stage) };
         if (input.kind === "fork") {
           const source = await this.scope(input.sourceProfileId!);
@@ -189,8 +198,8 @@ export class ProfileRegistry {
             await verifyProfileTree(source.root);
             const workspace = await loadWorkspace();
             const source_fingerprint = workspace.knowledgeFingerprint ?? knowledgeFingerprint(gapKnowledge(workspace));
-            origin = { kind: "fork", source_fingerprint, source_profile_id: input.sourceProfileId! };
-            for (const name of [...KNOWLEDGE, "STARTER-LICENSE.txt", ...(input.includeReferences ? ["references"] : [])]) {
+            origin = { kind: "fork", source_fingerprint, source_profile_id: input.sourceProfileId!, ...(source.identity?.origin.preset ? { preset: source.identity.origin.preset, preset_receipt_sha256: source.identity.origin.preset_receipt_sha256 } : {}) };
+            for (const name of [...KNOWLEDGE, "STARTER-LICENSE.txt", PRESET_RECEIPT, PRESET_NOTICES, ...(input.includeReferences ? ["references"] : [])]) {
               await cp(path.join(source.root, name), path.join(stage, name), { recursive: true, errorOnExist: true, force: false }).catch((e) => { if (!missing(e)) throw e; });
             }
           }));

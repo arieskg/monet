@@ -73,7 +73,7 @@ describe("bounded deterministic discovery", () => {
     expect(inventory.truncated).toBe(true); expect(inventory.entries).toBeGreaterThan(6000); expect(inventory.screens.length).toBeLessThanOrEqual(200);
     expect(extractHints(`const url = "https://evil.test/x"; <p>{value}</p><h1>Real heading</h1> "src/pages/x.tsx" "className=\\"a b\\"" "SELECT * FROM users; drop table"`)).toEqual(["Real heading"]);
     await expect(scanProject(path.join(directory, "missing"))).rejects.toThrow();
-  }, 30000);
+  }, 60000); // Includes creating 6,100 fixture files alongside durable Profile publication tests.
 });
 
 describe("throwaway static server", () => {

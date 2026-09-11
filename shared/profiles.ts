@@ -1,11 +1,12 @@
 import { z } from "zod";
+import type { PresetSelection } from "./presets.js";
 /** Profile identity is independent of local paths, projects and compatibility Themes. */
 export interface ProfileIdentity {
   version: 1;
   id: string;
   name: string;
   created_at: string;
-  origin: { kind: "enrolled" | "scratch" | "monet-starter" | "fork"; source_profile_id?: string; source_fingerprint?: string; starter_version?: string };
+  origin: { kind: "enrolled" | "scratch" | "monet-starter" | "fork" | "preset"; preset?: PresetSelection; preset_receipt_sha256?: string; source_profile_id?: string; source_fingerprint?: string; starter_version?: string };
 }
 export interface ProfileRegistration { identity: ProfileIdentity; root: string; unavailable?: string }
 export interface ProfileLibrary { profiles: ProfileRegistration[]; originalProfileId: string; defaultProfileId?: string }

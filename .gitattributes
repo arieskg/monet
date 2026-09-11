@@ -1,0 +1,4 @@
+# Hashed preset packages and source evidence must survive checkout byte-for-byte.
+presets/catalog/*.json -text
+# Upstream whitespace is retained as evidence, not normalized to Monet's style.
+presets/evidence/** -text -whitespace
