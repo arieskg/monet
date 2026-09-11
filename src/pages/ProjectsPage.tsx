@@ -5,6 +5,7 @@ import { acknowledgeOnboarding, forgetOnboarding, pendingOnboarding, rememberOnb
 import type { ProjectOnboardingInput } from "../../shared/projectOnboarding";
 import { useWorkspace } from "../WorkspaceContext";
 import { PageHeader } from "../components/Common";
+import { ProfileSeedPicker, type ProfileSeedChoice } from "../components/ProfileSeedPicker";
 import { Modal } from "../components/Modal";
 import { CAPTURE_PRESETS, matchScreens, type DirectoryListing, type ProjectCaptureResult, type ProjectRecord, type ProjectScreen, type ProjectSummary, type ScreenFinderResult } from "../../shared/projects";
 import type { ThemeMode } from "../../shared/model";
@@ -48,7 +49,8 @@ function ProjectList() {
   const live = useLiveOperation();
   const [destination, setDestination] = useState<"current" | "new">("current");
   const [profileName, setProfileName] = useState<string | null>(null);
-  const [kind, setKind] = useState<"scratch" | "monet-starter">("monet-starter");
+  const [seed, setSeed] = useState<ProfileSeedChoice>({ kind: "monet-starter" });
+  const { kind } = seed;
   const [pending, setPending] = useState<ProjectOnboardingInput | null>(null);
   const submitting = useRef(false);
   const [items, setItems] = useState<ProjectSummary[] | null>(null), [error, setError] = useState(""), [attempt, setAttempt] = useState(0);
@@ -58,7 +60,7 @@ function ProjectList() {
     if (!environment?.profile?.id) return;
     try {
       const saved = pendingOnboarding(environment.profile.id);
-      if (saved) { setPending(saved); setRoot(saved.project.root); setName(saved.project.name ?? ""); setDestination("new"); setProfileName(saved.profile.name); setKind(saved.profile.kind); }
+      if (saved) { setPending(saved); setRoot(saved.project.root); setName(saved.project.name ?? ""); setDestination("new"); setProfileName(saved.profile.name); setSeed(saved.profile); }
     } catch { setError("Saved onboarding could not be read. Restore browser storage before retrying this connection."); }
   }, [environment?.profile?.id]);
   const suggestedName = (name.trim() || root.trim().replace(/\/+$/, "").split("/").pop() || "New project").slice(0, 100);
@@ -71,7 +73,9 @@ function ProjectList() {
     try {
       let profileId = currentId, project;
       if (destination === "new") {
-        const input = pending ?? { operation_id: crypto.randomUUID(), project: { root, ...(name.trim() ? { name: name.trim() } : {}) }, profile: { name: (profileName ?? suggestedName).trim(), kind } };
+        if (kind === "fork" || kind === "preset" && !seed.preset) throw new Error("Choose a preset before creating a Profile.");
+        const profile = kind === "preset" ? { name: (profileName ?? suggestedName).trim(), kind, preset: seed.preset! } : { name: (profileName ?? suggestedName).trim(), kind };
+        const input = pending ?? { operation_id: crypto.randomUUID(), project: { root, ...(name.trim() ? { name: name.trim() } : {}) }, profile };
         rememberOnboarding(currentId, input);
         setPending(input);
         const result = await createProfileApi(currentId).onboardProject(input);
@@ -101,13 +105,13 @@ function ProjectList() {
         <label><input type="radio" name="destination" checked={destination === "new"} onChange={() => setDestination("new")} /> Create new Profile</label>
         {destination === "new" && <>
           <label>Profile name<input maxLength={100} value={profileName ?? suggestedName} onChange={(e) => setProfileName(e.target.value)} /></label>
-          <label>Starting point<select aria-label="Starting point" value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}><option value="monet-starter">Monet Starter</option><option value="scratch">Blank</option></select></label>
-          <p className="muted">{kind === "scratch" ? "Begin without design decisions. The imported Surface remains observed evidence." : "Compare the imported Surface against Monet Starter’s design decisions."} Importing never adopts the app’s styles into this Profile.</p>
+          <ProfileSeedPicker value={seed} onChange={setSeed} />
+          <p className="muted">Imported Surfaces remain observed evidence. Importing never adopts the app’s styles into this Profile.</p>
         </>}
       </fieldset>
       {pending && <p role="status">This connection is saved for retry. Resume uses the same Profile and Project IDs, including after a restart.</p>}
       <p className="muted">The Project and its captured Surfaces belong to the chosen Profile. If interrupted, return here to resume this connection.</p>
-      <button className="button primary" disabled={!root.trim() || !environment?.profile?.id || destination === "new" && !(profileName ?? suggestedName).trim()} onClick={() => void connect()}>{busy ? "Preparing project…" : pending ? "Resume connection" : "Connect and discover screens"}</button>
+      <button className="button primary" disabled={!root.trim() || !environment?.profile?.id || destination === "new" && (!(profileName ?? suggestedName).trim() || kind === "preset" && !seed.preset)} onClick={() => void connect()}>{busy ? "Preparing project…" : pending ? "Resume connection" : "Connect and discover screens"}</button>
     </fieldset>
     {pending && !busy && <button className="button ghost" onClick={() => {
       if (window.confirm("Start a different connection? The saved operation and any created Profile are retained; this does not undo them.")) { forgetOnboarding(environment!.profile!.id); setPending(null); }

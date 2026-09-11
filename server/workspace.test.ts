@@ -169,7 +169,7 @@ describe("Monet workspace validation", () => {
       "warning: derived colour roles keep their contrast margin",
       "error: colour pairings meet their contrast minimum",
     ]));
-    expect(tintedFindings.find((finding) => finding.level === "warning")?.detail).toMatch(/color\.link on color\.surface is 4\.\d\d:1, below Monet's 4\.75:1 margin for a derived role \(color\.link: #2c7aab, tinted override, applied in every mode; color\.surface: #ffffff, Base Monet value\)/);
+    expect(tintedFindings.find((finding) => finding.level === "warning")?.detail).toMatch(/color\.link on color\.surface is 4\.\d\d:1, below Monet's 4\.75:1 margin for a derived role \(color\.link: #2c7aab, tinted override, applied in every mode; color\.surface: #ffffff, Profile base value\)/);
   });
 
   it("summarises a healthy workspace as OK", async () => {

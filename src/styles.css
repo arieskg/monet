@@ -1505,3 +1505,29 @@ html { color: var(--ink); background: var(--canvas); }
 .directory-entries li button { display: block; width: 100%; padding: 8px 12px; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .directory-entries li button:hover { background: var(--surface-muted); }
 .directory-entries li.muted { padding: 10px 12px; }
+
+/* Presets use the editor's existing styles; sample colors come from the inspected records. */
+.preset-profile-dialog { width: min(760px, 92vw); max-height: 84vh; overflow-y: auto; }
+.preset-picker { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 12px; }
+.preset-picker > p, .preset-detail > p { margin: 0; }
+.preset-catalog { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.preset-option { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 14px; text-align: left; display: grid; gap: 8px; align-content: start; cursor: pointer; }
+.preset-option.selected { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+.preset-option span { font-size: 13px; line-height: 1.45; }
+.preset-option small { font-size: 12px; }
+.preset-detail { display: grid; gap: 12px; border-top: 1px solid var(--line); padding-top: 16px; min-width: 0; }
+.preset-detail h3 { margin: 0; }
+.preset-detail summary, .preset-origin summary { cursor: pointer; padding-block: 8px; }
+.preset-license { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 240px; overflow: auto; font-size: 12px; padding: 12px; border: 1px solid var(--line); }
+.preset-token-table { max-height: 240px; overflow: auto; }
+.preset-token-table table { width: 100%; font-size: 12px; border-collapse: collapse; }
+.preset-token-table td, .preset-token-table th { padding: 6px; text-align: left; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+.preset-token-table td:last-child { max-width: 260px; }
+.preset-sample { background: var(--preset-bg); color: var(--preset-ink); font-family: var(--preset-font); font-size: var(--preset-body-size); border: 1px solid var(--preset-border); padding: 24px; border-radius: 8px; }
+.preset-sample-heading { font-family: var(--preset-heading); font-size: var(--preset-heading-size); line-height: 1.25; }
+.preset-sample > p { color: var(--preset-muted); margin: 8px 0 20px; }
+.preset-sample-panel { background: var(--preset-surface); border: 1px solid var(--preset-border); border-radius: var(--preset-radius); padding: 16px; }
+.preset-sample-field { border: 1px solid var(--preset-border); border-radius: var(--preset-radius); padding: 8px 12px; margin-block: 12px; }
+.preset-sample-action { display: inline-block; background: var(--preset-accent); color: var(--preset-on-accent); border-radius: var(--preset-radius); padding: 8px 16px; }
+.preset-origin { border: 1px solid var(--line); padding: 12px 18px; border-radius: 8px; margin-block: 20px; }
+@media (max-width: 600px) { .preset-catalog { grid-template-columns: 1fr; } .preset-profile-dialog { padding: 18px; } }

@@ -20,7 +20,7 @@ it("centralizes API security and binds delayed HTTP writes, assets and compariso
     const library = await (await fetch(url + "/api/profiles")).json() as ProfileLibrary, a = library.originalProfileId;
     const created = await fetch(url + "/api/profiles", { method: "POST", headers, body: JSON.stringify({ name: "B", kind: "scratch" }) }); expect(created.status).toBe(201);
     const b = (await created.json() as ProfileRegistration).identity.id;
-    for (const route of ["/api/profiles", "/api/workspace", "/api/gaps", "/api/proposals", "/api/applications", "/api/reference-assets/same", `/api/profiles/${b}/workspace`]) {
+    for (const route of ["/api/profiles", "/api/presets", "/api/presets/radix-product", `/api/profiles/${b}/preset-origin`, "/api/workspace", "/api/gaps", "/api/proposals", "/api/applications", "/api/reference-assets/same", `/api/profiles/${b}/workspace`]) {
       for (const origin of ["null", "https://evil.test", "http://127.0.0.1:59999", "http://localhost:43140"]) expect((await fetch(url + route, { headers: { origin } })).status).toBe(403);
       expect((await fetch(url + route, { headers: { "sec-fetch-site": "cross-site" } })).status).toBe(403);
       const status = await new Promise<number | undefined>((resolve, reject) => { const req = httpRequest(url + route, { headers: { host: "attacker.test" } }, (res) => { res.resume(); res.on("end", () => resolve(res.statusCode)); }); req.on("error", reject); req.end(); }); expect(status).toBe(403);

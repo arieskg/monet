@@ -19,6 +19,7 @@ import { previewSurface, saveSurface, listSurfaces, getSurface, reviseSurface, d
 import { SURFACE_BODY_LIMIT } from "../shared/surfaces.js";
 import { connectProject, listProjects, getProject, rescanProject, disconnectProject, interpretProject, findScreens, checkProjectConnection, captureProjectScreen } from "./projectStore.js";
 import { listDirectories } from "./directories.js";
+import { readPresetReceipt } from "./presetCatalog.js";
 import { ProjectOnboarding } from "./projectOnboarding.js";
 
 // Resolve the workspace before the first read so `--root` and MONET_ROOT take effect.
@@ -58,6 +59,7 @@ function match(pathname: string, prefix: string): string | null {
 async function handleProfileRequest(request: IncomingMessage, response: ServerResponse, url: URL) {
   const monet = createProfileService(workspaceScope());
   try {
+    if (url.pathname === "/api/preset-origin" && request.method === "GET") return respond(response, 200, await readPresetReceipt());
 
     // Surface imports are JSON only. Browser requests must originate in the configured editor;
     // opaque sandbox origins and cross-site fetches never reach an import or mutation.
@@ -246,6 +248,9 @@ const server = createServer(async (request, response) => {
       if (request.method === "GET") return respond(response, 200, { ...profiles.list(), defaultProfileId });
       if (request.method === "POST") return respond(response, 201, await profiles.create(await body(request)));
     }
+    if (url.pathname === "/api/presets" && request.method === "GET") return respond(response, 200, await profiles.presets.list());
+    const presetId = match(url.pathname, "/api/presets/");
+    if (presetId && request.method === "GET") return respond(response, 200, await profiles.presets.detail(presetId));
     // Folder browsing for project connection is editor-only and Profile-independent; it lists directory names, never files.
     if (url.pathname === "/api/directories" && request.method === "GET") return respond(response, 200, await listDirectories(url.searchParams.get("path")));
     const nameId = match(url.pathname, "/api/profile-names/");

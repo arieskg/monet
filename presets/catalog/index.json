@@ -1,0 +1,17 @@
+[
+  {
+    "id": "radix-product",
+    "version": "2.0.0",
+    "sha256": "3e5c19e30aad433609c9aface471a31fc1112879017b4bbab91725a8e34097c9"
+  },
+  {
+    "id": "carbon-product",
+    "version": "1.1.0",
+    "sha256": "3f5a91c61d2cf4bf7885ea59267aa62059024e548401935936a80eee2122ace4"
+  },
+  {
+    "id": "uswds-public-service",
+    "version": "1.1.0",
+    "sha256": "aef6a10a235e4a4be965d9330865b5704010f9439b50f97a0d14e3d33371bbc9"
+  }
+]

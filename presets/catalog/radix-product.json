@@ -1,0 +1,2516 @@
+{
+  "manifest": {
+    "package_version": 1,
+    "monet_schema": 1,
+    "id": "radix-product",
+    "name": "Radix Product",
+    "version": "2.0.0",
+    "adaptation_version": "2.0.0",
+    "description": "Rounded, quiet controls with a violet accent and balanced spacing.",
+    "best_for": [
+      "SaaS applications",
+      "Productivity tools",
+      "Developer tools"
+    ],
+    "characteristics": [
+      "Violet + mauve",
+      "Medium rounded corners",
+      "System fonts",
+      "Layered shadows"
+    ],
+    "supported_modes": [
+      "light",
+      "dark"
+    ],
+    "upstream": {
+      "name": "Radix",
+      "repository": "https://github.com/radix-ui/themes",
+      "documentation": "https://www.radix-ui.com/themes/docs/overview/getting-started",
+      "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566"
+    },
+    "license": "MIT",
+    "attribution": "Adapted by Monet from Radix. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled.",
+    "notices": [
+      {
+        "title": "radix-ui/themes — LICENSE",
+        "source_url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2023 WorkOS\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      {
+        "title": "radix-ui/colors — LICENSE",
+        "source_url": "https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2021-2022 Modulz\nCopyright (c) 2022-Present WorkOS\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      },
+      {
+        "title": "radix-ui/website — LICENSE",
+        "source_url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/LICENSE",
+        "text": "MIT License\n\nCopyright (c) 2024 WorkOS\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the \"Software\"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.\n"
+      }
+    ],
+    "omissions": [
+      "Selected violet/mauve, medium-radius, 100% configuration; not every Radix color, scale or variant.",
+      "No Radix runtime, keyboard implementation, icons, font binaries or local font-metric patches.",
+      "sRGB fallback shadows are mapped; display-P3 and color-mix enhancements are omitted.",
+      "No general motion scale or formal Radix principle catalog is invented; principles below condense published guidance.",
+      "Focus-ring styling remains component-specific. color.monet.accent-tint is Monet’s opaque violet-3 choice, not Radix --accent-surface / --violet-surface; no generic selected-surface contrast contract is claimed.",
+      "Only five components and two compositions are covered; consult upstream for all other decisions.",
+      "The opaque mauve-derived light background and surface differ from Radix’s documented white background/solid panel and translucent surface. Dark opaque gray-1/gray-2 choices do not implement translucent panels.",
+      "The included Card and Table evidence does not establish general avoidance lists. Those lists remain empty, producing two selected-component coverage warnings; the source-backed notes and usage remain available."
+    ],
+    "sources": [
+      {
+        "id": "source-001",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/LICENSE",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "89e4ae7d91c640c6e8a3ca90ba578d799eb2491b766ed65e0725ba36499d56ba",
+        "license": "MIT"
+      },
+      {
+        "id": "source-002",
+        "url": "https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/LICENSE",
+        "revision": "dbdb85470547c7d34b9001f48fddb08ded335979",
+        "sha256": "d981bc30e0d78b9ffc8f279fcaa274ea0444ff51d983548a609397d5c8a42dc2",
+        "license": "MIT"
+      },
+      {
+        "id": "source-003",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/LICENSE",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "994fbe58bd49cde947dad5e9295a0e969b9de1ca6a292453b5d02b0af61999be",
+        "license": "MIT"
+      },
+      {
+        "id": "source-004",
+        "url": "https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/light.ts",
+        "revision": "dbdb85470547c7d34b9001f48fddb08ded335979",
+        "sha256": "1a9725486609d36b469caa3b84b8de4348b7f2f05d45905127637b988329acbd",
+        "license": "MIT"
+      },
+      {
+        "id": "source-005",
+        "url": "https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/dark.ts",
+        "revision": "dbdb85470547c7d34b9001f48fddb08ded335979",
+        "sha256": "d8599fe69a4454340b2bc82e003a210caa6b79082be9a1b7f13429ff03826c68",
+        "license": "MIT"
+      },
+      {
+        "id": "source-006",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/space.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "e7ef02a71575ecc896c0d330ad88d3548bdf68b58bce5a828fa37a497452cc2a",
+        "license": "MIT"
+      },
+      {
+        "id": "source-007",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/typography.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "6e3eceb987598abf72bdd8a338e7270d91000ab326bfc3d2852368e5436f04cd",
+        "license": "MIT"
+      },
+      {
+        "id": "source-008",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/radius.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "14ae4e5ce53ab722f6e4b1d3e4b74a4d977c18da7483ded86173ca4df284c5da",
+        "license": "MIT"
+      },
+      {
+        "id": "source-009",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/shadow.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "8116b0467b2c755a0cdb30f9603f71e28dc14cd6e9642cbab4d7648eb2f8aacb",
+        "license": "MIT"
+      },
+      {
+        "id": "source-010",
+        "url": "https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/blackA.ts",
+        "revision": "dbdb85470547c7d34b9001f48fddb08ded335979",
+        "sha256": "930205059fbb077241db60753dc338d2354c85fe7ce86ccbccc734836e3371fb",
+        "license": "MIT"
+      },
+      {
+        "id": "source-011",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/color.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "118592a4752ac2bd77171df6b1e4d8f14f3f779a425c01433d7b8611c472eb3e",
+        "license": "MIT"
+      },
+      {
+        "id": "source-012",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/primitives/docs/overview/accessibility.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "5530bc4d67eb98a6d2032dc6feb293e562df3d4daf43c2d0b1da4be5f93fa58c",
+        "license": "MIT"
+      },
+      {
+        "id": "source-013",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/styling.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "cd94d9bdf0a15a91d8297c2595accdf6da23df244b2ca064bfd1487e1aba47ef",
+        "license": "MIT"
+      },
+      {
+        "id": "source-014",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/layout.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "fcda032f26180cb0891901cb23b0540ab44e4fa66f861366c389b5d2e2e44c1d",
+        "license": "MIT"
+      },
+      {
+        "id": "source-015",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/colors/violet.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "f90c6448eb85bea892d17c318bfcc449056f0b3ea468bc1065d4d07abb423f42",
+        "license": "MIT"
+      },
+      {
+        "id": "source-016",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/text-field.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "b13ec6a98c20e8a4128f879b905bcb3fd193078c2591a0c22d20fad044f8a8e0",
+        "license": "MIT"
+      },
+      {
+        "id": "source-017",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/_internal/base-button.css",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "6d8d72cc651cae5b713adfaffcea1ee4d2609adbf2e6fd31dd379833828c2e55",
+        "license": "MIT"
+      },
+      {
+        "id": "source-018",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/button.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "6fcca86215a3334ba0ce1ae90d89a77308244a1076e00030c2e88c950f8060d9",
+        "license": "MIT"
+      },
+      {
+        "id": "source-019",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/text-field.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "c8921e66c52a7c283f7d2d88dbfa8b635d2ae88de2d3b6afe22b52e8a60a4d55",
+        "license": "MIT"
+      },
+      {
+        "id": "source-020",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "e158309aaa21c65b6b9c19abfccaedd14bf470b08fed32bb80f3699b17d37045",
+        "license": "MIT"
+      },
+      {
+        "id": "source-021",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/dialog.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "57737ee3388fb976f36d7075b3258c24d74818c69359733c274329e994fa450d",
+        "license": "MIT"
+      },
+      {
+        "id": "source-022",
+        "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx",
+        "revision": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+        "sha256": "5bb805e1e46c732f74b893247184afb2084ce82b75409feb969488e22ed54625",
+        "license": "MIT"
+      },
+      {
+        "id": "source-023",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/_internal/base-button.props.ts",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "fd5573a409c59f6b4120955f374cb0c99988551b3ed41618ec42f6a2d474009c",
+        "license": "MIT"
+      },
+      {
+        "id": "source-024",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/text-field.props.tsx",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "43836e10c22b7489a1481c10e1078f72d0e7405dd99775c07b4ca185c859d138",
+        "license": "MIT"
+      },
+      {
+        "id": "source-025",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/card.props.tsx",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "e0a235c62fef9eceee6eb1a79417613d3b1cdcb8bf9e67f265d433b5eec495ab",
+        "license": "MIT"
+      }
+    ],
+    "provenance": [
+      {
+        "record": "principle:accessible-interaction",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "principle:consistent-composition",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-013",
+          "source-014"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "foundation:color",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet selects violet and mauve from Radix Colors. Step 9 supplies the solid accent and steps 11/12 text. The opaque mauve-1 background and mauve-2 surface depart from Radix light-mode white background/solid panel and translucent surface values. color.monet.accent-tint is an opaque violet-3 adaptation, not Radix --accent-surface. Component focus and alpha-border recipes remain separately scoped."
+      },
+      {
+        "record": "token:color.mauve.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve1 / mauveDark.mauve1; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.2",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve2 / mauveDark.mauve2; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve3 / mauveDark.mauve3; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.4",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve4 / mauveDark.mauve4; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve5 / mauveDark.mauve5; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve6 / mauveDark.mauve6; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.7",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve7 / mauveDark.mauve7; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.8",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve8 / mauveDark.mauve8; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.9",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve9 / mauveDark.mauve9; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.10",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve10 / mauveDark.mauve10; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.11",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve11 / mauveDark.mauve11; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.mauve.12",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from mauve12 / mauveDark.mauve12; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet1 / violetDark.violet1; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.2",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet2 / violetDark.violet2; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet3 / violetDark.violet3; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.4",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet4 / violetDark.violet4; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet5 / violetDark.violet5; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet6 / violetDark.violet6; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.7",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet7 / violetDark.violet7; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.8",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet8 / violetDark.violet8; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.9",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet9 / violetDark.violet9; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.10",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet10 / violetDark.violet10; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.11",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet11 / violetDark.violet11; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.violet.12",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004",
+          "source-005"
+        ],
+        "explanation": "Value from violet12 / violetDark.violet12; token name normalized for Monet."
+      },
+      {
+        "record": "token:color.background",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet chooses mauve step 1 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-1; this role does not reproduce translucent panel/surface styling."
+      },
+      {
+        "record": "token:color.surface",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet chooses mauve step 2 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-2; this role does not reproduce translucent panel/surface styling."
+      },
+      {
+        "record": "token:color.surface.hover",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.surface.pressed",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.monet.accent-tint",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011",
+          "source-015"
+        ],
+        "explanation": "Monet-selected opaque violet step 3 tint, resolved through the light/dark Colors scale. This is not Radix --accent-surface or --violet-surface, whose sRGB values are #f9f6ffcc and #25193980. No generic selected-surface contrast contract is claimed."
+      },
+      {
+        "record": "token:color.foreground",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.foreground.muted",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.primary",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.primary.hover",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.link",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.border",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+      },
+      {
+        "record": "token:color.radix.focus-ring",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Monet role mapping for the selected violet/mauve configuration. Component focus appearance only; measure against the rendered adjacent colors."
+      },
+      {
+        "record": "token:color.on.primary",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-015"
+        ],
+        "explanation": "White content selected for the violet solid fill; the included pair is contrast-checked."
+      },
+      {
+        "record": "foundation:typography",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "100% scale. Sizes 1–9 and their line heights are preserved. Local font-face metric adjustments are omitted; the system stack uses native font names. Body uses size 3."
+      },
+      {
+        "record": "token:font.size.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-1 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-1 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.2",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-2 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.2",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-2 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-3 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-3 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.4",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-4 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.4",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-4 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-5 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-5 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-6 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-6 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.7",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-7 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.7",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-7 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.8",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-8 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.8",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-8 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.9",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-size-9 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.9",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --line-height-9 at scaling=1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.weight.light",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-weight-light; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.weight.regular",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-weight-regular; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.weight.medium",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-weight-medium; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.weight.bold",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Value from --font-weight-bold; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.family.sans",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Use native font names; custom local metric-adjustment faces and emoji tail omitted. No font download."
+      },
+      {
+        "record": "token:font.size.md",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Radix default body size 3, exposed as the Monet body alias."
+      },
+      {
+        "record": "token:font.size.heading",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Monet preview/section heading choice from the published scale, not a universal heading default."
+      },
+      {
+        "record": "foundation:spacing",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Preserve the nine Radix spacing steps at 100% scale. Shared numeric steps apply to gaps, padding and control sizes."
+      },
+      {
+        "record": "token:space.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-1; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.2",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-2; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-3; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.4",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-4; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-5; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-6; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.7",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-7; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.8",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-8; token name normalized for Monet."
+      },
+      {
+        "record": "token:space.9",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-006"
+        ],
+        "explanation": "Value from --space-9; token name normalized for Monet."
+      },
+      {
+        "record": "foundation:radius",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Monet chooses the medium radius factor of 1 and scale of 1. Button size 2 uses radius 2; full-pill alternatives are not selected."
+      },
+      {
+        "record": "token:radius.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from --radius-1 at medium/100%; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.2",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from --radius-2 at medium/100%; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from --radius-3 at medium/100%; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.4",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from --radius-4 at medium/100%; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from --radius-5 at medium/100%; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from --radius-6 at medium/100%; token name normalized for Monet."
+      },
+      {
+        "record": "token:radius.control",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Default size-2 control radius."
+      },
+      {
+        "record": "token:radius.card",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Monet card illustration chooses radius 4 from the medium scale."
+      },
+      {
+        "record": "foundation:elevation",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline the sRGB mauve alpha and black alpha values into the published fallback recipes. CSS color-mix/display-P3 enhancements are omitted. Use the recipe appropriate to the actual component."
+      },
+      {
+        "record": "token:shadow.1",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe."
+      },
+      {
+        "record": "token:shadow.2",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe."
+      },
+      {
+        "record": "token:shadow.3",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe."
+      },
+      {
+        "record": "token:shadow.4",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe."
+      },
+      {
+        "record": "token:shadow.5",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe."
+      },
+      {
+        "record": "token:shadow.6",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-009",
+          "source-004",
+          "source-005",
+          "source-010"
+        ],
+        "explanation": "Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe."
+      },
+      {
+        "record": "foundation:layout",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-014"
+        ],
+        "explanation": "Use Box, Flex and Grid equivalents in the target stack. Keep content containers and responsive spacing explicit. The preset does not include responsive layout code."
+      },
+      {
+        "record": "foundation:borders",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-016",
+          "source-017"
+        ],
+        "explanation": "Quiet inset boundaries and visible focus states follow the relevant component recipe. Do not treat the low-contrast separator color as an accessible input boundary in every context."
+      },
+      {
+        "record": "taxonomy:interface",
+        "kind": "monet-authored",
+        "sources": [],
+        "explanation": "Monet concept IDs and grouping; descriptions summarize the included decisions."
+      },
+      {
+        "record": "component:button",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-018",
+          "source-023",
+          "source-017"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:text-input",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-019",
+          "source-024"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:table",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-020"
+        ],
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
+      },
+      {
+        "record": "component:dialog",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-021",
+          "source-012"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:card",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-022",
+          "source-025"
+        ],
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
+      },
+      {
+        "record": "pattern:focused-editing",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-021",
+          "source-018",
+          "source-019"
+        ],
+        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+      },
+      {
+        "record": "pattern:structured-summary",
+        "kind": "monet-authored",
+        "sources": [
+          "source-022",
+          "source-020",
+          "source-014"
+        ],
+        "explanation": "Monet composition of the cited component guidance; no additional upstream rule is claimed."
+      },
+      {
+        "record": "source:radix-product",
+        "kind": "monet-authored",
+        "sources": [],
+        "explanation": "Monet packaging, attribution and component-to-source mapping metadata."
+      }
+    ]
+  },
+  "records": {
+    "principles": [
+      {
+        "id": "accessible-interaction",
+        "title": "Keep interaction accessible",
+        "body": "Preserve semantic elements, accessible names, keyboard navigation and managed focus when implementing controls. Styling alone does not implement these behaviors. Test the resulting interface with its real content.\n\nMonet adaptation: Radix. [source-012](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/primitives/docs/overview/accessibility.mdx)",
+        "order": 0,
+        "updated_at": ""
+      },
+      {
+        "id": "consistent-composition",
+        "title": "Compose from shared decisions",
+        "body": "Use the same spacing, type and color vocabulary for custom controls and built-in-looking controls. Compose layouts from predictable blocks and shared scales instead of independently styling each screen.\n\nMonet adaptation: Radix. [source-013](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/styling.mdx) [source-014](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/layout.mdx)",
+        "order": 1,
+        "updated_at": ""
+      }
+    ],
+    "foundations": [
+      {
+        "id": "color",
+        "name": "Color",
+        "status": "selected",
+        "description": "Violet accent and mauve neutral scales in both modes.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "Monet selects violet and mauve from Radix Colors. Step 9 supplies the solid accent and steps 11/12 text. The opaque mauve-1 background and mauve-2 surface depart from Radix light-mode white background/solid panel and translucent surface values. color.monet.accent-tint is an opaque violet-3 adaptation, not Radix --accent-surface. Component focus and alpha-border recipes remain separately scoped.",
+        "notes": "Provenance: [source-004](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/light.ts) [source-005](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/dark.ts) [source-011](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/color.css)",
+        "order": 0,
+        "tokens": [
+          {
+            "id": "color-mauve-1",
+            "name": "color.mauve.1",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#fdfcfd",
+            "description": "Upstream fact: mauve1 / mauveDark.mauve1. Value from mauve1 / mauveDark.mauve1; token name normalized for Monet.",
+            "order": 0,
+            "modes": {
+              "dark": "#121113"
+            }
+          },
+          {
+            "id": "color-mauve-2",
+            "name": "color.mauve.2",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#faf9fb",
+            "description": "Upstream fact: mauve2 / mauveDark.mauve2. Value from mauve2 / mauveDark.mauve2; token name normalized for Monet.",
+            "order": 1,
+            "modes": {
+              "dark": "#1a191b"
+            }
+          },
+          {
+            "id": "color-mauve-3",
+            "name": "color.mauve.3",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#f2eff3",
+            "description": "Upstream fact: mauve3 / mauveDark.mauve3. Value from mauve3 / mauveDark.mauve3; token name normalized for Monet.",
+            "order": 2,
+            "modes": {
+              "dark": "#232225"
+            }
+          },
+          {
+            "id": "color-mauve-4",
+            "name": "color.mauve.4",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#eae7ec",
+            "description": "Upstream fact: mauve4 / mauveDark.mauve4. Value from mauve4 / mauveDark.mauve4; token name normalized for Monet.",
+            "order": 3,
+            "modes": {
+              "dark": "#2b292d"
+            }
+          },
+          {
+            "id": "color-mauve-5",
+            "name": "color.mauve.5",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#e3dfe6",
+            "description": "Upstream fact: mauve5 / mauveDark.mauve5. Value from mauve5 / mauveDark.mauve5; token name normalized for Monet.",
+            "order": 4,
+            "modes": {
+              "dark": "#323035"
+            }
+          },
+          {
+            "id": "color-mauve-6",
+            "name": "color.mauve.6",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#dbd8e0",
+            "description": "Upstream fact: mauve6 / mauveDark.mauve6. Value from mauve6 / mauveDark.mauve6; token name normalized for Monet.",
+            "order": 5,
+            "modes": {
+              "dark": "#3c393f"
+            }
+          },
+          {
+            "id": "color-mauve-7",
+            "name": "color.mauve.7",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#d0cdd7",
+            "description": "Upstream fact: mauve7 / mauveDark.mauve7. Value from mauve7 / mauveDark.mauve7; token name normalized for Monet.",
+            "order": 6,
+            "modes": {
+              "dark": "#49474e"
+            }
+          },
+          {
+            "id": "color-mauve-8",
+            "name": "color.mauve.8",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#bcbac7",
+            "description": "Upstream fact: mauve8 / mauveDark.mauve8. Value from mauve8 / mauveDark.mauve8; token name normalized for Monet.",
+            "order": 7,
+            "modes": {
+              "dark": "#625f69"
+            }
+          },
+          {
+            "id": "color-mauve-9",
+            "name": "color.mauve.9",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#8e8c99",
+            "description": "Upstream fact: mauve9 / mauveDark.mauve9. Value from mauve9 / mauveDark.mauve9; token name normalized for Monet.",
+            "order": 8,
+            "modes": {
+              "dark": "#6f6d78"
+            }
+          },
+          {
+            "id": "color-mauve-10",
+            "name": "color.mauve.10",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#84828e",
+            "description": "Upstream fact: mauve10 / mauveDark.mauve10. Value from mauve10 / mauveDark.mauve10; token name normalized for Monet.",
+            "order": 9,
+            "modes": {
+              "dark": "#7c7a85"
+            }
+          },
+          {
+            "id": "color-mauve-11",
+            "name": "color.mauve.11",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#65636d",
+            "description": "Upstream fact: mauve11 / mauveDark.mauve11. Value from mauve11 / mauveDark.mauve11; token name normalized for Monet.",
+            "order": 10,
+            "modes": {
+              "dark": "#b5b2bc"
+            }
+          },
+          {
+            "id": "color-mauve-12",
+            "name": "color.mauve.12",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#211f26",
+            "description": "Upstream fact: mauve12 / mauveDark.mauve12. Value from mauve12 / mauveDark.mauve12; token name normalized for Monet.",
+            "order": 11,
+            "modes": {
+              "dark": "#eeeef0"
+            }
+          },
+          {
+            "id": "color-violet-1",
+            "name": "color.violet.1",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#fdfcfe",
+            "description": "Upstream fact: violet1 / violetDark.violet1. Value from violet1 / violetDark.violet1; token name normalized for Monet.",
+            "order": 12,
+            "modes": {
+              "dark": "#14121f"
+            }
+          },
+          {
+            "id": "color-violet-2",
+            "name": "color.violet.2",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#faf8ff",
+            "description": "Upstream fact: violet2 / violetDark.violet2. Value from violet2 / violetDark.violet2; token name normalized for Monet.",
+            "order": 13,
+            "modes": {
+              "dark": "#1b1525"
+            }
+          },
+          {
+            "id": "color-violet-3",
+            "name": "color.violet.3",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#f4f0fe",
+            "description": "Upstream fact: violet3 / violetDark.violet3. Value from violet3 / violetDark.violet3; token name normalized for Monet.",
+            "order": 14,
+            "modes": {
+              "dark": "#291f43"
+            }
+          },
+          {
+            "id": "color-violet-4",
+            "name": "color.violet.4",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#ebe4ff",
+            "description": "Upstream fact: violet4 / violetDark.violet4. Value from violet4 / violetDark.violet4; token name normalized for Monet.",
+            "order": 15,
+            "modes": {
+              "dark": "#33255b"
+            }
+          },
+          {
+            "id": "color-violet-5",
+            "name": "color.violet.5",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#e1d9ff",
+            "description": "Upstream fact: violet5 / violetDark.violet5. Value from violet5 / violetDark.violet5; token name normalized for Monet.",
+            "order": 16,
+            "modes": {
+              "dark": "#3c2e69"
+            }
+          },
+          {
+            "id": "color-violet-6",
+            "name": "color.violet.6",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#d4cafe",
+            "description": "Upstream fact: violet6 / violetDark.violet6. Value from violet6 / violetDark.violet6; token name normalized for Monet.",
+            "order": 17,
+            "modes": {
+              "dark": "#473876"
+            }
+          },
+          {
+            "id": "color-violet-7",
+            "name": "color.violet.7",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#c2b5f5",
+            "description": "Upstream fact: violet7 / violetDark.violet7. Value from violet7 / violetDark.violet7; token name normalized for Monet.",
+            "order": 18,
+            "modes": {
+              "dark": "#56468b"
+            }
+          },
+          {
+            "id": "color-violet-8",
+            "name": "color.violet.8",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#aa99ec",
+            "description": "Upstream fact: violet8 / violetDark.violet8. Value from violet8 / violetDark.violet8; token name normalized for Monet.",
+            "order": 19,
+            "modes": {
+              "dark": "#6958ad"
+            }
+          },
+          {
+            "id": "color-violet-9",
+            "name": "color.violet.9",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#6e56cf",
+            "description": "Upstream fact: violet9 / violetDark.violet9. Value from violet9 / violetDark.violet9; token name normalized for Monet.",
+            "order": 20,
+            "modes": {
+              "dark": "#6e56cf"
+            }
+          },
+          {
+            "id": "color-violet-10",
+            "name": "color.violet.10",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#654dc4",
+            "description": "Upstream fact: violet10 / violetDark.violet10. Value from violet10 / violetDark.violet10; token name normalized for Monet.",
+            "order": 21,
+            "modes": {
+              "dark": "#7d66d9"
+            }
+          },
+          {
+            "id": "color-violet-11",
+            "name": "color.violet.11",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#6550b9",
+            "description": "Upstream fact: violet11 / violetDark.violet11. Value from violet11 / violetDark.violet11; token name normalized for Monet.",
+            "order": 22,
+            "modes": {
+              "dark": "#baa7ff"
+            }
+          },
+          {
+            "id": "color-violet-12",
+            "name": "color.violet.12",
+            "foundation": "color",
+            "type": "color",
+            "level": "primitive",
+            "value": "#2f265f",
+            "description": "Upstream fact: violet12 / violetDark.violet12. Value from violet12 / violetDark.violet12; token name normalized for Monet.",
+            "order": 23,
+            "modes": {
+              "dark": "#e2ddfe"
+            }
+          },
+          {
+            "id": "color-background",
+            "name": "color.background",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.1}",
+            "description": "Monet adaptation: Monet chooses mauve step 1 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-1; this role does not reproduce translucent panel/surface styling.",
+            "order": 24
+          },
+          {
+            "id": "color-surface",
+            "name": "color.surface",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.2}",
+            "description": "Monet adaptation: Monet chooses mauve step 2 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-2; this role does not reproduce translucent panel/surface styling.",
+            "order": 25
+          },
+          {
+            "id": "color-surface-hover",
+            "name": "color.surface.hover",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.3}",
+            "description": "Monet adaptation: color.mauve.3. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 26
+          },
+          {
+            "id": "color-surface-pressed",
+            "name": "color.surface.pressed",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.4}",
+            "description": "Monet adaptation: color.mauve.4. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 27
+          },
+          {
+            "id": "color-monet-accent-tint",
+            "name": "color.monet.accent-tint",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.violet.3}",
+            "description": "Monet adaptation: Monet-selected opaque violet step 3 tint, resolved through the light/dark Colors scale. This is not Radix --accent-surface or --violet-surface, whose sRGB values are #f9f6ffcc and #25193980. No generic selected-surface contrast contract is claimed.",
+            "order": 28
+          },
+          {
+            "id": "color-foreground",
+            "name": "color.foreground",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.12}",
+            "description": "Monet adaptation: color.mauve.12. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 29
+          },
+          {
+            "id": "color-foreground-muted",
+            "name": "color.foreground.muted",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.11}",
+            "description": "Monet adaptation: color.mauve.11. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 30
+          },
+          {
+            "id": "color-primary",
+            "name": "color.primary",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.violet.9}",
+            "description": "Monet adaptation: color.violet.9. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 31
+          },
+          {
+            "id": "color-primary-hover",
+            "name": "color.primary.hover",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.violet.10}",
+            "description": "Monet adaptation: color.violet.10. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 32
+          },
+          {
+            "id": "color-link",
+            "name": "color.link",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.violet.11}",
+            "description": "Monet adaptation: color.violet.11. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 33
+          },
+          {
+            "id": "color-border",
+            "name": "color.border",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.mauve.7}",
+            "description": "Monet adaptation: color.mauve.7. Monet role mapping for the selected violet/mauve configuration. ",
+            "order": 34
+          },
+          {
+            "id": "color-radix-focus-ring",
+            "name": "color.radix.focus-ring",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.violet.8}",
+            "description": "Monet adaptation: color.violet.8. Monet role mapping for the selected violet/mauve configuration. Component focus appearance only; measure against the rendered adjacent colors.",
+            "order": 35
+          },
+          {
+            "id": "color-on-primary",
+            "name": "color.on.primary",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffffff",
+            "description": "Monet adaptation: --accent-contrast for violet. White content selected for the violet solid fill; the included pair is contrast-checked.",
+            "order": 36
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "typography",
+        "name": "Typography",
+        "status": "selected",
+        "description": "Radix type scale with a system font stack.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "100% scale. Sizes 1–9 and their line heights are preserved. Local font-face metric adjustments are omitted; the system stack uses native font names. Body uses size 3.",
+        "notes": "Provenance: [source-007](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/typography.css)",
+        "order": 1,
+        "tokens": [
+          {
+            "id": "font-size-1",
+            "name": "font.size.1",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "12px",
+            "description": "Upstream fact: --font-size-1 at scaling=1. Value from --font-size-1 at scaling=1; token name normalized for Monet.",
+            "order": 0
+          },
+          {
+            "id": "font-line-height-1",
+            "name": "font.line-height.1",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Upstream fact: --line-height-1 at scaling=1. Value from --line-height-1 at scaling=1; token name normalized for Monet.",
+            "order": 1
+          },
+          {
+            "id": "font-size-2",
+            "name": "font.size.2",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "14px",
+            "description": "Upstream fact: --font-size-2 at scaling=1. Value from --font-size-2 at scaling=1; token name normalized for Monet.",
+            "order": 2
+          },
+          {
+            "id": "font-line-height-2",
+            "name": "font.line-height.2",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "20px",
+            "description": "Upstream fact: --line-height-2 at scaling=1. Value from --line-height-2 at scaling=1; token name normalized for Monet.",
+            "order": 3
+          },
+          {
+            "id": "font-size-3",
+            "name": "font.size.3",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Upstream fact: --font-size-3 at scaling=1. Value from --font-size-3 at scaling=1; token name normalized for Monet.",
+            "order": 4
+          },
+          {
+            "id": "font-line-height-3",
+            "name": "font.line-height.3",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "24px",
+            "description": "Upstream fact: --line-height-3 at scaling=1. Value from --line-height-3 at scaling=1; token name normalized for Monet.",
+            "order": 5
+          },
+          {
+            "id": "font-size-4",
+            "name": "font.size.4",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "18px",
+            "description": "Upstream fact: --font-size-4 at scaling=1. Value from --font-size-4 at scaling=1; token name normalized for Monet.",
+            "order": 6
+          },
+          {
+            "id": "font-line-height-4",
+            "name": "font.line-height.4",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "26px",
+            "description": "Upstream fact: --line-height-4 at scaling=1. Value from --line-height-4 at scaling=1; token name normalized for Monet.",
+            "order": 7
+          },
+          {
+            "id": "font-size-5",
+            "name": "font.size.5",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "20px",
+            "description": "Upstream fact: --font-size-5 at scaling=1. Value from --font-size-5 at scaling=1; token name normalized for Monet.",
+            "order": 8
+          },
+          {
+            "id": "font-line-height-5",
+            "name": "font.line-height.5",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "28px",
+            "description": "Upstream fact: --line-height-5 at scaling=1. Value from --line-height-5 at scaling=1; token name normalized for Monet.",
+            "order": 9
+          },
+          {
+            "id": "font-size-6",
+            "name": "font.size.6",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "24px",
+            "description": "Upstream fact: --font-size-6 at scaling=1. Value from --font-size-6 at scaling=1; token name normalized for Monet.",
+            "order": 10
+          },
+          {
+            "id": "font-line-height-6",
+            "name": "font.line-height.6",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "30px",
+            "description": "Upstream fact: --line-height-6 at scaling=1. Value from --line-height-6 at scaling=1; token name normalized for Monet.",
+            "order": 11
+          },
+          {
+            "id": "font-size-7",
+            "name": "font.size.7",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "28px",
+            "description": "Upstream fact: --font-size-7 at scaling=1. Value from --font-size-7 at scaling=1; token name normalized for Monet.",
+            "order": 12
+          },
+          {
+            "id": "font-line-height-7",
+            "name": "font.line-height.7",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "36px",
+            "description": "Upstream fact: --line-height-7 at scaling=1. Value from --line-height-7 at scaling=1; token name normalized for Monet.",
+            "order": 13
+          },
+          {
+            "id": "font-size-8",
+            "name": "font.size.8",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "35px",
+            "description": "Upstream fact: --font-size-8 at scaling=1. Value from --font-size-8 at scaling=1; token name normalized for Monet.",
+            "order": 14
+          },
+          {
+            "id": "font-line-height-8",
+            "name": "font.line-height.8",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "40px",
+            "description": "Upstream fact: --line-height-8 at scaling=1. Value from --line-height-8 at scaling=1; token name normalized for Monet.",
+            "order": 15
+          },
+          {
+            "id": "font-size-9",
+            "name": "font.size.9",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "60px",
+            "description": "Upstream fact: --font-size-9 at scaling=1. Value from --font-size-9 at scaling=1; token name normalized for Monet.",
+            "order": 16
+          },
+          {
+            "id": "font-line-height-9",
+            "name": "font.line-height.9",
+            "foundation": "typography",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "60px",
+            "description": "Upstream fact: --line-height-9 at scaling=1. Value from --line-height-9 at scaling=1; token name normalized for Monet.",
+            "order": 17
+          },
+          {
+            "id": "font-weight-light",
+            "name": "font.weight.light",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 300,
+            "description": "Upstream fact: --font-weight-light. Value from --font-weight-light; token name normalized for Monet.",
+            "order": 18
+          },
+          {
+            "id": "font-weight-regular",
+            "name": "font.weight.regular",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 400,
+            "description": "Upstream fact: --font-weight-regular. Value from --font-weight-regular; token name normalized for Monet.",
+            "order": 19
+          },
+          {
+            "id": "font-weight-medium",
+            "name": "font.weight.medium",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 500,
+            "description": "Upstream fact: --font-weight-medium. Value from --font-weight-medium; token name normalized for Monet.",
+            "order": 20
+          },
+          {
+            "id": "font-weight-bold",
+            "name": "font.weight.bold",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 700,
+            "description": "Upstream fact: --font-weight-bold. Value from --font-weight-bold; token name normalized for Monet.",
+            "order": 21
+          },
+          {
+            "id": "font-family-sans",
+            "name": "font.family.sans",
+            "foundation": "typography",
+            "type": "font-family",
+            "level": "primitive",
+            "value": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, \"Helvetica Neue\", \"Open Sans\", system-ui, sans-serif",
+            "description": "Monet adaptation: --default-font-family. Use native font names; custom local metric-adjustment faces and emoji tail omitted. No font download.",
+            "order": 22
+          },
+          {
+            "id": "font-size-md",
+            "name": "font.size.md",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "semantic",
+            "value": "{font.size.3}",
+            "description": "Monet adaptation: font.size.3. Radix default body size 3, exposed as the Monet body alias.",
+            "order": 23
+          },
+          {
+            "id": "font-size-heading",
+            "name": "font.size.heading",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "semantic",
+            "value": "{font.size.6}",
+            "description": "Monet adaptation: font.size.6. Monet preview/section heading choice from the published scale, not a universal heading default.",
+            "order": 24
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "spacing",
+        "name": "Spacing",
+        "status": "selected",
+        "description": "Nine steps, from 4px to 64px.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "Preserve the nine Radix spacing steps at 100% scale. Shared numeric steps apply to gaps, padding and control sizes.",
+        "notes": "Provenance: [source-006](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/space.css)",
+        "order": 2,
+        "tokens": [
+          {
+            "id": "space-1",
+            "name": "space.1",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "4px",
+            "description": "Upstream fact: --space-1. Value from --space-1; token name normalized for Monet.",
+            "order": 0
+          },
+          {
+            "id": "space-2",
+            "name": "space.2",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "8px",
+            "description": "Upstream fact: --space-2. Value from --space-2; token name normalized for Monet.",
+            "order": 1
+          },
+          {
+            "id": "space-3",
+            "name": "space.3",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "12px",
+            "description": "Upstream fact: --space-3. Value from --space-3; token name normalized for Monet.",
+            "order": 2
+          },
+          {
+            "id": "space-4",
+            "name": "space.4",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Upstream fact: --space-4. Value from --space-4; token name normalized for Monet.",
+            "order": 3
+          },
+          {
+            "id": "space-5",
+            "name": "space.5",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "24px",
+            "description": "Upstream fact: --space-5. Value from --space-5; token name normalized for Monet.",
+            "order": 4
+          },
+          {
+            "id": "space-6",
+            "name": "space.6",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "32px",
+            "description": "Upstream fact: --space-6. Value from --space-6; token name normalized for Monet.",
+            "order": 5
+          },
+          {
+            "id": "space-7",
+            "name": "space.7",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "40px",
+            "description": "Upstream fact: --space-7. Value from --space-7; token name normalized for Monet.",
+            "order": 6
+          },
+          {
+            "id": "space-8",
+            "name": "space.8",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "48px",
+            "description": "Upstream fact: --space-8. Value from --space-8; token name normalized for Monet.",
+            "order": 7
+          },
+          {
+            "id": "space-9",
+            "name": "space.9",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "64px",
+            "description": "Upstream fact: --space-9. Value from --space-9; token name normalized for Monet.",
+            "order": 8
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "radius",
+        "name": "Radius",
+        "status": "selected",
+        "description": "Medium radius factor, with six sizes.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "Monet chooses the medium radius factor of 1 and scale of 1. Button size 2 uses radius 2; full-pill alternatives are not selected.",
+        "notes": "Provenance: [source-008](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/radius.css)",
+        "order": 3,
+        "tokens": [
+          {
+            "id": "radius-1",
+            "name": "radius.1",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "3px",
+            "description": "Upstream fact: --radius-1 at medium/100%. Value from --radius-1 at medium/100%; token name normalized for Monet.",
+            "order": 0
+          },
+          {
+            "id": "radius-2",
+            "name": "radius.2",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "4px",
+            "description": "Upstream fact: --radius-2 at medium/100%. Value from --radius-2 at medium/100%; token name normalized for Monet.",
+            "order": 1
+          },
+          {
+            "id": "radius-3",
+            "name": "radius.3",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "6px",
+            "description": "Upstream fact: --radius-3 at medium/100%. Value from --radius-3 at medium/100%; token name normalized for Monet.",
+            "order": 2
+          },
+          {
+            "id": "radius-4",
+            "name": "radius.4",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "8px",
+            "description": "Upstream fact: --radius-4 at medium/100%. Value from --radius-4 at medium/100%; token name normalized for Monet.",
+            "order": 3
+          },
+          {
+            "id": "radius-5",
+            "name": "radius.5",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "12px",
+            "description": "Upstream fact: --radius-5 at medium/100%. Value from --radius-5 at medium/100%; token name normalized for Monet.",
+            "order": 4
+          },
+          {
+            "id": "radius-6",
+            "name": "radius.6",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Upstream fact: --radius-6 at medium/100%. Value from --radius-6 at medium/100%; token name normalized for Monet.",
+            "order": 5
+          },
+          {
+            "id": "radius-control",
+            "name": "radius.control",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "semantic",
+            "value": "{radius.2}",
+            "description": "Monet adaptation: radius.2. Default size-2 control radius.",
+            "order": 6
+          },
+          {
+            "id": "radius-card",
+            "name": "radius.card",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "semantic",
+            "value": "{radius.4}",
+            "description": "Monet adaptation: radius.4. Monet card illustration chooses radius 4 from the medium scale.",
+            "order": 7
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "elevation",
+        "name": "Elevation",
+        "status": "selected",
+        "description": "Six mode-aware fallback shadow recipes.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "Inline the sRGB mauve alpha and black alpha values into the published fallback recipes. CSS color-mix/display-P3 enhancements are omitted. Use the recipe appropriate to the actual component.",
+        "notes": "Provenance: [source-009](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/shadow.css) [source-004](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/light.ts) [source-005](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/dark.ts) [source-010](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/blackA.ts)",
+        "order": 4,
+        "tokens": [
+          {
+            "id": "shadow-1",
+            "name": "shadow.1",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "inset 0 0 0 1px #20003820, inset 0 1.5px 2px 0 #2b005506, inset 0 1.5px 2px 0 rgba(0, 0, 0, 0.1)",
+            "description": "Monet adaptation: --shadow-1. Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe.",
+            "order": 0,
+            "modes": {
+              "dark": "inset 0 -1px 1px 0 #ebeaf814, inset 0 0 0 1px #ebeaf814, inset 0 3px 4px 0 rgba(0, 0, 0, 0.3), inset 0 0 0 1px #eee5f81d"
+            }
+          },
+          {
+            "id": "shadow-2",
+            "name": "shadow.2",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 0 0 1px #30004010, 0 0 0 0.5px rgba(0, 0, 0, 0.05), 0 1px 1px 0 #2b005506, 0 2px 1px -1px rgba(0, 0, 0, 0.05), 0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+            "description": "Monet adaptation: --shadow-2. Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe.",
+            "order": 1,
+            "modes": {
+              "dark": "0 0 0 1px #f1e6fd30, 0 0 0 0.5px rgba(0, 0, 0, 0.15), 0 1px 1px 0 rgba(0, 0, 0, 0.4), 0 2px 1px -1px rgba(0, 0, 0, 0.4), 0 1px 3px 0 rgba(0, 0, 0, 0.3)"
+            }
+          },
+          {
+            "id": "shadow-3",
+            "name": "shadow.3",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 0 0 1px #30004010, 0 2px 3px -2px #30004010, 0 3px 12px -4px rgba(0, 0, 0, 0.1), 0 4px 16px -8px rgba(0, 0, 0, 0.1)",
+            "description": "Monet adaptation: --shadow-3. Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe.",
+            "order": 2,
+            "modes": {
+              "dark": "0 0 0 1px #f1e6fd30, 0 2px 3px -2px rgba(0, 0, 0, 0.15), 0 3px 8px -2px rgba(0, 0, 0, 0.4), 0 4px 12px -4px rgba(0, 0, 0, 0.5)"
+            }
+          },
+          {
+            "id": "shadow-4",
+            "name": "shadow.4",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 0 0 1px #30004010, 0 8px 40px rgba(0, 0, 0, 0.05), 0 12px 32px -16px #30004010",
+            "description": "Monet adaptation: --shadow-4. Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe.",
+            "order": 3,
+            "modes": {
+              "dark": "0 0 0 1px #f1e6fd30, 0 8px 40px rgba(0, 0, 0, 0.15), 0 12px 32px -16px rgba(0, 0, 0, 0.3)"
+            }
+          },
+          {
+            "id": "shadow-5",
+            "name": "shadow.5",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 0 0 1px #30004010, 0 12px 60px rgba(0, 0, 0, 0.15), 0 12px 32px -16px #20003820",
+            "description": "Monet adaptation: --shadow-5. Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe.",
+            "order": 4,
+            "modes": {
+              "dark": "0 0 0 1px #f1e6fd30, 0 12px 60px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.5)"
+            }
+          },
+          {
+            "id": "shadow-6",
+            "name": "shadow.6",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 0 0 1px #30004010, 0 12px 60px rgba(0, 0, 0, 0.15), 0 16px 64px #2b005506, 0 16px 36px -20px #10003332",
+            "description": "Monet adaptation: --shadow-6. Inline sRGB alpha dependencies for the selected mauve configuration; exact fallback recipe.",
+            "order": 5,
+            "modes": {
+              "dark": "0 0 0 1px #f1e6fd30, 0 12px 60px rgba(0, 0, 0, 0.2), 0 16px 64px rgba(0, 0, 0, 0.4), 0 16px 36px -20px rgba(0, 0, 0, 0.9)"
+            }
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "layout",
+        "name": "Layout",
+        "status": "selected",
+        "description": "Shared responsive composition vocabulary.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "Use Box, Flex and Grid equivalents in the target stack. Keep content containers and responsive spacing explicit. The preset does not include responsive layout code.",
+        "notes": "Provenance: [source-014](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/layout.mdx)",
+        "order": 5,
+        "tokens": [],
+        "updated_at": ""
+      },
+      {
+        "id": "borders",
+        "name": "Borders and focus",
+        "status": "selected",
+        "description": "Separate boundary and focus intent.",
+        "rationale": "Monet adaptation of Radix for this preset configuration.",
+        "guidance": "Quiet inset boundaries and visible focus states follow the relevant component recipe. Do not treat the low-contrast separator color as an accessible input boundary in every context.",
+        "notes": "Provenance: [source-016](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/text-field.css) [source-017](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/_internal/base-button.css)",
+        "order": 6,
+        "tokens": [],
+        "updated_at": ""
+      }
+    ],
+    "taxonomy": [
+      {
+        "id": "interface",
+        "name": "Interface",
+        "entries": [
+          {
+            "id": "button",
+            "name": "Button",
+            "category": "interface",
+            "description": "Action control with an explicit size and visual emphasis.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "text-input",
+            "name": "Text input",
+            "category": "interface",
+            "description": "Single-line input with consistent control styling.",
+            "aliases": [
+              "TextField"
+            ],
+            "relationships": []
+          },
+          {
+            "id": "table",
+            "name": "Table",
+            "category": "interface",
+            "description": "Semantic rows and columns for related values.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "dialog",
+            "name": "Dialog",
+            "category": "interface",
+            "description": "Focused work presented above the current page.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "card",
+            "name": "Card",
+            "category": "interface",
+            "description": "A container for related content.",
+            "aliases": [],
+            "relationships": []
+          }
+        ]
+      }
+    ],
+    "components": [
+      {
+        "id": "button",
+        "status": "selected",
+        "selection": {
+          "source": "radix-product",
+          "source_component": "Button"
+        },
+        "preferences": {
+          "variant": "solid",
+          "size": "token:space.6",
+          "radius": "token:radius.control"
+        },
+        "behavior": {
+          "disabled_while_loading": true
+        },
+        "rationale": "Action control with an explicit size and visual emphasis.",
+        "notes": "Monet adaptation of Radix: Default size 2 and solid variant. Documented alternatives include soft, outline, surface, classic and ghost. Loading disables the control while preserving its size. Keep focus-visible treatment and an accessible label.\n\n[source-018](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/button.mdx) [source-023](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/_internal/base-button.props.ts) [source-017](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/_internal/base-button.css)",
+        "use_when": [
+          "Submitting a form",
+          "Triggering an action or dialog"
+        ],
+        "avoid_when": [
+          "Use a link for navigation"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "radius",
+          "borders"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "text-input",
+        "status": "selected",
+        "selection": {
+          "source": "radix-product",
+          "source_component": "TextField"
+        },
+        "preferences": {
+          "variant": "surface"
+        },
+        "behavior": {},
+        "rationale": "Single-line input with consistent control styling.",
+        "notes": "Monet adaptation of Radix: Use size 2 by default. Surface, classic and soft styles are alternatives. Slot content can hold icons or actions; it does not replace an accessible label. Preserve disabled/read-only semantics in the implementation.\n\n[source-019](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/text-field.mdx) [source-024](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/text-field.props.tsx)",
+        "use_when": [
+          "Short text entry",
+          "Search with a labeled field"
+        ],
+        "avoid_when": [
+          "Multiline content needs a textarea"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "borders"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "table",
+        "status": "selected",
+        "selection": {
+          "source": "radix-product",
+          "source_component": "Table"
+        },
+        "preferences": {
+          "variant": "surface"
+        },
+        "behavior": {},
+        "rationale": "Semantic rows and columns for related values.",
+        "notes": "Monet adaptation of Radix: Use Table.ColumnHeaderCell and Table.RowHeaderCell for column and row headers. The Cell API uses justify to distribute horizontal space. The documented surface variant adds a backplate. This preset supplies no numeric-alignment recommendation or sorting, selection and pagination behavior.\n\n[source-020](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx)",
+        "use_when": [
+          "Comparing structured rows",
+          "Small data summaries"
+        ],
+        "avoid_when": [],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "dialog",
+        "status": "selected",
+        "selection": {
+          "source": "radix-product",
+          "source_component": "Dialog"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "Focused work presented above the current page.",
+        "notes": "Monet adaptation of Radix: Provide a title and description, a trigger, content and an explicit closing path. Preserve focus management and keyboard behavior from the underlying accessible-dialog contract. Use an alert dialog when confirmation of a consequential action is required.\n\n[source-021](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/dialog.mdx) [source-012](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/primitives/docs/overview/accessibility.mdx)",
+        "use_when": [
+          "Focused short tasks",
+          "Editing without losing page context"
+        ],
+        "avoid_when": [
+          "Long multi-page workflows"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "elevation"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "card",
+        "status": "selected",
+        "selection": {
+          "source": "radix-product",
+          "source_component": "Card"
+        },
+        "preferences": {
+          "variant": "surface"
+        },
+        "behavior": {},
+        "rationale": "A container for related content.",
+        "notes": "Monet adaptation of Radix: The pinned Card props define surface, classic and ghost variants, with surface as the default. Use asChild to render a card as a link or button with hover/focus styling.\n\n[source-022](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx) [source-025](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/card.props.tsx)",
+        "use_when": [
+          "Grouping related content",
+          "A navigable summary with one destination"
+        ],
+        "avoid_when": [],
+        "foundations": [
+          "color",
+          "spacing",
+          "radius",
+          "elevation"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      }
+    ],
+    "patterns": [
+      {
+        "id": "focused-editing",
+        "title": "Focused editing",
+        "summary": "Compose a short edit task with an input, dialog and explicit actions.",
+        "body": "Monet adaptation of Radix guidance.\n\nProvide the dialog title/description, labeled fields, save and close actions. Use the documented loading state during submission and preserve focus behavior. This is a Monet composition of the included component guidance, not a new upstream pattern.\n\nSources: [source-021](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/dialog.mdx) [source-018](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/button.mdx) [source-019](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/text-field.mdx)",
+        "status": "selected",
+        "tags": [
+          "focused",
+          "editing"
+        ],
+        "order": 0,
+        "updated_at": "",
+        "components": [
+          "dialog",
+          "text-input",
+          "button"
+        ],
+        "foundations": [
+          "typography",
+          "spacing",
+          "color"
+        ]
+      },
+      {
+        "id": "structured-summary",
+        "title": "Structured summary",
+        "summary": "Use containers and tables for related information.",
+        "body": "Monet authored composition using Radix guidance.\n\nGroup related content in a Card and show rows and columns in a Table with the documented header cells. Compose the surrounding layout with shared spacing props. This combination is a Monet-authored example; it specifies neither numeric alignment nor a ghost-style preference.\n\nSources: [source-022](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx) [source-020](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx) [source-014](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/layout.mdx)",
+        "status": "selected",
+        "tags": [
+          "structured",
+          "summary"
+        ],
+        "order": 1,
+        "updated_at": "",
+        "components": [
+          "card",
+          "table"
+        ],
+        "foundations": [
+          "spacing",
+          "typography",
+          "color"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "radix-product",
+        "name": "Radix — preset provenance",
+        "type": "reference",
+        "homepage": "https://www.radix-ui.com/themes/docs/overview/getting-started",
+        "repository": "https://github.com/radix-ui/themes",
+        "framework": "Framework-independent Monet adaptation",
+        "package": "",
+        "license": "MIT",
+        "notes": "Adapted by Monet from Radix. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset radix-product@2.0.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
+        "enabled": true,
+        "mappings": [
+          {
+            "upstream": "Button",
+            "target_type": "component",
+            "canonical_id": "button",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/button.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "TextField",
+            "target_type": "component",
+            "canonical_id": "text-input",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/text-field.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Table",
+            "target_type": "component",
+            "canonical_id": "table",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Dialog",
+            "target_type": "component",
+            "canonical_id": "dialog",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/dialog.mdx",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Card",
+            "target_type": "component",
+            "canonical_id": "card",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx",
+            "mapped_by": "manual"
+          }
+        ],
+        "updated_at": ""
+      }
+    ]
+  }
+}

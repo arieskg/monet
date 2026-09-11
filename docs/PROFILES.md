@@ -6,7 +6,7 @@ Profiles give each independent design identity its own storage and stable UUID. 
 
 The application library defaults to `~/.monet`. Set `MONET_LIBRARY` to choose another location. Its `library.json` contains versioned Profile registrations, the original enrollment ID, and minimal Project bindings. Roots are application-private canonical paths. Names are editable labels; identity never comes from a name, directory basename, or natural-language query.
 
-Each registered root contains `profile.json` with a version, UUID, name, creation time, and origin (`enrolled`, `scratch`, `monet-starter`, or `fork`). Fork provenance records the source Profile and fingerprint; starter provenance records its package version and digest. Profiles do not inherit live data.
+Each registered root contains `profile.json` with a version, UUID, name, creation time, and origin (`enrolled`, `scratch`, `monet-starter`, `preset`, or `fork`). Fork provenance records the source Profile and fingerprint; starter provenance records its package version and digest. Profiles do not inherit live data.
 
 All existing workspace paths stay local to that Profile: Principles, Foundations/tokens, taxonomies, Primitive/Component decisions, Patterns, compatibility Themes, Sources, References/assets/analysis, decision logs, Surfaces, Gaps, proposals, receipts, journals and generated exports. Private evidence never joins the shared `Workspace` or MCP context.
 
@@ -28,7 +28,7 @@ MCP and validation never enroll or initialize a workspace. An unregistered empty
 
 ## UI workflow
 
-The sidebar and mobile navigation offer Profile selection, creation, and renaming. Create an empty Profile, an independent Monet starter, or a knowledge fork of the current Profile. The chosen Profile appears in the browser URL and remains there during navigation/reload.
+The sidebar and mobile navigation offer Profile selection, creation, and renaming. Choose Blank, Monet Starter, a curated Preset, or a knowledge fork of the current Profile. See [Preset Profiles](PRESETS.md) for the current catalog and retained provenance. The chosen Profile appears in the browser URL and remains there during navigation/reload.
 
 Switching opens a fresh document with an immutable API binding. This intentionally closes unsaved editors and clears page-local state, caches, modal state, selected records and pending responses. Submitted operations retain their captured server Profile and may finish there. The new document cannot receive an old document's promises. Other tabs retain their own bindings.
 
@@ -109,3 +109,13 @@ The test pass also preserves two intentional legacy behaviors: concurrent Gap di
 The independent review's fresh-root P1 is resolved by restoring initialized scratch scaffolding and exports, without restoring a mandatory Theme. New roots and absent roots both work; failed initialization resumes with the same UUID. Existing populated enrollment remains byte-preserving. Both review registry fixes are present: generated enrollment names satisfy the identity schema, and rename checks Profile availability before writing pending publication state. The Surface provenance P2 is also fixed narrowly at Gap creation, with no historical rewrite or new dependency on live evidence for reading retained Gaps.
 
 **Recommendation: MERGE.** All requested verification passes and no known blocking isolation or historical-integrity defect remains within the supported single-editing-process model. Remaining P2 follow-ups are full-tree verification performance and an administrative repair experience for orphaned pending publications (which continue to fail closed). Management UX for additional existing-root enrollment/offline moves and draft preservation across switching remain V1 limitations. Empty Profiles retain the existing file-based path for authoring new taxonomies; choose the starter/fork path when the existing component vocabulary is wanted immediately. Local Project Connection still needs its Project UX, bounded discovery, isolated capture/egress controls and representative project fidelity checks before Surfaces V1.1 can ship. Those features, live inheritance, external presets, DESIGN.md importing, Theme removal and broader Safe Apply mutations were not implemented. No merge to `main` was performed.
+
+## Preset Profiles V1 — 2026-09-11
+
+The external-catalog deferral in the historical V1 report above is superseded by
+[Preset Profiles V1](PRESETS.md). Native versioned packages instantiate under the
+same staged publication protocol. Preset origins pin package identity/version/hash
+and a provenance snapshot digest; `PRESET.json` and `PRESET-LICENSES.txt` follow
+knowledge forks. Inline Project onboarding retains the exact inspected selection
+in its durable reservation. The research, source audit and verification report
+are linked from the preset guide.

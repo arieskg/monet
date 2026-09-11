@@ -346,8 +346,10 @@ export async function writeExports(): Promise<void> {
   const primitiveEntries = workspace.primitiveTaxonomy.flatMap((category) => category.entries);
   const selected = workspace.components.filter((item) => item.status === "selected" || item.status === "do_not_use");
   const selectedPrimitives = workspace.primitives.filter((item) => item.status !== "undecided");
+  const preset = workspaceScope().identity?.origin.preset;
   const system = [
     "# Monet Design System", "", "This file is generated from the canonical Monet workspace files.", "",
+    ...(preset ? ["## Preset provenance", "", `Starting copy: ${preset.id} ${preset.version}. Later edits belong to this Profile. The retained [PRESET.json](PRESET.json) records original provenance and [PRESET-LICENSES.txt](PRESET-LICENSES.txt) contains redistribution notices. Include applicable notices when sharing adapted material; these files may have been removed from a local copy.`, ""] : []),
     "## Principles", "", ...workspace.principles.flatMap((item) => [`### ${item.title}`, "", item.body.replace(/^#\s+[^\n]+\n*/, "").trim(), ""]),
     "## Foundations", "", ...workspace.foundations.map((item) => `- **${item.name}** (${item.status}) — ${item.description}`), "",
     "## Active theme", "", `${workspace.themes.find((theme) => theme.id === workspace.activeThemeId)?.name ?? "Default"} (${workspace.activeThemeId})`, "",

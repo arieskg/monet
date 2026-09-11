@@ -1,0 +1,2011 @@
+{
+  "manifest": {
+    "package_version": 1,
+    "monet_schema": 1,
+    "id": "uswds-public-service",
+    "name": "USWDS Public Service",
+    "version": "1.1.0",
+    "adaptation_version": "1.1.0",
+    "description": "Readable public-service pages with strong form and accessibility guidance.",
+    "best_for": [
+      "Public-service forms",
+      "Content applications",
+      "Accessibility-oriented services"
+    ],
+    "characteristics": [
+      "Light mode",
+      "Serif headings",
+      "Clear field labels",
+      "Public-service patterns"
+    ],
+    "supported_modes": [
+      "light"
+    ],
+    "upstream": {
+      "name": "U.S. Web Design System",
+      "repository": "https://github.com/uswds/uswds",
+      "documentation": "https://designsystem.digital.gov/",
+      "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd"
+    },
+    "license": "CC0-1.0",
+    "attribution": "Adapted by Monet from USWDS. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled.",
+    "notices": [
+      {
+        "title": "uswds/uswds — LICENSE.md",
+        "source_url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/LICENSE.md",
+        "text": "## A few parts of this project are not in the public domain\n\n### Copyright ownership of Works created by U.S. federal employees\n\nThis repository contains both the original design for Google Material Icons (the “Work”, as defined in Section 1 of the Apache 2.0 License) and modifications made by the General Services Administration (GSA). This repository combines the Work and these GSA modifications, which is a “Modified Version” of Material Icons.\n\nThis repository also contains both original designs for Source Sans Pro, Merriweather, and Font Awesome (the “Font Software”, as defined in Section 1 of the SIL Open Font License, version 1.1) and modifications made by the General Services Administration (GSA). This repository combines the Work and these GSA modifications, which is a “Modified Version” of Source Sans Pro, Merriweather, Public Sans, and Font Awesome respectively.\n\nAs a work of the United States Government, the software modifications made by GSA are not subject to copyright within the United States. Additionally, GSA waives copyright and related rights in its software modifications worldwide through the CC0 1.0 Universal Public Domain Dedication (https://creativecommons.org/publicdomain/zero/1.0/).\n\nThe Work (as defined in the Apache 2.0 License) and Font Software (as defined in the SIL Open Font License, Version 1.1) remains subject to copyright under the respective open source license. The section below lists which works are subject to particular open source licenses.\n\nThis Modified Version packaged as `dist/img/sprite.svg` contains both design elements under the Apache 2.0 License and design modifications by GSA released as CC0. It is a “joint work” made of the icon set and modifications combined into a single work.\n\n### Files licensed under the SIL Open Font License, Version 1.1\n\nThe Source Sans Pro font files in `packages/uswds-core/src/assets/fonts/source-sans-pro` are a [customized subset](https://github.com/miguelsousa/source-sans-pro-subset) of [Source Sans Pro](https://github.com/adobe-fonts/source-sans-pro) owned by Adobe Systems Incorporated, licensed under the [SIL Open Font License, Version 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web), and copyright 2010, 2012, 2014 [Adobe Systems Incorporated], with Reserved Font Name 'Source'. All Rights Reserved. Source is a trademark of Adobe Systems Incorporated in the United States or other countries.\n\nThe Merriweather font files in `packages/uswds-core/src/assets/fonts/merriweather` are the version 2.001 files from [GitHub](https://github.com/EbenSorkin/Merriweather/releases/tag/v2.001) subsetted into Latin and with additional formats generated with [Transfonter](https://transfonter.org/), licensed under the [SIL Open Font License, Version 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web), and copyright [Sorkin Type Co](https://github.com/SorkinType/Merriweather/blob/master/README.md) with Reserved Font Name 'Merriweather'.\n\nThe Public Sans font files in `packages/uswds-core/src/assets/fonts/public-sans` are licensed under the [SIL Open Font License, Version 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web). Public Sans is a modification of Libre Franklin, also licensed under the [SIL Open Font License, Version 1.1](https://scripts.sil.org/cms/scripts/page.php?site_id=nrsi&id=OFL_web) by [Impallari Type](https://github.com/impallari/libre-franklin#license).\n\n\n### Files licensed under the Apache 2.0 License\n\nThe Roboto Mono font files in `packages/uswds-core/src/assets/fonts/roboto-mono` are licensed under the [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).\n\nThe Google Material Icons in `packages/usa-icon/src/img/material-icons-deprecated`, and those packaged as `dist/img/material-icons` are licensed under the [Apache License Version 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt).\n\n### Files licensed under the MIT license\n\nThe files in `packages/uswds-elements/lib` are modified from:\n\n- [`normalize.css`](https://github.com/necolas/normalize.css), copyright Nicolas Gallagher and Jonathan Neal, under the [MIT license](https://github.com/necolas/normalize.css/blob/master/LICENSE.md).\n- [`modern-normalize`](https://github.com/sindresorhus/modern-normalize/tree/main), copyright Sindre Sorhus, Nicolas Gallagher, and Jonathan Neal, under the [MIT license](https://github.com/sindresorhus/modern-normalize/blob/main/license).\n\n### Files licensed under the CC0 1.0 Universal license\n\nThe files in `packages/uswds-elements/lib` are modified from:\n\n- [`@csstools/normalize.css`](https://github.com/csstools/normalize.css), copyright Jonathan Neal, under the [CC0 1.0 Universal license](https://github.com/csstools/normalize.css/blob/main/LICENSE.md).\n\n#### Full license text for the MIT licensed files:\n\n```\nThe MIT License (MIT)\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n```\n\n## The rest of this project is in the worldwide public domain\n\nAs a work of the United States government, this project is in the public domain within the United States.\n\nAdditionally, we waive copyright and related rights in the work worldwide through the [CC0 1.0 Universal public domain dedication](https://creativecommons.org/publicdomain/zero/1.0/).\n\n### CC0 1.0 Universal Summary\n\nThis is a human-readable summary of the [Legal Code (read the full text)](https://creativecommons.org/publicdomain/zero/1.0/legalcode).\n\n#### No copyright\n\nThe person who associated a work with this deed has dedicated the work to the public domain by waiving all of his or her rights to the work worldwide under copyright law, including all related and neighboring rights, to the extent allowed by law.\n\nYou can copy, modify, distribute and perform the work, even for commercial purposes, all without asking permission.\n\n#### Other information\n\nIn no way are the patent or trademark rights of any person affected by CC0, nor are the rights that other persons may have in the work or in how the work is used, such as publicity or privacy rights.\n\nUnless expressly stated otherwise, the person who associated a work with this deed makes no warranties about the work, and disclaims liability for all uses of the work, to the fullest extent permitted by applicable law. When using or citing the work, you should not imply endorsement by the author or the affirmer.\n\n### Contributions to this project\n\nAs stated in [CONTRIBUTING](CONTRIBUTING.md), all contributions to this project will be released under the CC0 dedication. By submitting a pull request, you are agreeing to comply with this waiver of copyright interest.\n\n### Trademark\n\nGSA owns, reserves, and retains all rights, title, and interest in all trademarks owned by GSA. The User does not acquire any right or interest of any kind in any GSA trademark because of their use of the Modified Version or any of the modifications made to the Work by GSA.\n"
+      },
+      {
+        "title": "uswds/uswds-site — LICENSE.md",
+        "source_url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/LICENSE.md",
+        "text": "As a work of the United States government, this project is in the\npublic domain within the United States.\n\nAdditionally, we waive copyright and related rights in the work\nworldwide through the CC0 1.0 Universal public domain dedication.\n\n## CC0 1.0 Universal Summary\n\nThis is a human-readable summary of the\n[Legal Code (read the full text)](https://creativecommons.org/publicdomain/zero/1.0/legalcode).\n\n### No Copyright\n\nThe person who associated a work with this deed has dedicated the work to\nthe public domain by waiving all of his or her rights to the work worldwide\nunder copyright law, including all related and neighboring rights, to the\nextent allowed by law.\n\nYou can copy, modify, distribute and perform the work, even for commercial\npurposes, all without asking permission.\n\n### Other Information\n\nIn no way are the patent or trademark rights of any person affected by CC0,\nnor are the rights that other persons may have in the work or in how the\nwork is used, such as publicity or privacy rights.\n\nUnless expressly stated otherwise, the person who associated a work with\nthis deed makes no warranties about the work, and disclaims liability for\nall uses of the work, to the fullest extent permitted by applicable law.\nWhen using or citing the work, you should not imply endorsement by the\nauthor or the affirmer.\n"
+      }
+    ],
+    "omissions": [
+      "USWDS does not establish a general dark palette; no dark mode is invented.",
+      "Monet chooses documented local system/Georgia font stacks and an unadjusted subset of the system type scale; this is not default Source Sans Pro/Merriweather font-metric output.",
+      "No fonts, icons, government banner, identifier, seal, logo or official-government claim is included.",
+      "Runtime accessibility, responsive templates, complete form workflows and component code are not included.",
+      "No general motion scale is invented. Only the shadow-1 property recipe is included; no container elevation policy is inferred.",
+      "Only five component decisions and two form compositions are included; this does not certify an application accessible.",
+      "font.size.md is Monet’s 16px body alias, not the upstream md step (6, 17px before font normalization). color.border is a Monet-selected gray-cool-50 role, not an asserted default USWDS input border.",
+      "Spacing is frozen to pixel equivalents at a 16px reference root; shadow-1 resolves the source property recipe with that reference root. No Sass font/unit normalization engine is bundled."
+    ],
+    "sources": [
+      {
+        "id": "source-001",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/LICENSE.md",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "536b003a2c541c5c9c00d9c715b9e2007591c3d2653f13dd53634d3de773ea09",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-002",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/LICENSE.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "3b2d52ce75f04547eb3fccf52992c57f98760326b6fb255ca18a6b65c29d6e64",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-003",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-color.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "7d477e997adba37c86c6e966581cb1920efad50a69eb3a110a2328c8b9bd571d",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-004",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-typography.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "f22c26bd0da05ca5c86f1ab55e9faa0f33f695fdc47703feecbdf3e17eb2dee0",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-005",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-spacing.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "6556ab7aaac187100e44cc97000e8dad9fd9e1b43df3c4943132473436cd49bc",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-006",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/spacing.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "156c3f3fe0ff285c3b531a098cf3b4e251b2e8b05ade559e5df2d3cfd4ae79c5",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-007",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/stacks.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "c40729c0da64b7d4c6da28849412b0174b49615df83bedaf05572141ee50d2ad",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-008",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/type-scale.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "ea5eb41611217f712f29c538dad5f96d383edb83ee566cd1fa169c2269558b25",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-009",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/typefaces.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "6d0b21cf73b9104dcce1361367d31c0066b4ee21309163f943f8cc7abafc2100",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-010",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-general.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "c2e262310e79aefd64e76aa6608d83e684fe5890b652fbfc03da46a13a3297b9",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-011",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-components.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "f99930c0a248ac197041bdd35563f2078fd7167f876b10126219899e89479cae",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-012",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/pages/design-principles/overview.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "0e6b8bf36b81a2394364148507be0b2a0070167a11e328e46bd0426827b92fb7",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-013",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_blue.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "cd863713b04e4ed5f7b772725082eb8f46bdc12e0b5af8c079714968f0b8c209",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-014",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_blue-warm.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "456522f9015dd8cca70575ee1745e3868c65108ff3598d6f45d0a3d9318aa2dd",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-015",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_gray.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "490284a33a6e404c77c363f22f173995a3037bcae0879618da1bcfc7413a69a5",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-016",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_gray-cool.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "975db231cdef2a58798e9a7fe724989edf2f8ec8b6356e58c2f649ae84efecd2",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-017",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_red.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "40b46f2217193e95cc3b53d7371b09afebef545ffa44cc0e98b7d2a262dcfe27",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-018",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_green-cool.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "99607f56917bd43cdded791b18a46b552eddcc9e3aeff7e94b72e0fb953fbaba",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-019",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/color/_gold.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "f4e687c8cc767c9beb8b617577f4bb19abc604ac7d6fd94ac40cc2e359f84b29",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-020",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/line-height.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "081272fbb89e4beed714cff210fc76e7a95acd041049ae214f5634f0fc560683",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-021",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-utilities/src/styles/rules/box-shadow.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "ce46507d77928d88c2cfb643befffbd0a0fa950a17b970bd094a5f2cbe33ca34",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-022",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/breakpoints.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "ec5804160f7d32e444748536ce10c504406917f1006429bdc16418d21f67a438",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-023",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/usa-input/src/styles/_usa-input.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "a33c4bb75964022e872821c728316667262dfb65860208999990d2b2a17a5f3f",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-024",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/usability.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "4ccd01c7d5fa2307847e646ecdd53398af6af33b70d677220392a786925356ca",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-025",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/accessibility.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "289184d2298cfc72f30e6596253f965cf3e83e74b47c006361f6ec1580b25423",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-026",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/when-to-use.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "f414a457001d05839dc45467b54100d1da5a1fd2ed5d66fc9742381b5555c04e",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-027",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "7d5e9795c8de2e81e69e8df820474f538ad7c35433cfa9a9beef8f785d9273f4",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-028",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/accessibility.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "6f46a0f819c6a408014fedc87b6a072e752d608282b6423a7fcd1b0a94a0403a",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-029",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/when-to-use.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "a71648a6c0ec1af27dfc9e51286cd0bbed1c98148b624c6438ab5e0e99a9ee6e",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-030",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/usability.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "b2501e9e820c0834266a9cee1ce039dc7aa643ccac10a22a3321f6a53ec3b0c5",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-031",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/accessibility.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "d44ff4437db8043205375de9a106bc42143d613fbbbee29142d0996173dbcbc5",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-032",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/when-to-use.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "b3b85e0e898565cc8723a6140fdf7e618929c9c36d9d0a95a6a127f49edef474",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-033",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/usability.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "a759995c89a918e2428d713e82b7ffaa6f453613d3321e29ca97102065f62bb9",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-034",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/accessibility.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "464ad6ddb20db8fc97a5e9d000e3c43d1bbe1b1d839c1712972e174a9f62ebf5",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-035",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/when-to-use.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "4fcbd234319f555376439b2cc1bbfbfa31734c1d1bd1d2a04f7d235239e4be1d",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-036",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/usability.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "1e2471bf4fcda53fbbfb96a6ebc88f3899ade03df871f5799b24e3d892c03d9d",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-037",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/accessibility.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "501cb1424f6ed2800dbe7d5f83e296c90cb24a6d5bbe7c79f2122d27193f8a85",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-038",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/when-to-use.md",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "a6dd38b413529405b9c95d3486660f2614d8ee4cc62c95f82355bd4723e39bd9",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-039",
+        "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_includes/forms-guidance.html",
+        "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+        "sha256": "aa78df7e862965d6776a3dc0dd8fdd167a75b7bc53c88f333e64e040563dc319",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-040",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/functions/units/spacing-multiple.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "b19a54823119a0010c243cb7ae9cec24acdaa625f570f674a93f44e60a7e6a4e",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-041",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/grid-base.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "49c151610597ae5b35e2cb263e1b1844eba6eb02b91480b63c78a44615f5e30c",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-042",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/_properties.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "5ee7890d9d5e5f9d884d2919203bca09d157062262713d542298b14be21c145c",
+        "license": "CC0-1.0"
+      }
+    ],
+    "provenance": [
+      {
+        "record": "principle:user-needs",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "principle:earn-trust",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "principle:accessibility",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "principle:continuity",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "principle:listen",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-012"
+        ],
+        "explanation": "Condensed upstream guidance; title and Monet record structure are adaptations."
+      },
+      {
+        "record": "foundation:color",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003"
+        ],
+        "explanation": "Map the default primary family and body/text settings; keep support colors distinct from text roles. This subset does not add a dark palette. Government identity assets are excluded."
+      },
+      {
+        "record": "token:color.primary",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-013"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.primary.hover",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-014"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.primary.pressed",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-014"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.foreground",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-015"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.foreground.muted",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-016"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.border",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-016"
+        ],
+        "explanation": "Monet selects the gray-cool-50 palette value #71767a for this generic border role. This is an editorial role choice, not a claim that the cited settings define gray-cool-50 as the default USWDS input border."
+      },
+      {
+        "record": "token:color.focus",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-013",
+          "source-010"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.surface.hover",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-015"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.danger.foreground",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-017"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.uswds.success",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-018"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.uswds.warning",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003",
+          "source-019"
+        ],
+        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+      },
+      {
+        "record": "token:color.background",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003"
+        ],
+        "explanation": "White page/surface or reverse text from USWDS default settings."
+      },
+      {
+        "record": "token:color.surface",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003"
+        ],
+        "explanation": "White page/surface or reverse text from USWDS default settings."
+      },
+      {
+        "record": "token:color.on.primary",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003"
+        ],
+        "explanation": "White page/surface or reverse text from USWDS default settings."
+      },
+      {
+        "record": "token:color.link",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-003"
+        ],
+        "explanation": "USWDS default link color is primary."
+      },
+      {
+        "record": "foundation:typography",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-007",
+          "source-008",
+          "source-009"
+        ],
+        "explanation": "Monet selects the documented system and Georgia stacks to work offline without shipping font files. Use the unadjusted system scale as native dimensions; font-specific cap-height normalization is intentionally omitted. This is an explicit adaptation of default USWDS typography."
+      },
+      {
+        "record": "token:font.family.sans",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Choose the documented local system stack; omit emoji fallbacks. Replaces the default Source Sans Pro asset dependency."
+      },
+      {
+        "record": "token:font.family.heading",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-007"
+        ],
+        "explanation": "Choose the documented Georgia stack instead of distributing Merriweather fonts."
+      },
+      {
+        "record": "token:font.size.1",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 1; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.3",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 3; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.5",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 5; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.6",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 6; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.7",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 7; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.8",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 8; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.10",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 10; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.12",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 12; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.14",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-008"
+        ],
+        "explanation": "Value from system-type-scale 14; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.size.md",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-008"
+        ],
+        "explanation": "Monet body-size alias for unadjusted system scale step 5 (16px). The name md is Monet’s alias, not USWDS $theme-type-scale-md, which selects step 6 (17px). USWDS body defaults to sm; font-specific normalization is omitted."
+      },
+      {
+        "record": "token:font.size.heading",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-004",
+          "source-008"
+        ],
+        "explanation": "Monet section heading choice from the unadjusted system scale."
+      },
+      {
+        "record": "token:font.weight.regular",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004"
+        ],
+        "explanation": "$theme-font-weight-normal: 400. Monet normalizes the token name to font.weight.regular; there is no upstream $theme-font-weight-regular setting."
+      },
+      {
+        "record": "token:font.weight.bold",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-004"
+        ],
+        "explanation": "Value from theme-font-weight-bold; token name normalized for Monet."
+      },
+      {
+        "record": "token:font.line-height.body",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-020",
+          "source-004"
+        ],
+        "explanation": "Value from line-height token 5; token name normalized for Monet."
+      },
+      {
+        "record": "foundation:spacing",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005",
+          "source-006",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "USWDS spacing-multiple scales an 8px grid base into rem output. Monet freezes the selected pixel equivalents at a 16px reference root, including half-unit steps. Responsive gaps and user font scaling need application-level treatment."
+      },
+      {
+        "record": "token:space.05",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.1",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.105",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.2",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.205",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.3",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.4",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.5",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.6",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.7",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "token:space.8",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-006",
+          "source-005",
+          "source-040",
+          "source-041"
+        ],
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
+      },
+      {
+        "record": "foundation:radius",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005",
+          "source-011"
+        ],
+        "explanation": "Keep the modest default radius: 2px, half-unit (4px), one unit (8px). Buttons use medium; the input treatment remains component-specific."
+      },
+      {
+        "record": "token:radius.sm",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005"
+        ],
+        "explanation": "Resolve the published radius setting to pixel units."
+      },
+      {
+        "record": "token:radius.md",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005"
+        ],
+        "explanation": "Resolve the published radius setting to pixel units."
+      },
+      {
+        "record": "token:radius.lg",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005"
+        ],
+        "explanation": "Resolve the published radius setting to pixel units."
+      },
+      {
+        "record": "token:radius.control",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-011",
+          "source-005"
+        ],
+        "explanation": "Default button radius setting."
+      },
+      {
+        "record": "token:radius.card",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005"
+        ],
+        "explanation": "Monet preview panel uses the documented medium radius."
+      },
+      {
+        "record": "foundation:elevation",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-042",
+          "source-021"
+        ],
+        "explanation": "Use the shadow-1 property recipe as mapped at a 16px reference root. The property table establishes the value; it does not decide which containers should receive a shadow or establish an application elevation hierarchy."
+      },
+      {
+        "record": "token:shadow.1",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-042",
+          "source-006",
+          "source-040",
+          "source-041",
+          "source-021"
+        ],
+        "explanation": "Resolve $system-properties box-shadow.standard.1: 0 units(1px) units(0.5) 0 rgba(0, 0, 0, 0.1), using a 16px reference root. Keep the explicit 1px offset and express half an 8px grid unit as 0.25rem. No component elevation policy is inferred."
+      },
+      {
+        "record": "foundation:layout",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005",
+          "source-022"
+        ],
+        "explanation": "The default container maximum is the desktop breakpoint; the documented mobile and desktop column gaps are 2 and 4 units. Retain form/content widths appropriate to the task rather than filling every wide display."
+      },
+      {
+        "record": "token:layout.max-width",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005",
+          "source-022"
+        ],
+        "explanation": "Resolve the default desktop container token."
+      },
+      {
+        "record": "token:layout.gutter.mobile",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005"
+        ],
+        "explanation": "2 USWDS spacing units."
+      },
+      {
+        "record": "token:layout.gutter.desktop",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-005"
+        ],
+        "explanation": "4 USWDS spacing units."
+      },
+      {
+        "record": "foundation:borders",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-010",
+          "source-023"
+        ],
+        "explanation": "Use the input component boundary, keep labels visible, and retain the configured focus outline. The focus width is half a spacing unit; its actual contrast must be tested in the rendered component context."
+      },
+      {
+        "record": "token:border.focus-width",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-010",
+          "source-006"
+        ],
+        "explanation": "Half-unit focus width resolved to 4px."
+      },
+      {
+        "record": "token:border.focus-offset",
+        "kind": "upstream-fact",
+        "sources": [
+          "source-010"
+        ],
+        "explanation": "Value from theme-focus-offset: 0; token name normalized for Monet."
+      },
+      {
+        "record": "taxonomy:interface",
+        "kind": "monet-authored",
+        "sources": [],
+        "explanation": "Monet concept IDs and grouping; descriptions summarize the included decisions."
+      },
+      {
+        "record": "component:button",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-024",
+          "source-025",
+          "source-026"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:text-input",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-027",
+          "source-028",
+          "source-029"
+        ],
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
+      },
+      {
+        "record": "component:table",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-030",
+          "source-031",
+          "source-032"
+        ],
+        "explanation": "Notes and avoidance conditions condense source-030 and source-031. The avoidance list preserves the explicit restrictions on row sorting; it makes no upstream prohibition on page layout or narrative content."
+      },
+      {
+        "record": "component:alert",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-033",
+          "source-034",
+          "source-035"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "component:checkbox",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-036",
+          "source-037",
+          "source-038"
+        ],
+        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+      },
+      {
+        "record": "pattern:accessible-form",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-039",
+          "source-027",
+          "source-028",
+          "source-029",
+          "source-036",
+          "source-037",
+          "source-038"
+        ],
+        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+      },
+      {
+        "record": "pattern:form-feedback",
+        "kind": "monet-adaptation",
+        "sources": [
+          "source-039",
+          "source-033",
+          "source-034",
+          "source-035",
+          "source-027",
+          "source-028",
+          "source-029"
+        ],
+        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+      },
+      {
+        "record": "source:uswds-public-service",
+        "kind": "monet-authored",
+        "sources": [],
+        "explanation": "Monet packaging, attribution and component-to-source mapping metadata."
+      }
+    ]
+  },
+  "records": {
+    "principles": [
+      {
+        "id": "user-needs",
+        "title": "Start from user needs",
+        "body": "Include real users early, test assumptions, and keep decisions grounded in what people need to accomplish.\n\nMonet adaptation: U.S. Web Design System. [source-012](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/pages/design-principles/overview.md)",
+        "order": 0,
+        "updated_at": ""
+      },
+      {
+        "id": "earn-trust",
+        "title": "Earn trust",
+        "body": "Use reliable behavior, plain language and honest communication. Protect the time and information people entrust to the service.\n\nMonet adaptation: U.S. Web Design System. [source-012](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/pages/design-principles/overview.md)",
+        "order": 1,
+        "updated_at": ""
+      },
+      {
+        "id": "accessibility",
+        "title": "Embrace accessibility",
+        "body": "Design for varied abilities, devices and circumstances from the start. Evaluate the implemented service with people and assistive technology.\n\nMonet adaptation: U.S. Web Design System. [source-012](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/pages/design-principles/overview.md)",
+        "order": 2,
+        "updated_at": ""
+      },
+      {
+        "id": "continuity",
+        "title": "Promote continuity",
+        "body": "Reuse familiar patterns across a service so people do not have to relearn its interaction at every step.\n\nMonet adaptation: U.S. Web Design System. [source-012](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/pages/design-principles/overview.md)",
+        "order": 3,
+        "updated_at": ""
+      },
+      {
+        "id": "listen",
+        "title": "Listen and improve",
+        "body": "Collect feedback throughout the life of the service and use it to improve the experience.\n\nMonet adaptation: U.S. Web Design System. [source-012](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/pages/design-principles/overview.md)",
+        "order": 4,
+        "updated_at": ""
+      }
+    ],
+    "foundations": [
+      {
+        "id": "color",
+        "name": "Color",
+        "status": "selected",
+        "description": "USWDS default primary and neutral roles for light pages.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "Map the default primary family and body/text settings; keep support colors distinct from text roles. This subset does not add a dark palette. Government identity assets are excluded.",
+        "notes": "Provenance: [source-003](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-color.scss)",
+        "order": 0,
+        "tokens": [
+          {
+            "id": "color-primary",
+            "name": "color.primary",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#005ea2",
+            "description": "Monet adaptation: blue-60v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 0
+          },
+          {
+            "id": "color-primary-hover",
+            "name": "color.primary.hover",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#1a4480",
+            "description": "Monet adaptation: blue-warm-70v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 1
+          },
+          {
+            "id": "color-primary-pressed",
+            "name": "color.primary.pressed",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#162e51",
+            "description": "Monet adaptation: blue-warm-80v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 2
+          },
+          {
+            "id": "color-foreground",
+            "name": "color.foreground",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#1b1b1b",
+            "description": "Monet adaptation: gray-90. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 3
+          },
+          {
+            "id": "color-foreground-muted",
+            "name": "color.foreground.muted",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#565c65",
+            "description": "Monet adaptation: gray-cool-60. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 4
+          },
+          {
+            "id": "color-border",
+            "name": "color.border",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#71767a",
+            "description": "Monet adaptation: Monet selects the gray-cool-50 palette value #71767a for this generic border role. This is an editorial role choice, not a claim that the cited settings define gray-cool-50 as the default USWDS input border.",
+            "order": 5
+          },
+          {
+            "id": "color-focus",
+            "name": "color.focus",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#2491ff",
+            "description": "Monet adaptation: blue-40v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 6
+          },
+          {
+            "id": "color-surface-hover",
+            "name": "color.surface.hover",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#f0f0f0",
+            "description": "Monet adaptation: gray-5. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 7
+          },
+          {
+            "id": "color-danger-foreground",
+            "name": "color.danger.foreground",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#b50909",
+            "description": "Monet adaptation: red-60v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 8
+          },
+          {
+            "id": "color-uswds-success",
+            "name": "color.uswds.success",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#00a91c",
+            "description": "Monet adaptation: green-cool-40v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 9
+          },
+          {
+            "id": "color-uswds-warning",
+            "name": "color.uswds.warning",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffbe2e",
+            "description": "Monet adaptation: gold-20v. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "order": 10
+          },
+          {
+            "id": "color-background",
+            "name": "color.background",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffffff",
+            "description": "Monet adaptation: white. White page/surface or reverse text from USWDS default settings.",
+            "order": 11
+          },
+          {
+            "id": "color-surface",
+            "name": "color.surface",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffffff",
+            "description": "Monet adaptation: white. White page/surface or reverse text from USWDS default settings.",
+            "order": 12
+          },
+          {
+            "id": "color-on-primary",
+            "name": "color.on.primary",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "#ffffff",
+            "description": "Monet adaptation: white. White page/surface or reverse text from USWDS default settings.",
+            "order": 13
+          },
+          {
+            "id": "color-link",
+            "name": "color.link",
+            "foundation": "color",
+            "type": "color",
+            "level": "semantic",
+            "value": "{color.primary}",
+            "description": "Monet adaptation: color.primary. USWDS default link color is primary.",
+            "order": 14
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "typography",
+        "name": "Typography",
+        "status": "selected",
+        "description": "Local sans body text and Georgia headings.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "Monet selects the documented system and Georgia stacks to work offline without shipping font files. Use the unadjusted system scale as native dimensions; font-specific cap-height normalization is intentionally omitted. This is an explicit adaptation of default USWDS typography.",
+        "notes": "Provenance: [source-004](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-typography.scss) [source-007](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/stacks.scss) [source-008](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/type-scale.scss) [source-009](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/font/typefaces.scss)",
+        "order": 1,
+        "tokens": [
+          {
+            "id": "font-family-sans",
+            "name": "font.family.sans",
+            "foundation": "typography",
+            "type": "font-family",
+            "level": "primitive",
+            "value": "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+            "description": "Monet adaptation: font-stack-system. Choose the documented local system stack; omit emoji fallbacks. Replaces the default Source Sans Pro asset dependency.",
+            "order": 0
+          },
+          {
+            "id": "font-family-heading",
+            "name": "font.family.heading",
+            "foundation": "typography",
+            "type": "font-family",
+            "level": "primitive",
+            "value": "\"Georgia\", \"Cambria\", \"Times New Roman\", \"Times\", serif",
+            "description": "Monet adaptation: font-stack-georgia. Choose the documented Georgia stack instead of distributing Merriweather fonts.",
+            "order": 1
+          },
+          {
+            "id": "font-size-1",
+            "name": "font.size.1",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "12px",
+            "description": "Upstream fact: system-type-scale 1. Value from system-type-scale 1; token name normalized for Monet.",
+            "order": 2
+          },
+          {
+            "id": "font-size-3",
+            "name": "font.size.3",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "14px",
+            "description": "Upstream fact: system-type-scale 3. Value from system-type-scale 3; token name normalized for Monet.",
+            "order": 3
+          },
+          {
+            "id": "font-size-5",
+            "name": "font.size.5",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Upstream fact: system-type-scale 5. Value from system-type-scale 5; token name normalized for Monet.",
+            "order": 4
+          },
+          {
+            "id": "font-size-6",
+            "name": "font.size.6",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "17px",
+            "description": "Upstream fact: system-type-scale 6. Value from system-type-scale 6; token name normalized for Monet.",
+            "order": 5
+          },
+          {
+            "id": "font-size-7",
+            "name": "font.size.7",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "18px",
+            "description": "Upstream fact: system-type-scale 7. Value from system-type-scale 7; token name normalized for Monet.",
+            "order": 6
+          },
+          {
+            "id": "font-size-8",
+            "name": "font.size.8",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "20px",
+            "description": "Upstream fact: system-type-scale 8. Value from system-type-scale 8; token name normalized for Monet.",
+            "order": 7
+          },
+          {
+            "id": "font-size-10",
+            "name": "font.size.10",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "24px",
+            "description": "Upstream fact: system-type-scale 10. Value from system-type-scale 10; token name normalized for Monet.",
+            "order": 8
+          },
+          {
+            "id": "font-size-12",
+            "name": "font.size.12",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "32px",
+            "description": "Upstream fact: system-type-scale 12. Value from system-type-scale 12; token name normalized for Monet.",
+            "order": 9
+          },
+          {
+            "id": "font-size-14",
+            "name": "font.size.14",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "primitive",
+            "value": "40px",
+            "description": "Upstream fact: system-type-scale 14. Value from system-type-scale 14; token name normalized for Monet.",
+            "order": 10
+          },
+          {
+            "id": "font-size-md",
+            "name": "font.size.md",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "semantic",
+            "value": "{font.size.5}",
+            "description": "Monet adaptation: Monet body-size alias for unadjusted system scale step 5 (16px). The name md is Monet’s alias, not USWDS $theme-type-scale-md, which selects step 6 (17px). USWDS body defaults to sm; font-specific normalization is omitted.",
+            "order": 11
+          },
+          {
+            "id": "font-size-heading",
+            "name": "font.size.heading",
+            "foundation": "typography",
+            "type": "font-size",
+            "level": "semantic",
+            "value": "{font.size.12}",
+            "description": "Monet adaptation: font.size.12. Monet section heading choice from the unadjusted system scale.",
+            "order": 12
+          },
+          {
+            "id": "font-weight-regular",
+            "name": "font.weight.regular",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 400,
+            "description": "Upstream fact: $theme-font-weight-normal: 400. Monet normalizes the token name to font.weight.regular; there is no upstream $theme-font-weight-regular setting.",
+            "order": 13
+          },
+          {
+            "id": "font-weight-bold",
+            "name": "font.weight.bold",
+            "foundation": "typography",
+            "type": "font-weight",
+            "level": "primitive",
+            "value": 700,
+            "description": "Upstream fact: theme-font-weight-bold. Value from theme-font-weight-bold; token name normalized for Monet.",
+            "order": 14
+          },
+          {
+            "id": "font-line-height-body",
+            "name": "font.line-height.body",
+            "foundation": "typography",
+            "type": "number",
+            "level": "primitive",
+            "value": 1.62,
+            "description": "Upstream fact: line-height token 5. Value from line-height token 5; token name normalized for Monet.",
+            "order": 15
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "spacing",
+        "name": "Spacing",
+        "status": "selected",
+        "description": "USWDS spacing units and layout gaps.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "USWDS spacing-multiple scales an 8px grid base into rem output. Monet freezes the selected pixel equivalents at a 16px reference root, including half-unit steps. Responsive gaps and user font scaling need application-level treatment.",
+        "notes": "Provenance: [source-005](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-spacing.scss) [source-006](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/spacing.scss) [source-040](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/functions/units/spacing-multiple.scss) [source-041](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/grid-base.scss)",
+        "order": 2,
+        "tokens": [
+          {
+            "id": "space-05",
+            "name": "space.05",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "4px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 0
+          },
+          {
+            "id": "space-1",
+            "name": "space.1",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "8px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 1
+          },
+          {
+            "id": "space-105",
+            "name": "space.105",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "12px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 2
+          },
+          {
+            "id": "space-2",
+            "name": "space.2",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 3
+          },
+          {
+            "id": "space-205",
+            "name": "space.205",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "20px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 4
+          },
+          {
+            "id": "space-3",
+            "name": "space.3",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "24px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 5
+          },
+          {
+            "id": "space-4",
+            "name": "space.4",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "32px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 6
+          },
+          {
+            "id": "space-5",
+            "name": "space.5",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "40px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 7
+          },
+          {
+            "id": "space-6",
+            "name": "space.6",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "48px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 8
+          },
+          {
+            "id": "space-7",
+            "name": "space.7",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "56px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 9
+          },
+          {
+            "id": "space-8",
+            "name": "space.8",
+            "foundation": "spacing",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "64px",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
+            "order": 10
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "radius",
+        "name": "Radius",
+        "status": "selected",
+        "description": "Small, medium and large radius settings.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "Keep the modest default radius: 2px, half-unit (4px), one unit (8px). Buttons use medium; the input treatment remains component-specific.",
+        "notes": "Provenance: [source-005](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-spacing.scss) [source-011](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-components.scss)",
+        "order": 3,
+        "tokens": [
+          {
+            "id": "radius-sm",
+            "name": "radius.sm",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "2px",
+            "description": "Monet adaptation: theme-border-radius-sm. Resolve the published radius setting to pixel units.",
+            "order": 0
+          },
+          {
+            "id": "radius-md",
+            "name": "radius.md",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "4px",
+            "description": "Monet adaptation: theme-border-radius-md. Resolve the published radius setting to pixel units.",
+            "order": 1
+          },
+          {
+            "id": "radius-lg",
+            "name": "radius.lg",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "8px",
+            "description": "Monet adaptation: theme-border-radius-lg. Resolve the published radius setting to pixel units.",
+            "order": 2
+          },
+          {
+            "id": "radius-control",
+            "name": "radius.control",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "semantic",
+            "value": "{radius.md}",
+            "description": "Monet adaptation: radius.md. Default button radius setting.",
+            "order": 3
+          },
+          {
+            "id": "radius-card",
+            "name": "radius.card",
+            "foundation": "radius",
+            "type": "dimension",
+            "level": "semantic",
+            "value": "{radius.md}",
+            "description": "Monet adaptation: radius.md. Monet preview panel uses the documented medium radius.",
+            "order": 4
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "elevation",
+        "name": "Elevation",
+        "status": "selected",
+        "description": "One resolved USWDS shadow property recipe.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "Use the shadow-1 property recipe as mapped at a 16px reference root. The property table establishes the value; it does not decide which containers should receive a shadow or establish an application elevation hierarchy.",
+        "notes": "Provenance: [source-042](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/_properties.scss) [source-021](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-utilities/src/styles/rules/box-shadow.scss)",
+        "order": 4,
+        "tokens": [
+          {
+            "id": "shadow-1",
+            "name": "shadow.1",
+            "foundation": "elevation",
+            "type": "shadow",
+            "level": "primitive",
+            "value": "0 1px 0.25rem 0 rgba(0, 0, 0, 0.1)",
+            "description": "Monet adaptation: Resolve $system-properties box-shadow.standard.1: 0 units(1px) units(0.5) 0 rgba(0, 0, 0, 0.1), using a 16px reference root. Keep the explicit 1px offset and express half an 8px grid unit as 0.25rem. No component elevation policy is inferred.",
+            "order": 0
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "layout",
+        "name": "Layout",
+        "status": "selected",
+        "description": "Bounded content and responsive gutters.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "The default container maximum is the desktop breakpoint; the documented mobile and desktop column gaps are 2 and 4 units. Retain form/content widths appropriate to the task rather than filling every wide display.",
+        "notes": "Provenance: [source-005](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-spacing.scss) [source-022](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/breakpoints.scss)",
+        "order": 5,
+        "tokens": [
+          {
+            "id": "layout-max-width",
+            "name": "layout.max-width",
+            "foundation": "layout",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "1024px",
+            "description": "Monet adaptation: desktop breakpoint; theme-grid-container-max-width. Resolve the default desktop container token.",
+            "order": 0
+          },
+          {
+            "id": "layout-gutter-mobile",
+            "name": "layout.gutter.mobile",
+            "foundation": "layout",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "16px",
+            "description": "Monet adaptation: theme-column-gap-mobile: 2. 2 USWDS spacing units.",
+            "order": 1
+          },
+          {
+            "id": "layout-gutter-desktop",
+            "name": "layout.gutter.desktop",
+            "foundation": "layout",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "32px",
+            "description": "Monet adaptation: theme-column-gap-desktop: 4. 4 USWDS spacing units.",
+            "order": 2
+          }
+        ],
+        "updated_at": ""
+      },
+      {
+        "id": "borders",
+        "name": "Borders and focus",
+        "status": "selected",
+        "description": "Visible input boundaries and keyboard focus.",
+        "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
+        "guidance": "Use the input component boundary, keep labels visible, and retain the configured focus outline. The focus width is half a spacing unit; its actual contrast must be tested in the rendered component context.",
+        "notes": "Provenance: [source-010](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-general.scss) [source-023](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/usa-input/src/styles/_usa-input.scss)",
+        "order": 6,
+        "tokens": [
+          {
+            "id": "border-focus-width",
+            "name": "border.focus-width",
+            "foundation": "borders",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "4px",
+            "description": "Monet adaptation: theme-focus-width: 0.5. Half-unit focus width resolved to 4px.",
+            "order": 0
+          },
+          {
+            "id": "border-focus-offset",
+            "name": "border.focus-offset",
+            "foundation": "borders",
+            "type": "dimension",
+            "level": "primitive",
+            "value": "0px",
+            "description": "Upstream fact: theme-focus-offset: 0. Value from theme-focus-offset: 0; token name normalized for Monet.",
+            "order": 1
+          }
+        ],
+        "updated_at": ""
+      }
+    ],
+    "taxonomy": [
+      {
+        "id": "interface",
+        "name": "Interface",
+        "entries": [
+          {
+            "id": "button",
+            "name": "Button",
+            "category": "interface",
+            "description": "Clear action labels and distinguishable interaction states.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "text-input",
+            "name": "Text input",
+            "category": "interface",
+            "description": "Visible labels with contextual guidance and errors.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "table",
+            "name": "Table",
+            "category": "interface",
+            "description": "Accessible comparison of genuinely tabular information.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "alert",
+            "name": "Alert",
+            "category": "interface",
+            "description": "Task-relevant feedback with explicit status text.",
+            "aliases": [],
+            "relationships": []
+          },
+          {
+            "id": "checkbox",
+            "name": "Checkbox",
+            "category": "interface",
+            "description": "One or more selections from a visible set.",
+            "aliases": [],
+            "relationships": []
+          }
+        ]
+      }
+    ],
+    "components": [
+      {
+        "id": "button",
+        "status": "selected",
+        "selection": {
+          "source": "uswds-public-service",
+          "source_component": "Button"
+        },
+        "preferences": {
+          "radius": "token:radius.control",
+          "label_case": "sentence"
+        },
+        "behavior": {},
+        "rationale": "Clear action labels and distinguishable interaction states.",
+        "notes": "Monet adaptation of U.S. Web Design System: Use standard buttons for a next step and outline buttons for actions on the same page. Lead concise labels with a verb. Distinguish default, hover and active states and show keyboard focus. Use native button/link semantics.\n\n[source-024](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/usability.md) [source-025](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/accessibility.md) [source-026](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/when-to-use.md)",
+        "use_when": [
+          "Moving to a next step",
+          "Submitting or acting on page content"
+        ],
+        "avoid_when": [
+          "Too many competing actions",
+          "A div or image used as a button"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "radius",
+          "borders"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "text-input",
+        "status": "selected",
+        "selection": {
+          "source": "uswds-public-service",
+          "source_component": "Text input"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "Visible labels with contextual guidance and errors.",
+        "notes": "Monet adaptation of U.S. Web Design System: Avoid placeholder text, including when a separate label exists: it disappears during entry and default rendering often has insufficient contrast. Keep necessary instructions visible. Use fields appropriate to the expected answer length and a text area for paragraphs. Show validation only after interaction. Preserve accessible labels and the form-control accessibility requirements.\n\n[source-027](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md) [source-028](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/accessibility.md) [source-029](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/when-to-use.md)",
+        "use_when": [
+          "Short freeform answers",
+          "Values that are not a fixed selection"
+        ],
+        "avoid_when": [
+          "Placeholder instructions inside a text field",
+          "Paragraphs in a single-line input"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "borders"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "table",
+        "status": "selected",
+        "selection": {
+          "source": "uswds-public-service",
+          "source_component": "Table"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "Accessible comparison of genuinely tabular information.",
+        "notes": "Monet adaptation of U.S. Web Design System: Use a header row with short, plain-language labels, consistent units within each column, and appropriate scope or explicit header associations. Right-align numbers that represent amounts that can be totaled; phone numbers, ZIP codes and dates do not need that treatment. Put titles, attribution or update dates in a caption when supplied. For more than two columns, choose the documented scrollable or stacked small-screen variant.\n\n[source-030](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/usability.md) [source-031](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/accessibility.md) [source-032](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/when-to-use.md)",
+        "use_when": [
+          "Comparing rows with common attributes",
+          "Structured information with headers"
+        ],
+        "avoid_when": [
+          "Row sorting with merged cells",
+          "Row sorting with mobile stacked variants"
+        ],
+        "foundations": [
+          "typography",
+          "spacing",
+          "layout",
+          "color"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "alert",
+        "status": "selected",
+        "selection": {
+          "source": "uswds-public-service",
+          "source_component": "Alert"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "Task-relevant feedback with explicit status text.",
+        "notes": "Monet adaptation of U.S. Web Design System: Use informative, success, warning or error messages where they help the task. Explain the issue and next step. Do not rely on color alone; choose appropriate live-region behavior rather than announcing every message assertively.\n\n[source-033](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/usability.md) [source-034](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/accessibility.md) [source-035](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/when-to-use.md)",
+        "use_when": [
+          "Important contextual feedback",
+          "A recoverable error with next steps"
+        ],
+        "avoid_when": [
+          "Decorative callouts",
+          "Overwhelming the page with alerts"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      },
+      {
+        "id": "checkbox",
+        "status": "selected",
+        "selection": {
+          "source": "uswds-public-service",
+          "source_component": "Checkbox"
+        },
+        "preferences": {},
+        "behavior": {},
+        "rationale": "One or more selections from a visible set.",
+        "notes": "Monet adaptation of U.S. Web Design System: Provide clear labels and group related choices with a fieldset and legend. Preserve keyboard interaction and a visible focus state. Use radio buttons for a mutually exclusive choice; do not treat an unchecked checkbox as an ambiguous default.\n\n[source-036](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/usability.md) [source-037](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/accessibility.md) [source-038](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/when-to-use.md)",
+        "use_when": [
+          "Selecting multiple independent options",
+          "Confirming an explicit independent choice"
+        ],
+        "avoid_when": [
+          "A mutually exclusive choice"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing",
+          "borders"
+        ],
+        "primitives": [],
+        "candidates": [],
+        "history": [],
+        "updated_at": ""
+      }
+    ],
+    "patterns": [
+      {
+        "id": "accessible-form",
+        "title": "Accessible form",
+        "summary": "Keep labels, grouping and instructions attached to inputs.",
+        "body": "Monet adaptation of U.S. Web Design System guidance.\n\nUse visible labels, fieldsets and legends for related choices, and instructions before they are needed. Identify required information and use the correct input semantics. Keep the action label clear. Test keyboard access and assistive-technology output after implementation.\n\nSources: [source-039](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_includes/forms-guidance.html) [source-027](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md) [source-028](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/accessibility.md) [source-029](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/when-to-use.md) [source-036](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/usability.md) [source-037](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/accessibility.md) [source-038](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/when-to-use.md)",
+        "status": "selected",
+        "tags": [
+          "accessible",
+          "form"
+        ],
+        "order": 0,
+        "updated_at": "",
+        "components": [
+          "text-input",
+          "checkbox",
+          "button"
+        ],
+        "foundations": [
+          "typography",
+          "spacing",
+          "borders"
+        ]
+      },
+      {
+        "id": "form-feedback",
+        "title": "Form feedback",
+        "summary": "Explain errors and provide a clear next step.",
+        "body": "Monet adaptation of U.S. Web Design System guidance.\n\nPresent actionable field feedback in context and use an alert for a task-wide message when appropriate. Do not encode success or error only through color. Keep the next action understandable and avoid repeated competing announcements.\n\nSources: [source-039](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_includes/forms-guidance.html) [source-033](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/usability.md) [source-034](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/accessibility.md) [source-035](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/when-to-use.md) [source-027](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md) [source-028](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/accessibility.md) [source-029](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/when-to-use.md)",
+        "status": "selected",
+        "tags": [
+          "form",
+          "feedback"
+        ],
+        "order": 1,
+        "updated_at": "",
+        "components": [
+          "text-input",
+          "alert",
+          "button"
+        ],
+        "foundations": [
+          "color",
+          "typography",
+          "spacing"
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "uswds-public-service",
+        "name": "U.S. Web Design System — preset provenance",
+        "type": "reference",
+        "homepage": "https://designsystem.digital.gov/",
+        "repository": "https://github.com/uswds/uswds",
+        "framework": "Framework-independent Monet adaptation",
+        "package": "",
+        "license": "CC0-1.0",
+        "notes": "Adapted by Monet from USWDS. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset uswds-public-service@1.1.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
+        "enabled": true,
+        "mappings": [
+          {
+            "upstream": "Button",
+            "target_type": "component",
+            "canonical_id": "button",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/button/guidance/usability.md",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Text input",
+            "target_type": "component",
+            "canonical_id": "text-input",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Table",
+            "target_type": "component",
+            "canonical_id": "table",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/usability.md",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Alert",
+            "target_type": "component",
+            "canonical_id": "alert",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/alert/guidance/usability.md",
+            "mapped_by": "manual"
+          },
+          {
+            "upstream": "Checkbox",
+            "target_type": "component",
+            "canonical_id": "checkbox",
+            "status": "mapped",
+            "confidence": "high",
+            "match_type": "equivalent",
+            "primary": true,
+            "documentation": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/checkbox/guidance/usability.md",
+            "mapped_by": "manual"
+          }
+        ],
+        "updated_at": ""
+      }
+    ]
+  }
+}
