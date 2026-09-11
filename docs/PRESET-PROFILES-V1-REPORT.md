@@ -1,5 +1,9 @@
 # Preset Profiles V1 — implementation report
 
+**Release status:** the [final guidance correction audit](research/preset-guidance-corrections.md)
+supersedes the initial package versions, verification counts and recommendation below.
+This document records the original implementation review.
+
 Implemented on `codex/preset-profiles-v1`, based on main
 `4e5bad0e0ed77e54f1a117f404badcaf29cea925`. Local and remote main were checked before
 implementation: Profiles V1, Surfaces V1.1 and resumable Project onboarding were
@@ -97,7 +101,7 @@ layout and border guidance; Carbon also includes motion. Radix components are
 button/text-input/table/dialog/card; Carbon button/text-input/data-table/dialog/
 notification; USWDS button/text-input/table/alert/checkbox.
 
-The [guide](PRESETS.md#catalog-100) lists every principle, Foundation and token count,
+The [guide](PRESETS.md#catalog) lists every principle, Foundation and token count,
 component, pattern, taxonomy and Source ID. Each linked JSON package contains the
 complete exact records, values and per-token provenance. No Primitives, References,
 private evidence, decision histories or Themes are seeded.

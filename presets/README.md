@@ -38,4 +38,5 @@ conversion script or runtime import path. The test catalog-directory constructor
 is a server-side maintenance seam and is not exposed to clients.
 
 [Usage and exact coverage](../docs/PRESETS.md) ·
-[Research, candidate ranking and license decisions](../docs/research/preset-profiles-v1.md)
+[Research, candidate ranking and license decisions](../docs/research/preset-profiles-v1.md) ·
+[Guidance corrections and release hashes](../docs/research/preset-guidance-corrections.md)

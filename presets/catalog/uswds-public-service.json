@@ -4,8 +4,8 @@
     "monet_schema": 1,
     "id": "uswds-public-service",
     "name": "USWDS Public Service",
-    "version": "1.0.0",
-    "adaptation_version": "1.0.0",
+    "version": "1.1.0",
+    "adaptation_version": "1.1.0",
     "description": "Readable public-service pages with strong form and accessibility guidance.",
     "best_for": [
       "Public-service forms",
@@ -46,8 +46,10 @@
       "Monet chooses documented local system/Georgia font stacks and an unadjusted subset of the system type scale; this is not default Source Sans Pro/Merriweather font-metric output.",
       "No fonts, icons, government banner, identifier, seal, logo or official-government claim is included.",
       "Runtime accessibility, responsive templates, complete form workflows and component code are not included.",
-      "No general motion scale is invented. Only a documented shadow utility example is included.",
-      "Only five component decisions and two form compositions are included; this does not certify an application accessible."
+      "No general motion scale is invented. Only the shadow-1 property recipe is included; no container elevation policy is inferred.",
+      "Only five component decisions and two form compositions are included; this does not certify an application accessible.",
+      "font.size.md is Monet’s 16px body alias, not the upstream md step (6, 17px before font normalization). color.border is a Monet-selected gray-cool-50 role, not an asserted default USWDS input border.",
+      "Spacing is frozen to pixel equivalents at a 16px reference root; shadow-1 resolves the source property recipe with that reference root. No Sass font/unit normalization engine is bundled."
     ],
     "sources": [
       {
@@ -322,6 +324,27 @@
         "revision": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
         "sha256": "aa78df7e862965d6776a3dc0dd8fdd167a75b7bc53c88f333e64e040563dc319",
         "license": "CC0-1.0"
+      },
+      {
+        "id": "source-040",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/functions/units/spacing-multiple.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "b19a54823119a0010c243cb7ae9cec24acdaa625f570f674a93f44e60a7e6a4e",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-041",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/grid-base.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "49c151610597ae5b35e2cb263e1b1844eba6eb02b91480b63c78a44615f5e30c",
+        "license": "CC0-1.0"
+      },
+      {
+        "id": "source-042",
+        "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/_properties.scss",
+        "revision": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+        "sha256": "5ee7890d9d5e5f9d884d2919203bca09d157062262713d542298b14be21c145c",
+        "license": "CC0-1.0"
       }
     ],
     "provenance": [
@@ -422,10 +445,9 @@
         "record": "token:color.border",
         "kind": "monet-adaptation",
         "sources": [
-          "source-003",
           "source-016"
         ],
-        "explanation": "Resolve selected default settings to a Monet semantic role; support fills are not text-color promises."
+        "explanation": "Monet selects the gray-cool-50 palette value #71767a for this generic border role. This is an editorial role choice, not a claim that the cited settings define gray-cool-50 as the default USWDS input border."
       },
       {
         "record": "token:color.focus",
@@ -611,7 +633,7 @@
           "source-004",
           "source-008"
         ],
-        "explanation": "Monet chooses the unadjusted system scale step 5 as body size; not font-normalized default output."
+        "explanation": "Monet body-size alias for unadjusted system scale step 5 (16px). The name md is Monet’s alias, not USWDS $theme-type-scale-md, which selects step 6 (17px). USWDS body defaults to sm; font-specific normalization is omitted."
       },
       {
         "record": "token:font.size.heading",
@@ -628,7 +650,7 @@
         "sources": [
           "source-004"
         ],
-        "explanation": "Value from theme-font-weight-regular; token name normalized for Monet."
+        "explanation": "$theme-font-weight-normal: 400. Monet normalizes the token name to font.weight.regular; there is no upstream $theme-font-weight-regular setting."
       },
       {
         "record": "token:font.weight.bold",
@@ -652,108 +674,132 @@
         "kind": "monet-adaptation",
         "sources": [
           "source-005",
-          "source-006"
+          "source-006",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Use the 8px unit with half-unit and pixel exceptions. Values here are the documented pixel equivalents; responsive gaps remain application decisions."
+        "explanation": "USWDS spacing-multiple scales an 8px grid base into rem output. Monet freezes the selected pixel equivalents at a 16px reference root, including half-unit steps. Responsive gaps and user font scaling need application-level treatment."
       },
       {
         "record": "token:space.05",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.1",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.105",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.2",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.205",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.3",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.4",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.5",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.6",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.7",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "token:space.8",
         "kind": "monet-adaptation",
         "sources": [
           "source-006",
-          "source-005"
+          "source-005",
+          "source-040",
+          "source-041"
         ],
-        "explanation": "Documented USWDS unit converted to its pixel equivalent."
+        "explanation": "Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation."
       },
       {
         "record": "foundation:radius",
@@ -809,17 +855,22 @@
         "record": "foundation:elevation",
         "kind": "monet-adaptation",
         "sources": [
+          "source-042",
           "source-021"
         ],
-        "explanation": "Preserve the shadow-1 example only. The preset does not establish which page containers require elevation or invent a full elevation hierarchy."
+        "explanation": "Use the shadow-1 property recipe as mapped at a 16px reference root. The property table establishes the value; it does not decide which containers should receive a shadow or establish an application elevation hierarchy."
       },
       {
         "record": "token:shadow.1",
-        "kind": "upstream-fact",
+        "kind": "monet-adaptation",
         "sources": [
+          "source-042",
+          "source-006",
+          "source-040",
+          "source-041",
           "source-021"
         ],
-        "explanation": "Value from shadow-1 utility example; token name normalized for Monet."
+        "explanation": "Resolve $system-properties box-shadow.standard.1: 0 units(1px) units(0.5) 0 rgba(0, 0, 0, 0.1), using a 16px reference root. Keep the explicit 1px offset and express half an 8px grid unit as 0.25rem. No component elevation policy is inferred."
       },
       {
         "record": "foundation:layout",
@@ -905,7 +956,7 @@
           "source-028",
           "source-029"
         ],
-        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
       },
       {
         "record": "component:table",
@@ -915,7 +966,7 @@
           "source-031",
           "source-032"
         ],
-        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+        "explanation": "Notes and avoidance conditions condense source-030 and source-031. The avoidance list preserves the explicit restrictions on row sorting; it makes no upstream prohibition on page layout or narrative content."
       },
       {
         "record": "component:alert",
@@ -1079,7 +1130,7 @@
             "type": "color",
             "level": "semantic",
             "value": "#71767a",
-            "description": "Monet adaptation: gray-cool-50. Resolve selected default settings to a Monet semantic role; support fills are not text-color promises.",
+            "description": "Monet adaptation: Monet selects the gray-cool-50 palette value #71767a for this generic border role. This is an editorial role choice, not a claim that the cited settings define gray-cool-50 as the default USWDS input border.",
             "order": 5
           },
           {
@@ -1302,7 +1353,7 @@
             "type": "font-size",
             "level": "semantic",
             "value": "{font.size.5}",
-            "description": "Monet adaptation: font.size.5. Monet chooses the unadjusted system scale step 5 as body size; not font-normalized default output.",
+            "description": "Monet adaptation: Monet body-size alias for unadjusted system scale step 5 (16px). The name md is Monet’s alias, not USWDS $theme-type-scale-md, which selects step 6 (17px). USWDS body defaults to sm; font-specific normalization is omitted.",
             "order": 11
           },
           {
@@ -1322,7 +1373,7 @@
             "type": "font-weight",
             "level": "primitive",
             "value": 400,
-            "description": "Upstream fact: theme-font-weight-regular. Value from theme-font-weight-regular; token name normalized for Monet.",
+            "description": "Upstream fact: $theme-font-weight-normal: 400. Monet normalizes the token name to font.weight.regular; there is no upstream $theme-font-weight-regular setting.",
             "order": 13
           },
           {
@@ -1354,8 +1405,8 @@
         "status": "selected",
         "description": "USWDS spacing units and layout gaps.",
         "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
-        "guidance": "Use the 8px unit with half-unit and pixel exceptions. Values here are the documented pixel equivalents; responsive gaps remain application decisions.",
-        "notes": "Provenance: [source-005](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-spacing.scss) [source-006](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/spacing.scss)",
+        "guidance": "USWDS spacing-multiple scales an 8px grid base into rem output. Monet freezes the selected pixel equivalents at a 16px reference root, including half-unit steps. Responsive gaps and user font scaling need application-level treatment.",
+        "notes": "Provenance: [source-005](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/settings/_settings-spacing.scss) [source-006](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/spacing.scss) [source-040](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/functions/units/spacing-multiple.scss) [source-041](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/tokens/units/grid-base.scss)",
         "order": 2,
         "tokens": [
           {
@@ -1365,7 +1416,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "4px",
-            "description": "Monet adaptation: units 0.5. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 0
           },
           {
@@ -1375,7 +1426,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "8px",
-            "description": "Monet adaptation: units 1. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 1
           },
           {
@@ -1385,7 +1436,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "12px",
-            "description": "Monet adaptation: units 1.5. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 2
           },
           {
@@ -1395,7 +1446,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "16px",
-            "description": "Monet adaptation: units 2. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 3
           },
           {
@@ -1405,7 +1456,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "20px",
-            "description": "Monet adaptation: units 2.5. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 4
           },
           {
@@ -1415,7 +1466,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "24px",
-            "description": "Monet adaptation: units 3. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 5
           },
           {
@@ -1425,7 +1476,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "32px",
-            "description": "Monet adaptation: units 4. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 6
           },
           {
@@ -1435,7 +1486,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "40px",
-            "description": "Monet adaptation: units 5. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 7
           },
           {
@@ -1445,7 +1496,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "48px",
-            "description": "Monet adaptation: units 6. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 8
           },
           {
@@ -1455,7 +1506,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "56px",
-            "description": "Monet adaptation: units 7. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 9
           },
           {
@@ -1465,7 +1516,7 @@
             "type": "dimension",
             "level": "primitive",
             "value": "64px",
-            "description": "Monet adaptation: units 8. Documented USWDS unit converted to its pixel equivalent.",
+            "description": "Monet adaptation: Documented USWDS unit converted to its pixel equivalent. Derived from spacing-multiple using the 8px grid base; Monet freezes the pixel equivalent at a 16px reference root rather than shipping the Sass rem calculation.",
             "order": 10
           }
         ],
@@ -1538,10 +1589,10 @@
         "id": "elevation",
         "name": "Elevation",
         "status": "selected",
-        "description": "A documented shadow utility example.",
+        "description": "One resolved USWDS shadow property recipe.",
         "rationale": "Monet adaptation of U.S. Web Design System for this preset configuration.",
-        "guidance": "Preserve the shadow-1 example only. The preset does not establish which page containers require elevation or invent a full elevation hierarchy.",
-        "notes": "Provenance: [source-021](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-utilities/src/styles/rules/box-shadow.scss)",
+        "guidance": "Use the shadow-1 property recipe as mapped at a 16px reference root. The property table establishes the value; it does not decide which containers should receive a shadow or establish an application elevation hierarchy.",
+        "notes": "Provenance: [source-042](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-core/src/styles/_properties.scss) [source-021](https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/packages/uswds-utilities/src/styles/rules/box-shadow.scss)",
         "order": 4,
         "tokens": [
           {
@@ -1551,7 +1602,7 @@
             "type": "shadow",
             "level": "primitive",
             "value": "0 1px 0.25rem 0 rgba(0, 0, 0, 0.1)",
-            "description": "Upstream fact: shadow-1 utility example. Value from shadow-1 utility example; token name normalized for Monet.",
+            "description": "Monet adaptation: Resolve $system-properties box-shadow.standard.1: 0 units(1px) units(0.5) 0 rgba(0, 0, 0, 0.1), using a 16px reference root. Keep the explicit 1px offset and express half an 8px grid unit as 0.25rem. No component elevation policy is inferred.",
             "order": 0
           }
         ],
@@ -1727,14 +1778,14 @@
         "preferences": {},
         "behavior": {},
         "rationale": "Visible labels with contextual guidance and errors.",
-        "notes": "Monet adaptation of U.S. Web Design System: Keep a persistent label outside the input. Use hints for constraints and clear errors for invalid values. Match input length and type to the expected answer. A placeholder must not replace the label.\n\n[source-027](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md) [source-028](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/accessibility.md) [source-029](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/when-to-use.md)",
+        "notes": "Monet adaptation of U.S. Web Design System: Avoid placeholder text, including when a separate label exists: it disappears during entry and default rendering often has insufficient contrast. Keep necessary instructions visible. Use fields appropriate to the expected answer length and a text area for paragraphs. Show validation only after interaction. Preserve accessible labels and the form-control accessibility requirements.\n\n[source-027](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/usability.md) [source-028](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/accessibility.md) [source-029](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/text-input/guidance/when-to-use.md)",
         "use_when": [
           "Short freeform answers",
           "Values that are not a fixed selection"
         ],
         "avoid_when": [
-          "Long multiline answers",
-          "A fixed small choice set"
+          "Placeholder instructions inside a text field",
+          "Paragraphs in a single-line input"
         ],
         "foundations": [
           "color",
@@ -1757,14 +1808,14 @@
         "preferences": {},
         "behavior": {},
         "rationale": "Accessible comparison of genuinely tabular information.",
-        "notes": "Monet adaptation of U.S. Web Design System: Provide captions and meaningful headers. Use a simple structure when possible, align numeric data consistently, and address small-screen overflow without dropping header relationships. Tables are not page-layout tools.\n\n[source-030](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/usability.md) [source-031](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/accessibility.md) [source-032](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/when-to-use.md)",
+        "notes": "Monet adaptation of U.S. Web Design System: Use a header row with short, plain-language labels, consistent units within each column, and appropriate scope or explicit header associations. Right-align numbers that represent amounts that can be totaled; phone numbers, ZIP codes and dates do not need that treatment. Put titles, attribution or update dates in a caption when supplied. For more than two columns, choose the documented scrollable or stacked small-screen variant.\n\n[source-030](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/usability.md) [source-031](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/accessibility.md) [source-032](https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/_components/table/guidance/when-to-use.md)",
         "use_when": [
           "Comparing rows with common attributes",
           "Structured information with headers"
         ],
         "avoid_when": [
-          "Page layout",
-          "Narrative content"
+          "Row sorting with merged cells",
+          "Row sorting with mobile stacked variants"
         ],
         "foundations": [
           "typography",
@@ -1894,7 +1945,7 @@
         "framework": "Framework-independent Monet adaptation",
         "package": "",
         "license": "CC0-1.0",
-        "notes": "Adapted by Monet from USWDS. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset uswds-public-service@1.0.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
+        "notes": "Adapted by Monet from USWDS. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset uswds-public-service@1.1.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
         "enabled": true,
         "mappings": [
           {

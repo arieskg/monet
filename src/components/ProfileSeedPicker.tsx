@@ -30,7 +30,7 @@ export function ProfileSeedPicker({ value, onChange, allowFork = false, label = 
       {error && <p role="alert">{error} <button type="button" className="button ghost micro" onClick={() => setAttempt((a) => a + 1)}>Retry presets</button></p>}
       {!catalog && !error && <p role="status">Loading bundled presets…</p>}
       <div className="preset-catalog" aria-label="Curated presets">{catalog?.map((item) => <button type="button" key={item.selection.id} className={`preset-option${selected?.selection.id === item.selection.id ? " selected" : ""}`} aria-pressed={selected?.selection.id === item.selection.id} onClick={() => { setMode("light"); onChange({ kind: "preset", preset: item.selection }); }}>
-        <strong>{item.name}</strong><span>{item.description}</span><small>{item.supported_modes.includes("dark") ? "Light + dark" : "Light only"}</small>
+        <strong>{item.name}</strong><span>{item.description}</span><small>Best for: {item.best_for.join(" · ")}</small><small>{item.supported_modes.includes("dark") ? "Light + dark" : "Light only"}</small>
       </button>)}</div>
       {catalog && !selected && <p role="status">{value.preset ? "The saved preset version is no longer in this catalog. A published Profile can still resume; new creation requires choosing an available version." : "Select a preset to inspect its colors, guidance and included decisions."}</p>}
       {selected && <PresetPreview detail={selected} mode={mode} onMode={setMode} />}
@@ -45,7 +45,7 @@ function PresetPreview({ detail, mode, onMode }: { detail: PresetDetail; mode: T
   const style = { "--preset-bg": token("color.background"), "--preset-surface": token("color.surface"), "--preset-ink": token("color.foreground"), "--preset-muted": token("color.foreground.muted"), "--preset-accent": token("color.primary"), "--preset-on-accent": token("color.on.primary"), "--preset-border": token("color.border"), "--preset-radius": token("radius.control", "0px"), "--preset-font": token("font.family.sans", "system-ui"), "--preset-heading": token("font.family.heading", token("font.family.sans", "system-ui")), "--preset-body-size": token("font.size.md", "16px"), "--preset-heading-size": token("font.size.heading", "24px") } as CSSProperties;
   const r = detail.records;
   return <section className="preset-detail" aria-label={`${detail.name} preview`}>
-    <h3>{detail.name}</h3><p>Best for: {detail.best_for.join(" · ")}</p><p className="muted">{detail.characteristics.join(" · ")}</p>
+    <h3>{detail.name}</h3><p className="muted">{detail.characteristics.join(" · ")}</p>
     <p>Based on <a href={detail.upstream.documentation} target="_blank" rel="noreferrer">{detail.upstream.name}</a> · Preset {detail.selection.version}</p>
     <label>Preview mode<select value={effectiveMode} onChange={(e) => onMode(e.target.value as ThemeMode)}>{detail.supported_modes.map((m) => <option key={m} value={m}>{m === "light" ? "Light" : "Dark"}</option>)}</select></label>
     <div className="preset-sample" style={style} aria-label="Preset token illustration">

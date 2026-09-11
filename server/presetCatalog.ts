@@ -126,7 +126,11 @@ export async function readPresetReceipt(): Promise<PresetReceipt | null> {
       if (origin?.preset && JSON.stringify(origin.preset) !== JSON.stringify(receipt.selection)) throw fail("Preset provenance identity mismatch.");
       return receipt;
     }
-    catch (e) { if ((e as NodeJS.ErrnoException).code === "ENOENT" && !workspaceScope().identity?.origin.preset) return null; throw e; }
+    catch (e) {
+      if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+      if (!workspaceScope().identity?.origin.preset) return null;
+      throw Object.assign(new Error("PRESET.json is missing. Your design records are still usable. If removal was intentional, you can continue; restore your saved snapshot to inspect the original provenance. Retain PRESET-LICENSES.txt when sharing adapted material."), { status: 410 });
+    }
   });
 }
 

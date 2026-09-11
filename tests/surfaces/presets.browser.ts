@@ -34,7 +34,9 @@ for (const [id, name, dark] of [["radix-product", "Radix Product", true], ["carb
     await dialog.getByLabel("Name", { exact: true }).fill(name + " browser");
     await dialog.getByLabel("Start with", { exact: true }).selectOption("preset");
     await expect(dialog.getByRole("button", { name: "Create profile", exact: true })).toBeDisabled();
-    await dialog.getByRole("button", { name: new RegExp('^' + name) }).click();
+    const choice = dialog.getByRole("button", { name: new RegExp('^' + name) });
+    await expect(choice).toContainText("Best for:");
+    await choice.click();
     const preview = dialog.getByRole("region", { name: name + " preview" });
     await expect(preview).toContainText("5 component decisions");
     const light = await preview.locator(".preset-sample").evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -55,7 +57,7 @@ for (const [id, name, dark] of [["radix-product", "Radix Product", true], ["carb
     expect(workspace.themes).toEqual([]); expect(workspace.components).toHaveLength(5);
     await page.getByRole("link", { name: "Agent context", exact: true }).click();
     await expect(page.locator(".agent-page")).toContainText(profileId);
-    await page.getByText(`Preset origin — ${name} 1.0.0`, { exact: true }).click();
+    await page.getByText(`Preset origin — ${name} ${id === "radix-product" ? "2.0.0" : "1.1.0"}`, { exact: true }).click();
     await expect(page.locator(".preset-origin")).toContainText("PRESET-LICENSES.txt");
     const downloadEvent = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download provenance and notices" }).click();
@@ -86,6 +88,16 @@ test("inline Project preset onboarding resumes after a lost response with the sa
   expect(after.profiles).toHaveLength(library.profiles.length + 1);
   const profile = after.profiles.find((p) => p.identity.id === result!.profile_id) as ProfileRegistration;
   expect(profile.identity.origin.preset?.id).toBe("carbon-product");
+});
+
+test("a removed provenance snapshot explains the limitation while Agent context remains usable", async ({ page, request }) => {
+  const library = await (await request.get(apiUrl + "/api/profiles")).json() as ProfileLibrary;
+  const profile = library.profiles.find((p) => p.identity.origin.preset?.id === "radix-product")!;
+  await rm(path.join(profile.root, "PRESET.json"));
+  await page.goto(`${editor}/agent?profile=${profile.identity.id}`);
+  await expect(page.getByRole("status").filter({ hasText: "PRESET.json is missing" })).toContainText("Your design records are still usable");
+  await expect(page.locator(".agent-page")).toContainText(profile.identity.id);
+  expect((await request.get(`${apiUrl}/api/profiles/${profile.identity.id}/workspace`)).ok()).toBe(true);
 });
 
 test("preset inspection fits a narrow viewport and keyboard selection keeps creation guarded", async ({ page }) => {

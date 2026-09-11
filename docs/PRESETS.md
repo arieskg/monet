@@ -17,10 +17,11 @@ Use **Agent context** / **Build With It** with the new Profile selected to confi
 your agent. Connect Projects and inspect Surfaces through their existing workflows.
 These operations never redesign or execute a connected project automatically.
 
-## Catalog 1.0.0
+## Catalog
 
-All packages have Monet schema version 1, package version 1 and adaptation version
-1.0.0. Counts below describe actual instantiated canonical records, excluding
+All packages retain Monet schema version 1 and package format version 1. Radix is
+2.0.0; Carbon and USWDS are 1.1.0, with matching adaptation versions. See the
+[correction audit](research/preset-guidance-corrections.md) for release hashes and evidence. Counts below describe actual instantiated canonical records, excluding
 empty scaffolding and derived exports. A taxonomy category contains the five
 included component concepts; one Source record maps them to their upstream docs.
 
@@ -46,7 +47,9 @@ Rounded, quiet controls with a violet accent and balanced spacing. Violet + mauv
 - No Radix runtime, keyboard implementation, icons, font binaries or local font-metric patches.
 - sRGB fallback shadows are mapped; display-P3 and color-mix enhancements are omitted.
 - No general motion scale or formal Radix principle catalog is invented; principles below condense published guidance.
-- Focus-ring styling and accent surface colors remain component-specific; no generic selected-surface contrast contract is claimed.
+- `color.monet.accent-tint` is an opaque violet-3 Monet choice, not Radix’s translucent `--violet-surface`. Light-mode mauve backgrounds/surfaces depart from Radix’s white background/solid panel and translucent surface recipes.
+- Focus-ring styling remains component-specific; no generic selected-surface contrast contract is claimed.
+- Card variants include ghost in the pinned prop definition. Card/Table general avoidance lists remain empty where the evidence supplies none; this produces two coverage warnings.
 - Only five components and two compositions are covered; consult upstream for all other decisions.
 
 ### Carbon Product
@@ -61,6 +64,7 @@ Square controls and disciplined hierarchy for complex, data-rich tools. Blue acc
 
 [Exact records and per-token provenance](../presets/catalog/carbon-product.json).
 
+- Cards use the documented 4px radius. Square text inputs select the `enable-v12-release` disabled branch; the enabled branch uses 4px corners and a full gradient border. Buttons retain square corners.
 - White and Gray 100 are flattened into Profile modes; alternate Gray 10/90 configurations are omitted.
 - One layer context is selected. Recursive layer switching and dynamic theme algorithms are not represented.
 - IBM Plex family references retain upstream fallbacks; font binaries are not included, so installed fonts affect appearance.
@@ -85,7 +89,8 @@ Readable public-service pages with strong form and accessibility guidance. Light
 - Monet chooses documented local system/Georgia font stacks and an unadjusted subset of the system type scale; this is not default Source Sans Pro/Merriweather font-metric output.
 - No fonts, icons, government banner, identifier, seal, logo or official-government claim is included.
 - Runtime accessibility, responsive templates, complete form workflows and component code are not included.
-- No general motion scale is invented. Only a documented shadow utility example is included.
+- `font.size.md` is Monet’s 16px body alias, not USWDS’s md step (17px). `font.weight.regular` maps the upstream normal setting. The gray-cool-50 generic border is an explicit Monet role choice.
+- Spacing freezes pixel equivalents at a 16px reference root. One shadow recipe comes from the actual property table and unit definitions; no component elevation policy or motion scale is invented.
 - Only five component decisions and two form compositions are included; this does not certify an application accessible.
 
 ## Evidence and licensing
@@ -115,7 +120,11 @@ Every copied Profile includes:
 
 **Agent context** and **Export** display the retained snapshot and offer a download
 containing provenance and full notices. These are reads of this Profile's saved
-snapshot, so they keep working after a preset update/removal. Knowledge forks retain
+snapshot, so they keep working after a preset update/removal. If `PRESET.json` is
+removed from a published Profile, the UI explains the missing provenance while
+normal design records remain usable; it never substitutes today’s catalog. Interrupted
+publication still requires intact evidence. Generated `DESIGN_SYSTEM.md` links to
+the provenance and license sidecars on creation or the next ordinary export write. Knowledge forks retain
 both files. Record prose and source metadata also identify the adaptation in MCP
 context and generated design-system documents. When redistributing adapted records,
 include applicable notices with the exported material; standalone token/Markdown
@@ -162,7 +171,9 @@ Validation now checks Foundation modes even for Profiles with no compatibility
 Theme, using the existing shared resolver and contrast contracts. Carbon intentionally
 reports two light-mode margin warnings: its link/error text on layer 01 meets the
 4.5:1 floor but misses Monet's 4.75:1 derived-role margin. No token is silently altered
-to erase a warning. Radix and USWDS yield no findings for the included records.
+to erase a warning. Radix reports two component coverage warnings because Card/Table
+avoidance lists are empty; unsupported recommendations were removed. USWDS yields
+no findings for the included records.
 
 ## Maintenance and limits
 

@@ -4,8 +4,8 @@
     "monet_schema": 1,
     "id": "radix-product",
     "name": "Radix Product",
-    "version": "1.0.0",
-    "adaptation_version": "1.0.0",
+    "version": "2.0.0",
+    "adaptation_version": "2.0.0",
     "description": "Rounded, quiet controls with a violet accent and balanced spacing.",
     "best_for": [
       "SaaS applications",
@@ -52,8 +52,10 @@
       "No Radix runtime, keyboard implementation, icons, font binaries or local font-metric patches.",
       "sRGB fallback shadows are mapped; display-P3 and color-mix enhancements are omitted.",
       "No general motion scale or formal Radix principle catalog is invented; principles below condense published guidance.",
-      "Focus-ring styling and accent surface colors remain component-specific; no generic selected-surface contrast contract is claimed.",
-      "Only five components and two compositions are covered; consult upstream for all other decisions."
+      "Focus-ring styling remains component-specific. color.monet.accent-tint is Monet’s opaque violet-3 choice, not Radix --accent-surface / --violet-surface; no generic selected-surface contrast contract is claimed.",
+      "Only five components and two compositions are covered; consult upstream for all other decisions.",
+      "The opaque mauve-derived light background and surface differ from Radix’s documented white background/solid panel and translucent surface. Dark opaque gray-1/gray-2 choices do not implement translucent panels.",
+      "The included Card and Table evidence does not establish general avoidance lists. Those lists remain empty, producing two selected-component coverage warnings; the source-backed notes and usage remain available."
     ],
     "sources": [
       {
@@ -223,6 +225,13 @@
         "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
         "sha256": "43836e10c22b7489a1481c10e1078f72d0e7405dd99775c07b4ca185c859d138",
         "license": "MIT"
+      },
+      {
+        "id": "source-025",
+        "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/card.props.tsx",
+        "revision": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+        "sha256": "e0a235c62fef9eceee6eb1a79417613d3b1cdcb8bf9e67f265d433b5eec495ab",
+        "license": "MIT"
       }
     ],
     "provenance": [
@@ -251,7 +260,7 @@
           "source-005",
           "source-011"
         ],
-        "explanation": "Monet selects violet and mauve from Radix Colors. Step 9 supplies the solid accent, 11/12 text, and low steps surfaces. Roles are adapted for this Profile; component-specific focus and alpha borders remain separately named."
+        "explanation": "Monet selects violet and mauve from Radix Colors. Step 9 supplies the solid accent and steps 11/12 text. The opaque mauve-1 background and mauve-2 surface depart from Radix light-mode white background/solid panel and translucent surface values. color.monet.accent-tint is an opaque violet-3 adaptation, not Radix --accent-surface. Component focus and alpha-border recipes remain separately scoped."
       },
       {
         "record": "token:color.mauve.1",
@@ -477,7 +486,7 @@
           "source-005",
           "source-011"
         ],
-        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+        "explanation": "Monet chooses mauve step 1 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-1; this role does not reproduce translucent panel/surface styling."
       },
       {
         "record": "token:color.surface",
@@ -487,7 +496,7 @@
           "source-005",
           "source-011"
         ],
-        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+        "explanation": "Monet chooses mauve step 2 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-2; this role does not reproduce translucent panel/surface styling."
       },
       {
         "record": "token:color.surface.hover",
@@ -510,14 +519,15 @@
         "explanation": "Monet role mapping for the selected violet/mauve configuration. "
       },
       {
-        "record": "token:color.radix.accent-surface",
+        "record": "token:color.monet.accent-tint",
         "kind": "monet-adaptation",
         "sources": [
           "source-004",
           "source-005",
-          "source-011"
+          "source-011",
+          "source-015"
         ],
-        "explanation": "Monet role mapping for the selected violet/mauve configuration. "
+        "explanation": "Monet-selected opaque violet step 3 tint, resolved through the light/dark Colors scale. This is not Radix --accent-surface or --violet-surface, whose sRGB values are #f9f6ffcc and #25193980. No generic selected-surface contrast contract is claimed."
       },
       {
         "record": "token:color.foreground",
@@ -1082,7 +1092,7 @@
         "sources": [
           "source-020"
         ],
-        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
       },
       {
         "record": "component:dialog",
@@ -1097,9 +1107,10 @@
         "record": "component:card",
         "kind": "monet-adaptation",
         "sources": [
-          "source-022"
+          "source-022",
+          "source-025"
         ],
-        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
       },
       {
         "record": "pattern:focused-editing",
@@ -1113,13 +1124,13 @@
       },
       {
         "record": "pattern:structured-summary",
-        "kind": "monet-adaptation",
+        "kind": "monet-authored",
         "sources": [
           "source-022",
           "source-020",
           "source-014"
         ],
-        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+        "explanation": "Monet composition of the cited component guidance; no additional upstream rule is claimed."
       },
       {
         "record": "source:radix-product",
@@ -1153,7 +1164,7 @@
         "status": "selected",
         "description": "Violet accent and mauve neutral scales in both modes.",
         "rationale": "Monet adaptation of Radix for this preset configuration.",
-        "guidance": "Monet selects violet and mauve from Radix Colors. Step 9 supplies the solid accent, 11/12 text, and low steps surfaces. Roles are adapted for this Profile; component-specific focus and alpha borders remain separately named.",
+        "guidance": "Monet selects violet and mauve from Radix Colors. Step 9 supplies the solid accent and steps 11/12 text. The opaque mauve-1 background and mauve-2 surface depart from Radix light-mode white background/solid panel and translucent surface values. color.monet.accent-tint is an opaque violet-3 adaptation, not Radix --accent-surface. Component focus and alpha-border recipes remain separately scoped.",
         "notes": "Provenance: [source-004](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/light.ts) [source-005](https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/src/dark.ts) [source-011](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/styles/tokens/color.css)",
         "order": 0,
         "tokens": [
@@ -1476,7 +1487,7 @@
             "type": "color",
             "level": "semantic",
             "value": "{color.mauve.1}",
-            "description": "Monet adaptation: color.mauve.1. Monet role mapping for the selected violet/mauve configuration. ",
+            "description": "Monet adaptation: Monet chooses mauve step 1 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-1; this role does not reproduce translucent panel/surface styling.",
             "order": 24
           },
           {
@@ -1486,7 +1497,7 @@
             "type": "color",
             "level": "semantic",
             "value": "{color.mauve.2}",
-            "description": "Monet adaptation: color.mauve.2. Monet role mapping for the selected violet/mauve configuration. ",
+            "description": "Monet adaptation: Monet chooses mauve step 2 as an opaque Profile role. In light mode this departs from Radix color-background and color-panel-solid (white); Radix color-surface is translucent white. In dark mode the chosen steps correspond to gray-2; this role does not reproduce translucent panel/surface styling.",
             "order": 25
           },
           {
@@ -1510,13 +1521,13 @@
             "order": 27
           },
           {
-            "id": "color-radix-accent-surface",
-            "name": "color.radix.accent-surface",
+            "id": "color-monet-accent-tint",
+            "name": "color.monet.accent-tint",
             "foundation": "color",
             "type": "color",
             "level": "semantic",
             "value": "{color.violet.3}",
-            "description": "Monet adaptation: color.violet.3. Monet role mapping for the selected violet/mauve configuration. ",
+            "description": "Monet adaptation: Monet-selected opaque violet step 3 tint, resolved through the light/dark Colors scale. This is not Radix --accent-surface or --violet-surface, whose sRGB values are #f9f6ffcc and #25193980. No generic selected-surface contrast contract is claimed.",
             "order": 28
           },
           {
@@ -2307,14 +2318,12 @@
         },
         "behavior": {},
         "rationale": "Semantic rows and columns for related values.",
-        "notes": "Monet adaptation of Radix: Use headers to identify each column or row. Surface and ghost variants and numeric cell alignment are documented. Sorting, selection and pagination behavior are not supplied by this preset.\n\n[source-020](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx)",
+        "notes": "Monet adaptation of Radix: Use Table.ColumnHeaderCell and Table.RowHeaderCell for column and row headers. The Cell API uses justify to distribute horizontal space. The documented surface variant adds a backplate. This preset supplies no numeric-alignment recommendation or sorting, selection and pagination behavior.\n\n[source-020](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx)",
         "use_when": [
           "Comparing structured rows",
           "Small data summaries"
         ],
-        "avoid_when": [
-          "A layout grid for unrelated content"
-        ],
+        "avoid_when": [],
         "foundations": [
           "color",
           "typography",
@@ -2366,14 +2375,12 @@
         },
         "behavior": {},
         "rationale": "A container for related content.",
-        "notes": "Monet adaptation of Radix: Surface, classic and ghost variants are available. A card may use asChild for a link or button; avoid nesting interactive controls inside a whole-card interactive target.\n\n[source-022](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx)",
+        "notes": "Monet adaptation of Radix: The pinned Card props define surface, classic and ghost variants, with surface as the default. Use asChild to render a card as a link or button with hover/focus styling.\n\n[source-022](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx) [source-025](https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/packages/radix-ui-themes/src/components/card.props.tsx)",
         "use_when": [
           "Grouping related content",
           "A navigable summary with one destination"
         ],
-        "avoid_when": [
-          "Adding a container around every sentence"
-        ],
+        "avoid_when": [],
         "foundations": [
           "color",
           "spacing",
@@ -2414,7 +2421,7 @@
         "id": "structured-summary",
         "title": "Structured summary",
         "summary": "Use containers and tables for related information.",
-        "body": "Monet adaptation of Radix guidance.\n\nGroup a related summary in a card and use a table only for genuinely tabular values. Preserve header semantics and number alignment. Keep spacing on the common scale; choose ghost styling when a second surface boundary would be redundant.\n\nSources: [source-022](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx) [source-020](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx) [source-014](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/layout.mdx)",
+        "body": "Monet authored composition using Radix guidance.\n\nGroup related content in a Card and show rows and columns in a Table with the documented header cells. Compose the surrounding layout with shared spacing props. This combination is a Monet-authored example; it specifies neither numeric alignment nor a ghost-style preference.\n\nSources: [source-022](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/card.mdx) [source-020](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/components/table.mdx) [source-014](https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/data/themes/docs/overview/layout.mdx)",
         "status": "selected",
         "tags": [
           "structured",
@@ -2443,7 +2450,7 @@
         "framework": "Framework-independent Monet adaptation",
         "package": "",
         "license": "MIT",
-        "notes": "Adapted by Monet from Radix. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset radix-product@1.0.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
+        "notes": "Adapted by Monet from Radix. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset radix-product@2.0.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
         "enabled": true,
         "mappings": [
           {

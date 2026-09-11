@@ -46,7 +46,7 @@ it.each(ids)("instantiates %s deterministically with complete, independently edi
   expect(workspace.modes).toEqual(a.detail.supported_modes);
   const findings = validateWorkspace(workspace);
   expect(findings.filter((f) => f.level === "error")).toEqual([]);
-  expect(findings).toHaveLength(id === "carbon-product" ? 2 : 0);
+  expect(findings).toHaveLength(id === "uswds-public-service" ? 0 : 2);
   expect(workspace.foundations).toEqual(a.detail.records.foundations);
   expect(workspace.principles).toEqual(a.detail.records.principles);
   expect(workspace.components).toEqual(a.detail.records.components);
@@ -66,6 +66,7 @@ it.each(ids)("instantiates %s deterministically with complete, independently edi
   }
   if (id === "uswds-public-service") expect((await service.getWorkspace(undefined, "dark")).activeMode).toBe("light");
   const receipt = await withProfile(a.scope, readPresetReceipt);
+  expect(await readFile(path.join(a.registration.root, "DESIGN_SYSTEM.md"), "utf8")).toContain("[PRESET-LICENSES.txt](PRESET-LICENSES.txt)");
   expect(receipt?.manifest).toEqual(a.detail.manifest);
   expect(await readFile(path.join(a.registration.root, "PRESET-LICENSES.txt"), "utf8")).toContain(a.detail.manifest.notices[0]!.text);
   for (const source of a.detail.manifest.sources) {
@@ -98,7 +99,7 @@ async function alteredCatalog(mutate: (bundle: PresetPackage) => void): Promise<
 
 it("catalog updates/removal never mutate existing Profiles, their exports or their retained attribution", async () => {
   const a = await create(ids[0]!); const before = await readFile(path.join(a.registration.root, "DESIGN_SYSTEM.md"));
-  const changed = await alteredCatalog((b) => { b.manifest.version = "1.1.0"; b.records.principles[0]!.title = "Changed future preset"; });
+  const changed = await alteredCatalog((b) => { b.manifest.version = "2.1.0"; b.records.principles[0]!.title = "Changed future preset"; });
   registry.presets = changed.catalog;
   await expect(registry.create({ name: "Stale preview", kind: "preset", preset: a.detail.selection })).rejects.toThrow(/unavailable or changed/);
   const future = await registry.create({ name: "New version", kind: "preset", preset: changed.selection });
@@ -107,7 +108,7 @@ it("catalog updates/removal never mutate existing Profiles, their exports or the
   await rm(changed.directory, { recursive: true });
   const reopened = new ProfileRegistry(registry.directory, changed.catalog); await reopened.open(root);
   expect((await readFile(path.join(a.registration.root, "DESIGN_SYSTEM.md"))).equals(before)).toBe(true);
-  expect((await withProfile(await reopened.scope(a.registration.identity.id), readPresetReceipt))?.selection.version).toBe("1.0.0");
+  expect((await withProfile(await reopened.scope(a.registration.identity.id), readPresetReceipt))?.selection.version).toBe(a.detail.selection.version);
 });
 
 const corruptions: [string, (bundle: PresetPackage) => void][] = [
@@ -169,14 +170,15 @@ it.each(["seed", "pending", "registry"] as const)("recovers interrupted preset c
   }
   expect(reopened.list().profiles).toHaveLength(2);
   const profile = reopened.list().profiles[1]!;
-  expect(validateWorkspace(await createProfileService(await reopened.scope(profile.identity.id)).getWorkspace())).toEqual([]);
+  expect(validateWorkspace(await createProfileService(await reopened.scope(profile.identity.id)).getWorkspace()).filter((f) => f.level === "error")).toEqual([]);
   expect(await readFile(path.join(profile.root, "PRESET-LICENSES.txt"), "utf8")).toContain("MIT License");
 });
-it.each(["record", "missing notice", "provenance", "identity"])("retains interrupted publication evidence when %s is corrupted", async (kind) => {
+it.each(["record", "missing notice", "missing provenance", "provenance", "identity"])("retains interrupted publication evidence when %s is corrupted", async (kind) => {
   await interrupt("pending");
   const pending = JSON.parse(await readFile(path.join(registry.directory, "pending-profile.json"), "utf8")) as { stage: string };
   if (kind === "record") await writeFile(path.join(pending.stage, "foundations/color.json"), "{}");
   if (kind === "missing notice") await rm(path.join(pending.stage, "PRESET-LICENSES.txt"));
+  if (kind === "missing provenance") await rm(path.join(pending.stage, "PRESET.json"));
   if (kind === "provenance") await writeFile(path.join(pending.stage, "PRESET.json"), "{}");
   if (kind === "identity") {
     const file = path.join(pending.stage, "profile.json"), identity = JSON.parse(await readFile(file, "utf8"));
@@ -184,6 +186,19 @@ it.each(["record", "missing notice", "provenance", "identity"])("retains interru
   }
   await expect(new ProfileRegistry(registry.directory).open(root)).rejects.toThrow(/evidence retained/);
   expect(await readFile(path.join(registry.directory, "pending-profile.json"), "utf8")).toContain("Interrupted");
+});
+
+it("keeps a published Profile usable after intentional provenance removal without inventing a replacement snapshot", async () => {
+  const a = await create("radix-product");
+  const before = await createProfileService(a.scope).getWorkspace();
+  await rm(path.join(a.registration.root, "PRESET.json"));
+  await expect(withProfile(a.scope, readPresetReceipt)).rejects.toMatchObject({ status: 410, message: expect.stringContaining("Your design records are still usable") });
+  const reopened = new ProfileRegistry(registry.directory); await reopened.open(root);
+  expect(reopened.list().profiles.find((p) => p.identity.id === a.registration.identity.id)?.unavailable).toBeUndefined();
+  const after = await createProfileService(await reopened.scope(a.registration.identity.id)).getWorkspace();
+  expect(after.foundations).toEqual(before.foundations); expect(after.components).toEqual(before.components);
+  expect(await readFile(path.join(a.registration.root, "PRESET-LICENSES.txt"), "utf8")).toContain("MIT License");
+  await expect(readFile(path.join(a.registration.root, "PRESET.json"))).rejects.toMatchObject({ code: "ENOENT" });
 });
 
 it.each(["before publication", "pending publication"])("resumes inline preset onboarding after %s with the pinned identity and version", async (boundary) => {

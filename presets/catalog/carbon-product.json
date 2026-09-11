@@ -4,8 +4,8 @@
     "monet_schema": 1,
     "id": "carbon-product",
     "name": "Carbon Product",
-    "version": "1.0.0",
-    "adaptation_version": "1.0.0",
+    "version": "1.1.0",
+    "adaptation_version": "1.1.0",
     "description": "Square controls and disciplined hierarchy for complex, data-rich tools.",
     "best_for": [
       "Data-heavy applications",
@@ -44,7 +44,7 @@
       {
         "title": "Adaptation and source notices",
         "source_url": "https://github.com/carbon-design-system/carbon/tree/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
-        "text": "Copyright IBM Corp. 2018, 2026 (token/type source files); Copyright IBM Corp. 2016, 2026 (type mixins and text input); Copyright IBM Corp. 2016, 2023 (button variables); Copyright IBM Corp. 2021 (box-shadow utility). Modified by Monet: selected and renamed records, resolved color aliases, converted mini-units, condensed guidance, and flattened White/Gray 100 into modes. No upstream NOTICE file was present in the inspected Carbon and Carbon website source trees."
+        "text": "Copyright IBM Corp. 2018, 2026 (token/type source files); Copyright IBM Corp. 2016, 2026 (button/_mixins.scss and text-input/_text-input.scss); Copyright IBM Corp. 2016, 2023 (button variables); Copyright IBM Corp. 2021 (box-shadow utility). Modified by Monet: selected and renamed records, resolved color aliases, converted mini-units, mapped the 4px card radius, selected the non-v12 text-input branch, condensed guidance, and flattened White/Gray 100 into modes. No upstream NOTICE file was present in the inspected Carbon and Carbon website source trees."
       }
     ],
     "omissions": [
@@ -54,7 +54,8 @@
       "No components, icons, pictograms, brand assets or runtime accessibility behavior are bundled.",
       "Productive fixed typography is selected; expressive/fluid type, full responsive grids and motion choreography remain references.",
       "Only five component decisions and two compositions are included.",
-      "Inherited light-mode link and error text on layer 01 each measure about 4.55:1: above the 4.5:1 text floor, below Monet’s 4.75:1 margin. These produce two validation warnings; upstream colors are preserved."
+      "Inherited light-mode link and error text on layer 01 each measure about 4.55:1: above the 4.5:1 text floor, below Monet’s 4.75:1 margin. These produce two validation warnings; upstream colors are preserved.",
+      "Square text-input and bottom-border guidance assumes enable-v12-release is disabled in the pinned Carbon stylesheet. The enabled branch uses 4px rounding and a full gradient border. radius.card separately follows the documented 4px card default."
     ],
     "sources": [
       {
@@ -747,9 +748,12 @@
         "record": "foundation:radius",
         "kind": "monet-adaptation",
         "sources": [
-          "source-017"
+          "source-006",
+          "source-017",
+          "source-018",
+          "source-019"
         ],
-        "explanation": "Select the square Carbon button/input treatment; any nonzero radius token elsewhere in Carbon does not redefine this control choice."
+        "explanation": "The button keeps its explicit 0px radius. Text-input guidance selects the non-v12-release branch of the pinned stylesheet (enable-v12-release disabled); the enabled branch uses border-radius-04 and a different border treatment. Cards use the documented border-radius-04 default, mapped to radius.card = 4px."
       },
       {
         "record": "token:radius.control",
@@ -766,7 +770,7 @@
         "sources": [
           "source-006"
         ],
-        "explanation": "Monet preview uses square panels to illustrate this productive configuration."
+        "explanation": "Map Carbon layout border-radius-04 ($value 4, documented default for cards) to the Monet radius.card role. Fixed px output; not a copy of the square button radius."
       },
       {
         "record": "foundation:elevation",
@@ -894,7 +898,7 @@
           "source-004",
           "source-005"
         ],
-        "explanation": "Use the chosen layer context for dividers. Carbon text inputs use a field fill and bottom border; do not turn every field into a rounded outlined control."
+        "explanation": "With enable-v12-release disabled, the pinned text-input stylesheet uses a field fill and bottom border. The enabled v12 branch instead uses 4px rounding and a full gradient border. Use layer-aware dividers in the selected context."
       },
       {
         "record": "taxonomy:interface",
@@ -918,7 +922,7 @@
           "source-020",
           "source-019"
         ],
-        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
       },
       {
         "record": "component:data-table",
@@ -934,7 +938,7 @@
         "sources": [
           "source-021"
         ],
-        "explanation": "Reviewed selection and condensed usage/state guidance. Preferences select only documented variants; behavior booleans describe obligations, not runtime implementations."
+        "explanation": "Notes condense the cited component evidence. Applicability lists and native grouping are Monet editorial choices, not additional upstream prohibitions."
       },
       {
         "record": "component:notification",
@@ -962,7 +966,7 @@
           "source-020",
           "source-013"
         ],
-        "explanation": "Condensed composition guidance and Monet retrieval links; not a new upstream pattern specification."
+        "explanation": "Monet composition of the cited component guidance; no additional upstream rule is claimed."
       },
       {
         "record": "source:carbon-product",
@@ -1652,8 +1656,8 @@
         "status": "selected",
         "description": "Square productive controls.",
         "rationale": "Monet adaptation of Carbon for this preset configuration.",
-        "guidance": "Select the square Carbon button/input treatment; any nonzero radius token elsewhere in Carbon does not redefine this control choice.",
-        "notes": "Provenance: [source-017](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/button/_mixins.scss)",
+        "guidance": "The button keeps its explicit 0px radius. Text-input guidance selects the non-v12-release branch of the pinned stylesheet (enable-v12-release disabled); the enabled branch uses border-radius-04 and a different border treatment. Cards use the documented border-radius-04 default, mapped to radius.card = 4px.",
+        "notes": "Provenance: [source-006](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/layout/src/dtcg/layout.json) [source-017](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/button/_mixins.scss) [source-018](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/button/_vars.scss) [source-019](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss)",
         "order": 3,
         "tokens": [
           {
@@ -1672,8 +1676,8 @@
             "foundation": "radius",
             "type": "dimension",
             "level": "semantic",
-            "value": "{radius.control}",
-            "description": "Monet adaptation: radius.control. Monet preview uses square panels to illustrate this productive configuration.",
+            "value": "4px",
+            "description": "Monet adaptation: Map Carbon layout border-radius-04 ($value 4, documented default for cards) to the Monet radius.card role. Fixed px output; not a copy of the square button radius.",
             "order": 1
           }
         ],
@@ -1837,7 +1841,7 @@
         "status": "selected",
         "description": "Layer-aware dividers and input underlines.",
         "rationale": "Monet adaptation of Carbon for this preset configuration.",
-        "guidance": "Use the chosen layer context for dividers. Carbon text inputs use a field fill and bottom border; do not turn every field into a rounded outlined control.",
+        "guidance": "With enable-v12-release disabled, the pinned text-input stylesheet uses a field fill and bottom border. The enabled v12 branch instead uses 4px rounding and a full gradient border. Use layer-aware dividers in the selected context.",
         "notes": "Provenance: [source-019](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss) [source-004](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/white.json) [source-005](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/themes/src/dtcg/g100.json)",
         "order": 7,
         "tokens": [],
@@ -1942,7 +1946,7 @@
         },
         "behavior": {},
         "rationale": "Labeled single-line entry with helper and error context.",
-        "notes": "Monet adaptation of Carbon: Keep a visible label; placeholders are examples, not a label replacement. Show relevant helper text and an actionable invalid-state message. Disabled and read-only states have different behavior and must not be conflated.\n\n[source-020](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx) [source-019](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss)",
+        "notes": "Monet adaptation of Carbon: Configuration: enable-v12-release disabled. This selects the square field with a bottom border; the v12-enabled branch uses border-radius-04 and a full gradient border. Keep a visible label; placeholders are examples, not a label replacement. Show helper text and actionable invalid-state messages. Disabled and read-only states differ.\n\n[source-020](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx) [source-019](https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/packages/styles/scss/components/text-input/_text-input.scss)",
         "use_when": [
           "Short freeform input",
           "Values not represented by a fixed choice list"
@@ -2001,13 +2005,12 @@
         "preferences": {},
         "behavior": {},
         "rationale": "An interruption for a short, focused task.",
-        "notes": "Monet adaptation of Carbon: Choose passive, transactional or danger modal according to the task. Provide a clear heading and closing behavior, preserve focus, and keep the work brief. Avoid nesting modals or using them as a substitute for a full workflow.\n\n[source-021](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx)",
+        "notes": "Monet adaptation of Carbon: Choose passive, transactional or danger modals according to the task. Provide a clear heading and closing behavior, preserve focus, and use modals for short, non-frequent tasks.\n\n[source-021](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx)",
         "use_when": [
           "Confirmation or short focused entry",
           "A consequential decision requiring attention"
         ],
         "avoid_when": [
-          "Nested modals",
           "Long workflows"
         ],
         "foundations": [
@@ -2081,7 +2084,7 @@
         "id": "transactional-dialog",
         "title": "Transactional dialog",
         "summary": "Keep a focused transaction brief and understandable.",
-        "body": "Monet adaptation of Carbon guidance.\n\nUse a transactional modal for a short operation. Give inputs visible labels and actionable errors. Pair the principal action with a negative action in the documented modal arrangement. Use the danger treatment for a destructive transaction; do not nest dialogs.\n\nSources: [source-021](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx) [source-020](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx) [source-013](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx)",
+        "body": "Monet adaptation composition using Carbon guidance.\n\nUse a transactional modal for a short operation. Give inputs visible labels and actionable errors. Pair the primary and cancel actions in the documented modal arrangement. Use the danger treatment for destructive or irreversible actions.\n\nSources: [source-021](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/modal/usage.mdx) [source-020](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/text-input/usage.mdx) [source-013](https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/src/pages/components/button/usage.mdx)",
         "status": "selected",
         "tags": [
           "transactional",
@@ -2111,7 +2114,7 @@
         "framework": "Framework-independent Monet adaptation",
         "package": "",
         "license": "Apache-2.0",
-        "notes": "Adapted by Monet from Carbon. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset carbon-product@1.0.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
+        "notes": "Adapted by Monet from Carbon. Independent, unofficial starting records; no upstream endorsement. No fonts, icons, logos or runtime components are bundled. Preset carbon-product@1.1.0. Snapshot provenance and full notices are in PRESET.json and PRESET-LICENSES.txt; original record/file hashes identify the seed, not subsequent edits.",
         "enabled": true,
         "mappings": [
           {
