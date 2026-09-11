@@ -1,0 +1,236 @@
+{
+  "researched_at": "2026-09-11",
+  "repositories": [
+    {
+      "repository": "https://github.com/VoltAgent/awesome-design-md",
+      "commit": "8147538b4226ae41e2487a9179e3bcc1f68e8554",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/VoltAgent/awesome-design-md/blob/8147538b4226ae41e2487a9179e3bcc1f68e8554/LICENSE",
+          "sha256": "6d4bdc9a9cf30e7beb593475fdcdbf29f981ea6bd7923f202866145409f87b44"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/VoltAgent/official-design-md",
+      "commit": "e626bc0584acbfab3c541449cf248309d24fd404",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/VoltAgent/official-design-md/blob/e626bc0584acbfab3c541449cf248309d24fd404/LICENSE",
+          "sha256": "1f17e8ed6baa1f297cfc7d319f179be129dc3ed96e800285e7b202a8f1541d87"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/adobe/spectrum-design-data",
+      "commit": "282fc49fb452534367f58632eca6f5e75c234f9c",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/adobe/spectrum-design-data/blob/282fc49fb452534367f58632eca6f5e75c234f9c/LICENSE",
+          "sha256": "981250df8283f951cb49f9cdcaa405d49e0313b0d4f3cd174d25f709f802cfba"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/adobe/spectrum-tokens",
+      "commit": "1c78755d138ecd340cce5b7bcd260526d854456b",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/adobe/spectrum-tokens/blob/1c78755d138ecd340cce5b7bcd260526d854456b/LICENSE",
+          "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/alphagov/govuk-frontend",
+      "commit": "5b32143a64f731d53815f23724c2c025bfbec3a9",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE.txt",
+          "url": "https://github.com/alphagov/govuk-frontend/blob/5b32143a64f731d53815f23724c2c025bfbec3a9/LICENSE.txt",
+          "sha256": "c652f35b1f2e5b88eb49f1e8a935eec79b4761a81666ace576e1af723f4a9238"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/ant-design/ant-design",
+      "commit": "46d905e53182f68684d7d8745e263538ce3e4534",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/ant-design/ant-design/blob/46d905e53182f68684d7d8745e263538ce3e4534/LICENSE",
+          "sha256": "3c82654bb472ebbcacc4c1ff00f94aa8c60c4b7ee011b16bafcbacecc3703458"
+        }
+      ],
+      "notice_paths_in_tree": [
+        "components/calendar/demo/notice-calendar.md",
+        "components/calendar/demo/notice-calendar.tsx"
+      ]
+    },
+    {
+      "repository": "https://github.com/carbon-design-system/carbon",
+      "commit": "9ccc72cf1d0de422dec37e7d6ae360b64b3457d3",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/carbon-design-system/carbon/blob/9ccc72cf1d0de422dec37e7d6ae360b64b3457d3/LICENSE",
+          "sha256": "037b3e9eaff51477b270e9082f54b99175e4dd893548654f00995045b68294b8"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/carbon-design-system/carbon-website",
+      "commit": "ea81028857791c9bc5004ee9ae6e82e3e654dfc3",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/carbon-design-system/carbon-website/blob/ea81028857791c9bc5004ee9ae6e82e3e654dfc3/LICENSE",
+          "sha256": "7749dad2a05e8128db54576d334a14c117ca7b1ed882205d2b729ec736ccb6c6"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/google-labs-code/design.md",
+      "commit": "9bf8eae67128b6cc55ad9bf86665767deb4c11cd",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/google-labs-code/design.md/blob/9bf8eae67128b6cc55ad9bf86665767deb4c11cd/LICENSE",
+          "sha256": "1bdd03995456d191707e379eb06ceac20cf30d520bec90c97c2b6d220906c66e"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/material-components/material-web",
+      "commit": "69cd41f33485abcda826a9de745da56bd9b6509d",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/material-components/material-web/blob/69cd41f33485abcda826a9de745da56bd9b6509d/LICENSE",
+          "sha256": "295cdb4364b782931c914f5ca8c47fac87c732fa7e448b788a47aa5b25728212"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/microsoft/fluentui",
+      "commit": "50ddff229c17309fc85536e6a8a8e0657e800252",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/microsoft/fluentui/blob/50ddff229c17309fc85536e6a8a8e0657e800252/LICENSE",
+          "sha256": "1434c6b2a8417d41e4db20ff3b772888e66a0069e20d928f83fa1390f44758c7"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/primer/primitives",
+      "commit": "f48bc063f7bc0fb3e447386a8c259650ce46dea8",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/primer/primitives/blob/f48bc063f7bc0fb3e447386a8c259650ce46dea8/LICENSE",
+          "sha256": "e63582a78dddebe610b6cb59f0e7f5f761c1bb6a1c9551443beddc64fe525c3a"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/radix-ui/colors",
+      "commit": "dbdb85470547c7d34b9001f48fddb08ded335979",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/radix-ui/colors/blob/dbdb85470547c7d34b9001f48fddb08ded335979/LICENSE",
+          "sha256": "d981bc30e0d78b9ffc8f279fcaa274ea0444ff51d983548a609397d5c8a42dc2"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/radix-ui/themes",
+      "commit": "1faff10ac26ae17f09944d418c6949b93fc6b566",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/radix-ui/themes/blob/1faff10ac26ae17f09944d418c6949b93fc6b566/LICENSE",
+          "sha256": "89e4ae7d91c640c6e8a3ca90ba578d799eb2491b766ed65e0725ba36499d56ba"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/radix-ui/website",
+      "commit": "bb424082fd33fadc244a6dd276d3ced55caa6234",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/radix-ui/website/blob/bb424082fd33fadc244a6dd276d3ced55caa6234/LICENSE",
+          "sha256": "994fbe58bd49cde947dad5e9295a0e969b9de1ca6a292453b5d02b0af61999be"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/shadcn-ui/ui",
+      "commit": "3ba91b1cc83e1bbe4ab35a422ff2a694849c5048",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE.md",
+          "url": "https://github.com/shadcn-ui/ui/blob/3ba91b1cc83e1bbe4ab35a422ff2a694849c5048/LICENSE.md",
+          "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/tailwindlabs/tailwindcss",
+      "commit": "41d9cae8e53378d16087fcf359eb785c2fd42ce4",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE",
+          "url": "https://github.com/tailwindlabs/tailwindcss/blob/41d9cae8e53378d16087fcf359eb785c2fd42ce4/LICENSE",
+          "sha256": "60e0b68c0f35c078eef3a5d29419d0b03ff84ec1df9c3f9d6e39a519a5ae7985"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/uswds/uswds",
+      "commit": "a0f9d94081e052365611ebb3eb56fa269b3d52fd",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE.md",
+          "url": "https://github.com/uswds/uswds/blob/a0f9d94081e052365611ebb3eb56fa269b3d52fd/LICENSE.md",
+          "sha256": "536b003a2c541c5c9c00d9c715b9e2007591c3d2653f13dd53634d3de773ea09"
+        }
+      ],
+      "notice_paths_in_tree": []
+    },
+    {
+      "repository": "https://github.com/uswds/uswds-site",
+      "commit": "ffe2da7c59cf4e59881b1b0362a138440dd153ff",
+      "license_files_inspected": [
+        {
+          "path": "LICENSE.md",
+          "url": "https://github.com/uswds/uswds-site/blob/ffe2da7c59cf4e59881b1b0362a138440dd153ff/LICENSE.md",
+          "sha256": "3b2d52ce75f04547eb3fccf52992c57f98760326b6fb255ca18a6b65c29d6e64"
+        }
+      ],
+      "notice_paths_in_tree": []
+    }
+  ]
+}
